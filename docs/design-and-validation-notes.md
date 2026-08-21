@@ -312,5 +312,9 @@ files exit 1; guard-rail scope; palette ramp properties.
 - **No new dependencies.** Validation, tests and palette checks are all stdlib. The repository
   still has nothing to install.
 - **No `--strict` flag.** A bypass that exists will eventually be used. Strict is the only mode.
-- **No generated HTML committed.** The examples are JSON; the HTML is one command away and would
-  otherwise drift out of sync with the renderer.
+- **Generated preview HTML is committed deliberately.** It lets a first-time GitHub visitor inspect
+  the full report without installing the skill. Regenerate all four files after renderer changes:
+  `python3 scripts/build_report.py examples/interview-report.json -o examples/generated/interview-report.html`
+  and the equivalent Chinese Interview plus English and Chinese Tutorial commands. The test suite checks every committed file byte-for-byte
+  against fresh renderer output. When the report's visual structure changes materially, recapture
+  the README screenshots in `assets/` from those generated HTML files.

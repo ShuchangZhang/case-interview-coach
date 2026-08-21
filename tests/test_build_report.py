@@ -60,6 +60,18 @@ class ExampleTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("Case Interview Learning Report", html)
 
+    def test_chinese_tutorial_example_renders(self):
+        proc, html = render(os.path.join(EXAMPLES, "tutorial-report.zh-CN.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Case Interview 学习报告", html)
+        self.assertIn("能力评估", html)
+
+    def test_chinese_interview_example_renders(self):
+        proc, html = render(os.path.join(EXAMPLES, "interview-report.zh-CN.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Case Interview 表现报告", html)
+        self.assertIn("最终建议对比", html)
+
     def test_example_flag_is_cwd_independent(self):
         """--example must resolve from the script, not the caller's directory."""
         with tempfile.TemporaryDirectory() as tmp:
@@ -73,6 +85,20 @@ class ExampleTests(unittest.TestCase):
             proc = run(["--skill-root", "-o", "unused"], cwd=tmp)
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout.strip(), ROOT)
+
+    def test_committed_html_previews_match_renderer_output(self):
+        """Published HTML previews must stay byte-identical to the real renderer."""
+        generated = os.path.join(EXAMPLES, "generated")
+        names = ("interview-report", "interview-report.zh-CN",
+                 "tutorial-report", "tutorial-report.zh-CN")
+        for name in names:
+            with self.subTest(example=name):
+                source = os.path.join(EXAMPLES, name + ".json")
+                committed = os.path.join(generated, name + ".html")
+                proc, fresh = render(source)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                with open(committed, encoding="utf-8") as f:
+                    self.assertEqual(f.read(), fresh)
 
 
 class ValidInputTests(unittest.TestCase):

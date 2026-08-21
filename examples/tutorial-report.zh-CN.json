@@ -1,0 +1,159 @@
+{
+  "language": "zh",
+  "session": {
+    "id": "example-tutorial-zh-001",
+    "date": "2026-08-21",
+    "mode": "tutorial",
+    "case_type": "盈利能力",
+    "industry": "连锁咖啡（虚构：晨屿咖啡）",
+    "difficulty": "入门",
+    "training_focus": "Structuring + 基础 Case Math",
+    "completion": "complete",
+    "assistance_start": "guided",
+    "assistance_end": "independent",
+    "independence_marker": {
+      "at": "Structuring 第 3 轮练习",
+      "note": "从这里开始，你要求不再获得提示。"
+    }
+  },
+  "headline": {
+    "learning_summary": "你已经能够独立完成第一层利润拆解和百分比计算，并从第 3 轮开始不再需要提示；目前的薄弱点是第二层结构，能够列出分支，但还不会主动说明应该先看哪一项。"
+  },
+  "dimensions": [
+    {
+      "name": "问题结构化",
+      "score": 6,
+      "tested": true,
+      "independence": "assisted",
+      "evidence": "第一层利润拆解已经稳定；第二层仍容易退回到通用框架。"
+    },
+    {
+      "name": "定量分析",
+      "score": 8,
+      "tested": true,
+      "independence": "independent",
+      "evidence": "三道计算均独立完成，并在计算前先说明公式和单位。"
+    },
+    {
+      "name": "商业判断与洞察",
+      "score": 5,
+      "tested": true,
+      "independence": "guided",
+      "evidence": "每次都需要提示，才会继续追问一个发现对客户意味着什么。"
+    },
+    {
+      "name": "Exhibit 解读",
+      "tested": false,
+      "score": null,
+      "evidence": "本次 Session 未练习。"
+    },
+    {
+      "name": "沟通",
+      "score": 6.5,
+      "tested": true,
+      "independence": "light",
+      "evidence": "表达清楚，但偶尔会先解释方法，再给出答案。"
+    },
+    {
+      "name": "Synthesis / Recommendation",
+      "tested": false,
+      "score": null,
+      "evidence": "本次 Session 未练习。"
+    }
+  ],
+  "hints": {
+    "by_topic": [
+      {
+        "topic": "Structuring",
+        "sequence": ["Level 3", "Level 2", "Level 1", "Independent"],
+        "note": "四轮练习中提示强度持续下降，第 4 轮完全不需要提示，说明方法已经开始内化。"
+      },
+      {
+        "topic": "Case Math",
+        "sequence": ["Level 1", "Independent"],
+        "note": "第一次只提醒先写公式，后续没有再次需要提示。"
+      },
+      {
+        "topic": "Observation 到 Insight",
+        "sequence": ["Level 3", "Level 3"],
+        "note": "两次都需要给出部分答案，这是下一阶段最明确的训练重点。"
+      }
+    ]
+  },
+  "phases": {
+    "assisted": {
+      "covered": "第一层 profit tree、price × volume、百分比变化和单位追踪。",
+      "hints": "Structuring 先使用 Level 3，再降到 Level 2；Case Math 使用过一次 Level 1。",
+      "corrected": "第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。"
+    },
+    "independent": {
+      "covered": "Structuring 第 3、4 轮，以及两道 Case Math 题。",
+      "performance": "第 4 轮独立列出了客流、转化率、客单价和座位利用率等咖啡店特有的驱动因素，没有再套用通用框架。",
+      "mastered": "Revenue = price × volume；百分比变化；计算前检查单位一致性。",
+      "still_recurring": "列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。"
+    }
+  },
+  "key_moments": [
+    {
+      "stage": "第一次 Structuring 尝试",
+      "quote": "我会看市场、客户和竞争。",
+      "what_you_did": "直接调用了一个熟悉的通用框架。",
+      "intervention": "没有直接给出分支，而是问了两个问题：客户真正想解决什么，以及利润是如何计算的？",
+      "retry": "你改为从 profit = revenue - cost 出发，并将销量拆成客流 × 转化率。",
+      "learning": "结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。"
+    },
+    {
+      "stage": "第二道计算",
+      "what_you_did": "立即开始计算，并在中途失去了对单位的追踪。",
+      "intervention": "Level 1 提示：先写出最终答案应该使用的单位。",
+      "retry": "你从“每家门店每月利润”重新开始，反向确定所需输入。",
+      "learning": "先确定答案的单位，通常就能看清正确的计算路径。"
+    }
+  ],
+  "recurring_mistakes": [
+    {
+      "label": "列出分支但没有优先级",
+      "status": "new",
+      "note": "四轮 Structuring 中出现三次。分支质量在提高，但始终没有回答应该从哪里开始。"
+    },
+    {
+      "label": "读出数据后没有追问含义",
+      "status": "new",
+      "note": "两次 Observation-to-Insight 练习都停在描述层面。"
+    }
+  ],
+  "mastery": {
+    "independent": [
+      "Profit = revenue - cost 的第一层拆解",
+      "Revenue = price × volume",
+      "百分比变化与增长率",
+      "计算前先说明单位"
+    ],
+    "needs_help": [
+      "针对行业特点构建第二层结构",
+      "说明优先检查哪个分支以及理由",
+      "从 Observation 推导商业含义"
+    ]
+  },
+  "transferable_lessons": [
+    "从客户目标和业务算式构建结构，而不是套用已经背过的框架。",
+    "看到任何数据后，至少回答一次“所以呢？”。",
+    "先确定答案单位，计算路径通常会自然显现。"
+  ],
+  "next_priorities": [
+    {
+      "title": "分支优先级",
+      "current": "能够列出合理分支，但不会主动说明从哪里开始。",
+      "target": "展示任何结构后，都能在不被追问的情况下说出“我会先看 X，因为 Y”。",
+      "drill": "完成五轮 Structuring 练习。规则：没有明确第一个检查分支及理由，结构就不算完成；无法说明理由的分支应删除。",
+      "assistance": "前两轮使用 Light assistance，后三轮切换为 Independent。"
+    },
+    {
+      "title": "从 Observation 到 Insight",
+      "current": "能够稳定找到趋势，但还不能独立说明商业含义。",
+      "target": "独立完成 Observation → Why → Implication → Next step。",
+      "drill": "完成五轮 Exhibit 练习，每轮都必须完成上述四步。",
+      "assistance": "前两轮使用 Light assistance，后三轮使用 Independent。"
+    }
+  ]
+}

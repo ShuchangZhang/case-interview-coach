@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case Interview 学习报告</title>
+<style>
+:root{color-scheme:light;
+--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+--rule:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);
+--fill:#2a78d6;--track:#cde2fb;
+--o1:#86b6ef;--o2:#5598e7;--o3:#2a78d6;--o4:#104281;
+--good:#0ca30c;--warn:#fab219;--crit:#d03b3b;}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme=light])){
+color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+--rule:#2c2c2a;--axis:#383835;--ring:rgba(255,255,255,.10);
+--fill:#3987e5;--track:#184f95;
+--o1:#184f95;--o2:#256abf;--o3:#3987e5;--o4:#9ec5f4;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+font:16px/1.55 system-ui,-apple-system,"Segoe UI","Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+h1{font-size:1.6rem;line-height:1.25;margin:0 0 .3rem;letter-spacing:-.01em}
+h2{font-size:1.05rem;margin:0 0 .9rem;letter-spacing:.01em;text-transform:uppercase;
+color:var(--ink2);font-weight:650}
+h3{font-size:1rem;margin:0 0 .5rem}
+p{margin:0 0 .6rem}
+.sub{color:var(--ink2);margin:0 0 1.4rem;font-size:.95rem}
+.sec{background:var(--surface);border:1px solid var(--ring);border-radius:10px;
+padding:1.4rem 1.5rem;margin:0 0 1rem}
+.hero{padding:1.6rem 1.5rem}
+.badge{display:inline-block;font-size:.78rem;font-weight:650;letter-spacing:.03em;
+padding:.22rem .55rem;border-radius:4px;border:1px solid var(--ring);margin-left:.5rem;vertical-align:2px}
+.badge--ok{background:var(--track);color:var(--ink)}
+.badge--warn{background:transparent;border-color:var(--crit);color:var(--crit)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));
+gap:.85rem 1.2rem;margin:0 0 1.2rem;padding:0}
+.kv dt{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 .12rem}
+.kv dd{margin:0;font-size:.94rem;font-weight:600}
+.result{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;
+border-top:1px solid var(--rule);padding-top:1.1rem;margin-top:.2rem}
+.result__score{font-size:2.9rem;font-weight:680;line-height:1;letter-spacing:-.02em}
+.result__of{font-size:1rem;color:var(--muted);font-weight:400}
+.result__verdict{font-size:1.35rem;font-weight:650}
+.result__none{font-size:1.05rem;font-weight:600;color:var(--crit);line-height:1.4}
+.note{font-size:.85rem;color:var(--ink2);margin:.5rem 0 0;
+border-left:3px solid var(--axis);padding-left:.7rem}
+.lede{font-size:1.06rem;line-height:1.6;margin:1.1rem 0 0;padding-top:1rem;
+border-top:1px solid var(--rule)}
+.dim{padding:.7rem 0;border-bottom:1px solid var(--rule)}
+.dim:last-child{border-bottom:0}
+.dim__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:0 0 .38rem}
+.dim__name{font-weight:600}
+.dim__val b{font-size:1.05rem;font-variant-numeric:tabular-nums}
+.dim__of{color:var(--muted);font-size:.85rem}
+.dim__band{margin-left:.5rem;font-size:.85rem;color:var(--ink2)}
+.dim__na{font-size:.85rem;color:var(--muted);font-style:italic}
+.dim__ev{font-size:.88rem;color:var(--ink2);margin:.42rem 0 0}
+.meter__track{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
+.meter--empty .meter__track{background:transparent;border:1px dashed var(--axis);height:8px}
+.meter__fill{height:100%;background:var(--fill);border-radius:4px;
+box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
+.indep{display:flex;align-items:center;gap:.5rem;margin:.42rem 0 0}
+.indep__steps{display:inline-flex;gap:2px}
+.seg{width:14px;height:8px;border-radius:2px;background:transparent;
+border:1px solid var(--axis);display:inline-block}
+.seg--on{border-color:transparent}
+.seg--on[style*="--s:0"]{background:var(--o1)}
+.seg--on[style*="--s:1"]{background:var(--o2)}
+.seg--on[style*="--s:2"]{background:var(--o3)}
+.seg--on[style*="--s:3"]{background:var(--o4)}
+.indep__label{font-size:.83rem;color:var(--ink2)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.blist{margin:0;padding-left:1.05rem}
+.blist li{margin:0 0 .8rem}
+.blist__h{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap;margin:0 0 .18rem}
+.blist li b{font-weight:650}
+.blist li p{font-size:.93rem;color:var(--ink2);margin:0 0 .35rem}
+.tag{display:inline-block;font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;
+border:1px solid var(--ring);border-radius:3px;padding:.05rem .35rem;color:var(--ink2);white-space:nowrap}
+.moment{border-top:1px solid var(--rule);padding:1rem 0 .3rem}
+.moment:first-of-type{border-top:0;padding-top:0}
+.mgrid{margin:0}
+.mrow{display:grid;grid-template-columns:9.5rem 1fr;gap:.3rem 1rem;margin:0 0 .5rem}
+.mrow dt{font-size:.76rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding-top:.18rem}
+.mrow dd{margin:0;font-size:.94rem}
+.mrow dd p{margin:0 0 .4rem}
+.quote{margin:0 0 .8rem;padding:.45rem .8rem;border-left:3px solid var(--o2);
+background:var(--page);font-style:italic;color:var(--ink2);font-size:.93rem;border-radius:0 4px 4px 0}
+.hint{padding:.65rem 0;border-bottom:1px solid var(--rule)}
+.hint:last-child{border-bottom:0}
+.hint__topic{font-weight:600;margin:0 0 .35rem}
+.hint__seq{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.hstep{font-size:.83rem;border:1px solid var(--axis);border-radius:4px;padding:.13rem .5rem;color:var(--ink2)}
+.hstep--end{border-color:transparent;background:var(--o4);color:#fff;font-weight:600}
+.harrow{color:var(--muted);font-size:.85rem}
+.hint__note{font-size:.88rem;color:var(--ink2);margin:.35rem 0 0}
+.phase{border:1px solid var(--ring);border-radius:8px;padding:1rem 1.1rem;background:var(--page)}
+.phase h3{margin:0 0 .6rem;font-size:.95rem}
+.phase dt{font-size:.74rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.55rem 0 .1rem}
+.phase dd{margin:0;font-size:.93rem}
+.marker{font-size:.85rem;color:var(--ink2);margin:0 0 .9rem;padding:.45rem .7rem;
+border:1px dashed var(--axis);border-radius:6px}
+.tree{list-style:none;margin:.2rem 0 0;padding:0 0 0 .1rem}
+.tree ul{margin:.3rem 0 .3rem .2rem;padding:0 0 0 1rem;border-left:1px solid var(--axis)}
+.tree li{margin:.3rem 0;padding:0 0 0 .1rem}
+.tnode__l{font-weight:600;font-size:.94rem}
+.tnode__d{display:block;font-size:.88rem;color:var(--ink2)}
+.rec{border:1px solid var(--ring);border-radius:8px;padding:.9rem 1.05rem;margin:0 0 .8rem;background:var(--page)}
+.rec h3{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 .45rem}
+.rec--strong{border-left:3px solid var(--o3)}
+.issue{display:grid;grid-template-columns:12rem 1fr;gap:.25rem 1rem;margin:0 0 .45rem;font-size:.92rem}
+.issue dt{color:var(--ink2)}
+.issue dd{margin:0}
+.pri{border-top:1px solid var(--rule);padding:.95rem 0 .2rem}
+.pri:first-of-type{border-top:0;padding-top:0}
+.pri h3{margin:0 0 .5rem}
+.foot{color:var(--muted);font-size:.8rem;margin:1.6rem 0 0;text-align:center}
+@media (max-width:640px){
+.wrap{padding:1.5rem .9rem 3rem}.cols{grid-template-columns:1fr}
+.mrow{grid-template-columns:1fr;gap:.1rem}.issue{grid-template-columns:1fr;gap:.05rem}
+.result__score{font-size:2.3rem}}
+@media print{
+:root{color-scheme:light !important;--page:#fff;--surface:#fff;--ink:#000;--ink2:#333;
+--rule:#ddd;--axis:#999;--ring:#ccc;--fill:#2a78d6;--track:#e6eef8}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@page{size:A4;margin:14mm}
+body{font-size:10.5pt;background:#fff}
+.wrap{max-width:none;padding:0}
+.sec{border:1px solid #ddd;margin:0 0 8pt;padding:10pt 12pt}
+h2,h3{break-after:avoid;page-break-after:avoid}
+.hero{break-inside:avoid;page-break-inside:avoid}
+.cols>div{break-inside:avoid;page-break-inside:avoid}
+.moment,.pri,.hint,.dim{break-inside:avoid;page-break-inside:avoid}
+h2{font-size:9pt}.foot{margin-top:10pt}
+.hstep--end{background:#104281 !important;color:#fff !important}}
+</style></head>
+<body><main class="wrap">
+<section class="sec hero">
+  <h1>Case Interview 学习报告<span class="badge badge--ok">已完整完成</span></h1>
+  <p class="sub">这次学会了什么？哪些已经可以独立完成？</p>
+  <dl class="strip"><div class="kv"><dt>Case 类型</dt><dd>盈利能力</dd></div><div class="kv"><dt>行业</dt><dd>连锁咖啡（虚构：晨屿咖啡）</dd></div><div class="kv"><dt>难度</dt><dd>入门</dd></div><div class="kv"><dt>训练重点</dt><dd>Structuring + 基础 Case Math</dd></div><div class="kv"><dt>起始帮助强度</dt><dd>Guided 大量教学</dd></div><div class="kv"><dt>结束帮助强度</dt><dd>Independent 零辅助</dd></div></dl><p class="lede">你已经能够独立完成第一层利润拆解和百分比计算，并从第 3 轮开始不再需要提示；目前的薄弱点是第二层结构，能够列出分支，但还不会主动说明应该先看哪一项。</p>
+</section><section class="sec "><h2>能力评估</h2><div class="dim">
+  <div class="dim__head"><span class="dim__name">问题结构化</span>
+    <span class="dim__val"><b>6</b> <span class="dim__of">/ 10</span>
+      <span class="dim__band">发展中</span></span></div>
+  <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:60.0%"></div></div></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Assisted 先做后评</b></span></div>
+  <p class="dim__ev">第一层利润拆解已经稳定；第二层仍容易退回到通用框架。</p>
+</div><div class="dim">
+  <div class="dim__head"><span class="dim__name">定量分析</span>
+    <span class="dim__val"><b>8</b> <span class="dim__of">/ 10</span>
+      <span class="dim__band">达标</span></span></div>
+  <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:80.0%"></div></div></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg seg--on" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Independent 零辅助</b></span></div>
+  <p class="dim__ev">三道计算均独立完成，并在计算前先说明公式和单位。</p>
+</div><div class="dim">
+  <div class="dim__head"><span class="dim__name">商业判断与洞察</span>
+    <span class="dim__val"><b>5</b> <span class="dim__of">/ 10</span>
+      <span class="dim__band">发展中</span></span></div>
+  <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:50.0%"></div></div></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Guided 大量教学</b></span></div>
+  <p class="dim__ev">每次都需要提示，才会继续追问一个发现对客户意味着什么。</p>
+</div><div class="dim dim--untested">
+  <div class="dim__head"><span class="dim__name">Exhibit 解读</span>
+    <span class="dim__na">未测试</span></div>
+  <div class="meter meter--empty"><div class="meter__track"></div></div>
+  <p class="dim__ev">本次 Session 未练习。</p>
+</div><div class="dim">
+  <div class="dim__head"><span class="dim__name">沟通</span>
+    <span class="dim__val"><b>6.5</b> <span class="dim__of">/ 10</span>
+      <span class="dim__band">发展中</span></span></div>
+  <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:65.0%"></div></div></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Light 少量方向提示</b></span></div>
+  <p class="dim__ev">表达清楚，但偶尔会先解释方法，再给出答案。</p>
+</div><div class="dim dim--untested">
+  <div class="dim__head"><span class="dim__name">Synthesis / Recommendation</span>
+    <span class="dim__na">未测试</span></div>
+  <div class="meter meter--empty"><div class="meter__track"></div></div>
+  <p class="dim__ev">本次 Session 未练习。</p>
+</div></section><section class="sec "><h2>提示依赖</h2><div class="hint">
+  <div class="hint__topic">Structuring</div>
+  <div class="hint__seq"><span class="hstep">Level 3</span><span class="harrow" aria-hidden="true">→</span><span class="hstep">Level 2</span><span class="harrow" aria-hidden="true">→</span><span class="hstep">Level 1</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Independent</span></div>
+  <p class="hint__note">四轮练习中提示强度持续下降，第 4 轮完全不需要提示，说明方法已经开始内化。</p>
+</div><div class="hint">
+  <div class="hint__topic">Case Math</div>
+  <div class="hint__seq"><span class="hstep">Level 1</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Independent</span></div>
+  <p class="hint__note">第一次只提醒先写公式，后续没有再次需要提示。</p>
+</div><div class="hint">
+  <div class="hint__topic">Observation 到 Insight</div>
+  <div class="hint__seq"><span class="hstep">Level 3</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Level 3</span></div>
+  <p class="hint__note">两次都需要给出部分答案，这是下一阶段最明确的训练重点。</p>
+</div></section><section class="sec "><h2>教学阶段与独立阶段</h2><p class="marker">独立阶段: Structuring 第 3 轮练习 — 从这里开始，你要求不再获得提示。</p><div class="cols"><div class="phase"><h3>教学 / 提示阶段</h3><dl><dt>Covered / 完成内容</dt><dd><p>第一层 profit tree、price × volume、百分比变化和单位追踪。</p></dd><dt>Hints / 使用的提示</dt><dd><p>Structuring 先使用 Level 3，再降到 Level 2；Case Math 使用过一次 Level 1。</p></dd><dt>Corrected / 教学后修正</dt><dd><p>第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。</p></dd></dl></div><div class="phase"><h3>独立阶段</h3><dl><dt>Covered / 完成内容</dt><dd><p>Structuring 第 3、4 轮，以及两道 Case Math 题。</p></dd><dt>Performance / 独立表现</dt><dd><p>第 4 轮独立列出了客流、转化率、客单价和座位利用率等咖啡店特有的驱动因素，没有再套用通用框架。</p></dd><dt>Mastered / 真正掌握</dt><dd><p>Revenue = price × volume；百分比变化；计算前检查单位一致性。</p></dd><dt>Still recurring / 仍存在的问题</dt><dd><p>列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。</p></dd></dl></div></div></section><section class="sec "><h2>关键学习节点</h2><article class="moment">
+  <h3>第一次 Structuring 尝试</h3><blockquote class="quote">我会看市场、客户和竞争。</blockquote><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>直接调用了一个熟悉的通用框架。</p></dd></div><div class="mrow"><dt>Hint / 教学介入</dt><dd><p>没有直接给出分支，而是问了两个问题：客户真正想解决什么，以及利润是如何计算的？</p></dd></div><div class="mrow"><dt>Retry / 第二次尝试</dt><dd><p>你改为从 profit = revenue - cost 出发，并将销量拆成客流 × 转化率。</p></dd></div><div class="mrow"><dt>Learning / 学习结果</dt><dd><p>结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。</p></dd></div></dl></article><article class="moment">
+  <h3>第二道计算</h3><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>立即开始计算，并在中途失去了对单位的追踪。</p></dd></div><div class="mrow"><dt>Hint / 教学介入</dt><dd><p>Level 1 提示：先写出最终答案应该使用的单位。</p></dd></div><div class="mrow"><dt>Retry / 第二次尝试</dt><dd><p>你从“每家门店每月利润”重新开始，反向确定所需输入。</p></dd></div><div class="mrow"><dt>Learning / 学习结果</dt><dd><p>先确定答案的单位，通常就能看清正确的计算路径。</p></dd></div></dl></article></section><section class="sec "><h2>反复出现的问题</h2><ul class="blist"><li><span class="blist__h"><b>列出分支但没有优先级</b><span class="tag tag--new">new</span></span><p>四轮 Structuring 中出现三次。分支质量在提高，但始终没有回答应该从哪里开始。</p></li><li><span class="blist__h"><b>读出数据后没有追问含义</b><span class="tag tag--new">new</span></span><p>两次 Observation-to-Insight 练习都停在描述层面。</p></li></ul></section><section class="sec "><h2>掌握程度盘点</h2><div class="cols"><div><h3>本次已经能够独立完成</h3><ul class="blist"><li>Profit = revenue - cost 的第一层拆解</li><li>Revenue = price × volume</li><li>百分比变化与增长率</li><li>计算前先说明单位</li></ul></div><div><h3>仍需要帮助</h3><ul class="blist"><li>针对行业特点构建第二层结构</li><li>说明优先检查哪个分支以及理由</li><li>从 Observation 推导商业含义</li></ul></div></div></section><section class="sec "><h2>本次最重要的方法论</h2><ul class="blist"><li>从客户目标和业务算式构建结构，而不是套用已经背过的框架。</li><li>看到任何数据后，至少回答一次“所以呢？”。</li><li>先确定答案单位，计算路径通常会自然显现。</li></ul></section><section class="sec "><h2>下一阶段建议</h2><div class="pri"><h3>分支优先级</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够列出合理分支，但不会主动说明从哪里开始。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>展示任何结构后，都能在不被追问的情况下说出“我会先看 X，因为 Y”。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Structuring 练习。规则：没有明确第一个检查分支及理由，结构就不算完成；无法说明理由的分支应删除。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两轮使用 Light assistance，后三轮切换为 Independent。</p></dd></div></dl></div><div class="pri"><h3>从 Observation 到 Insight</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够稳定找到趋势，但还不能独立说明商业含义。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>独立完成 Observation → Why → Implication → Next step。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Exhibit 练习，每轮都必须完成上述四步。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两轮使用 Light assistance，后三轮使用 Independent。</p></dd></div></dl></div></section>
+<p class="foot">生成于 2026-08-21 · example-tutorial-zh-001</p>
+</main></body></html>
