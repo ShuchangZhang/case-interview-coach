@@ -587,4 +587,3 @@ A reader who stops after §4 still knows their most important problem and their 
 **Scores are a band, not a measurement.** Render the number with the behavioural description
 beside it, and in a tutorial report give independence equal weight — `6 / 10 · 需要提示` says more
 than a large `6` ever will.
-
