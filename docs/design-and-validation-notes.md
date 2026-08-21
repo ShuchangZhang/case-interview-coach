@@ -20,6 +20,26 @@ four gaps found and closed (see "Rev 2 audit" at the end).
 
 Validated by `skill-creator/scripts/package_skill.py` — passes.
 
+## Session setup parameter model
+
+**Training structure should be resolved; case flavour should be visible; internal defaults should
+stay automatic.** The setup model therefore has three layers:
+
+1. **Must resolve before start:** Mode, Session Kind, Case Type, materially relevant Geography,
+   full-case Interview Format, unresolved Tutorial Assistance, and a missing Focused Drill focus.
+2. **Resolved defaults — show before start:** applicable Difficulty and Industry, plus Focused
+   Drill planned reps. They do not create extra questions: explicit user intent wins; otherwise
+   the system resolves a stable value, displays it in a natural Session Summary, and allows a
+   local pre-start edit.
+3. **Automatic:** working language, Case Source, Interview-internal assistance and Beginner
+   Curriculum entry point. These remain inferred or fixed and do not become routine UI metadata.
+
+Difficulty resolves user request → reliable learner profile → stable Intermediate default.
+Generated-case Industry follows an explicit request or is selected from the Case Type, Geography
+and economics. Focused Drills use exactly 3 reps unless the user supplied a count. After the user
+continues from the summary, the displayed case parameters are frozen into the blueprint and final
+report metadata.
+
 ## Core state design (post-iteration)
 
 Three orthogonal concepts, never conflated:

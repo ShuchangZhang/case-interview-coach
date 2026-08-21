@@ -69,6 +69,25 @@ EVALUATION EXPECTATIONS
 A case designed forwards ends with numbers that don't add up. A case designed backwards ends with
 a real insight.
 
+### 2.1 Resolve case flavour before building the blueprint
+
+Difficulty and Industry are visible case-flavour parameters, not extra setup questions. Resolve
+both after the training structure is settled and before the full blueprint is built:
+
+- **Industry:** an explicit user choice always wins. Otherwise choose an industry whose economics
+  naturally support the Case Type, Geography and Difficulty. Prefer broadly understandable
+  contexts; do not choose a niche industry merely for surprise or make specialist knowledge the
+  hidden test unless the training purpose supports it.
+- **Difficulty:** use the priority in §8. The stable no-profile default is Intermediate.
+- **Applicability:** omit Industry for abstract calculations, pure mental math and other
+  industry-neutral drills. Omit traditional Case Difficulty for foundational Beginner lessons
+  where it would be meaningless metadata.
+- **Visible contract:** show every applicable value in the Session Summary. The user may replace
+  one before formal start without reopening the rest of setup.
+- **Lock:** once the user continues and the formal session starts, generate and report against
+  exactly those displayed values. If the combination cannot produce a coherent case, request a
+  change; never silently swap the industry or difficulty during generation.
+
 ---
 
 ## 3. Objective design
@@ -192,6 +211,22 @@ answer key):
 ## 8. Difficulty calibration
 
 Difficulty is a property of ambiguity and structure, not of arithmetic.
+
+Resolve the overall level in this order:
+
+1. **Explicit user intent.** Canonical levels, relative requests such as "难一点", and scoped
+   requests such as "keep the math accessible but make the business judgment harder" override
+   every automatic source. Apply scoped requests to the named dimension rather than flattening
+   them into uglier arithmetic.
+2. **Reliable learner profile.** When one was actually read, use its current level and recent
+   evidence conservatively. Do not invent a level or jump several bands because of one session.
+3. **No profile and no user preference: `Intermediate`.** This is the stable system default, not
+   an invitation for the model to choose a level ad hoc.
+
+Always display the resolved level before formal start. A profile-derived choice may be labelled
+briefly as automatically adjusted from recent training performance; never expose profile detail.
+The user can replace it locally before the prompt. The displayed canonical value is the one saved
+to Session state and the final report.
 
 | Dimension | Beginner | Intermediate | Advanced | MBB |
 |---|---|---|---|---|

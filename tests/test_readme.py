@@ -39,6 +39,14 @@ class ReadmeMentalModelTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, self.text)
 
+    def test_industry_and_difficulty_are_discoverable_in_both_languages(self):
+        for phrase in ("advanced China electric-vehicle market-entry case",
+                       "Industry and difficulty are optional",
+                       "中国新能源汽车行业的高难度 Market Entry",
+                       "行业和难度都可以直接指定"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, self.text)
+
     def test_user_visible_boundary_rules_are_explained(self):
         for phrase in ("asks whether to continue", "never answered is\nnot evaluated",
                        "询问继续还是结束", "还没有回答，就\n不会被计入评价"):

@@ -223,5 +223,245 @@ class SessionKindIntentTests(unittest.TestCase):
         self.assertEqual(setup_policy.random_authorisations("sizing"), set())
 
 
+class DifficultyResolutionTests(unittest.TestCase):
+
+    def test_explicit_beginner_is_used(self):
+        self.assertEqual(setup_policy.resolve_difficulty("Beginner"),
+                         {"value": "beginner", "source": "user"})
+
+    def test_explicit_advanced_is_used(self):
+        self.assertEqual(setup_policy.resolve_difficulty("高难度"),
+                         {"value": "advanced", "source": "user"})
+
+    def test_relative_harder_request_moves_one_level(self):
+        self.assertEqual(setup_policy.resolve_difficulty(
+            "难一点", current="intermediate")["value"], "advanced")
+
+    def test_dimension_specific_request_does_not_raise_overall_level(self):
+        result = setup_policy.resolve_difficulty(
+            "计算别太难，但商业判断难一点", current="intermediate")
+        self.assertEqual(result["value"], "intermediate")
+        self.assertEqual(result["modifiers"], {
+            "math": "easier", "business_judgment": "harder"})
+
+    def test_reliable_profile_can_supply_the_level(self):
+        self.assertEqual(setup_policy.resolve_difficulty(
+            profile_level="advanced"),
+            {"value": "advanced", "source": "profile"})
+
+    def test_no_profile_has_stable_intermediate_default(self):
+        self.assertEqual(setup_policy.resolve_difficulty(),
+                         {"value": "intermediate", "source": "default"})
+
+    def test_summary_displays_final_difficulty(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "market_entry", "geography": "China",
+            "interview_format": "interviewee_led",
+        }, automatic_industry="Consumer goods")
+        self.assertIn("Intermediate", setup_policy.session_summary(context))
+
+    def test_prestart_difficulty_edit_is_local(self):
+        context = {
+            "mode": "tutorial", "session_kind": "full_case",
+            "case_type": "profitability", "geography": "China",
+            "interview_format": "interviewee_led", "assistance_level": "light",
+            "industry": "Retail", "industry_source": "automatic",
+            "difficulty": "intermediate", "difficulty_source": "default",
+        }
+        updated = setup_policy.apply_prestart_updates(context, difficulty="难一点")
+        self.assertEqual(updated["difficulty"], "advanced")
+        for field in ("mode", "session_kind", "case_type", "geography",
+                      "interview_format", "assistance_level", "industry"):
+            self.assertEqual(updated[field], context[field])
+
+    def test_user_choice_beats_profile(self):
+        self.assertEqual(setup_policy.resolve_difficulty(
+            requested="Beginner", profile_level="advanced")["value"], "beginner")
+
+
+class IndustryResolutionTests(unittest.TestCase):
+
+    def test_explicit_industry_is_used(self):
+        self.assertEqual(setup_policy.resolve_industry(
+            requested="Electric vehicles", automatic="Retail"),
+            {"value": "Electric vehicles", "source": "user"})
+
+    def test_unspecified_industry_uses_economic_selection(self):
+        self.assertEqual(setup_policy.resolve_industry(automatic="Airlines"),
+                         {"value": "Airlines", "source": "automatic"})
+
+    def test_resolved_automatic_industry_is_stable_on_rerender(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "profitability", "interview_format": "interviewer_led",
+        }, automatic_industry="Airlines")
+        self.assertEqual(setup_policy.resolve_defaults(context)["industry"], "Airlines")
+
+    def test_summary_displays_final_industry(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "profitability", "geography": "US",
+            "interview_format": "interviewer_led",
+        }, automatic_industry="Airlines")
+        self.assertIn("Airlines", setup_policy.session_summary(context))
+
+    def test_prestart_industry_edit_is_local(self):
+        context = {
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "profitability", "geography": "US",
+            "interview_format": "interviewer_led", "industry": "Airlines",
+            "industry_source": "automatic", "difficulty": "intermediate",
+            "difficulty_source": "default",
+        }
+        updated = setup_policy.apply_prestart_updates(context, industry="Retail")
+        self.assertEqual(updated["industry"], "Retail")
+        self.assertEqual(updated["industry_source"], "user")
+        self.assertEqual(updated["case_type"], "profitability")
+        self.assertEqual(updated["interview_format"], "interviewer_led")
+
+    def test_industry_neutral_drill_omits_industry(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "mental math", "assistance_level": "guided",
+            "industry_applicable": False,
+        })
+        self.assertIsNone(context["industry"])
+        self.assertNotIn("Industry", setup_policy.session_summary(context))
+
+    def test_started_session_rejects_silent_industry_change(self):
+        with self.assertRaisesRegex(ValueError, "locked"):
+            setup_policy.apply_prestart_updates(
+                {"formal_started": True, "industry": "Airlines"},
+                industry="Retail")
+
+
+class FocusedDrillDefaultTests(unittest.TestCase):
+
+    def test_unspecified_count_defaults_to_three(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "exhibit interpretation",
+            "assistance_level": "guided", "industry_applicable": False,
+        })
+        self.assertEqual(context["planned_reps"], 3)
+        self.assertEqual(context["planned_reps_source"], "default")
+
+    def test_default_three_is_visible_before_rep_one(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "exhibit interpretation",
+            "assistance_level": "guided", "industry_applicable": False,
+        })
+        self.assertIn("3 reps", setup_policy.session_summary(context))
+
+    def test_explicit_five_is_used_and_visible(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "exhibit interpretation", "planned_reps": 5,
+            "assistance_level": "guided", "industry_applicable": False,
+        })
+        self.assertEqual(context["planned_reps"], 5)
+        self.assertIn("5 reps", setup_policy.session_summary(context))
+
+    def test_rep_count_never_adds_a_setup_question(self):
+        fields = setup("tutorial_drill", training_focus="exhibit interpretation")
+        self.assertNotIn("planned_reps", fields)
+
+    def test_resolved_count_stays_in_session_state(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "case math", "planned_reps": 5,
+            "assistance_level": "assisted", "industry_applicable": False,
+        })
+        copied_to_session_state = dict(context)
+        self.assertEqual(copied_to_session_state["planned_reps"], 5)
+
+
+class SessionSummaryTests(unittest.TestCase):
+
+    def test_full_interview_summary_has_visible_case_flavour(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "profitability", "geography": "US",
+            "interview_format": "interviewee_led",
+        }, profile_level="advanced", automatic_industry="Airlines")
+        summary = setup_policy.session_summary(context)
+        for phrase in ("US", "Profitability", "Airlines", "Advanced",
+                       "Formal full-case mock", "You drive", "HTML debrief"):
+            self.assertIn(phrase, summary)
+
+    def test_full_tutorial_summary_has_starting_assistance(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "full_case",
+            "case_type": "market_entry", "geography": "China",
+            "interview_format": "interviewee_led", "assistance_level": "light",
+        }, automatic_industry="Consumer goods")
+        summary = setup_policy.session_summary(context)
+        self.assertIn("Full Tutorial case", summary)
+        self.assertIn("Light assistance", summary)
+
+    def test_focused_drill_summary_has_count_and_stop_boundary(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "focused_drill",
+            "training_focus": "exhibit interpretation", "geography": "China",
+            "assistance_level": "guided", "industry_applicable": False,
+        })
+        summary = setup_policy.session_summary(context)
+        self.assertIn("Focused drill", summary)
+        self.assertIn("3 reps", summary)
+        self.assertIn("continue or end after each rep", summary)
+
+    def test_summary_omits_meaningless_beginner_metadata(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "beginner_curriculum",
+            "training_focus": "MECE fundamentals", "assistance_level": "guided",
+            "industry_applicable": False,
+        })
+        summary = setup_policy.session_summary(context)
+        self.assertNotIn("Difficulty", summary)
+        self.assertNotIn("Industry", summary)
+        self.assertNotIn("Intermediate", summary)
+
+    def test_chinese_summary_hides_internal_enums(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "tutorial", "session_kind": "full_case",
+            "case_type": "market_entry", "geography": "中国",
+            "interview_format": "interviewee_led", "assistance_level": "light",
+        }, automatic_industry="消费品")
+        summary = setup_policy.session_summary(context, "zh")
+        for raw in ("full_case", "interviewee_led", "minimal_realistic",
+                    "intermediate", "focused_drill"):
+            self.assertNotIn(raw, summary)
+        for phrase in ("市场进入", "中等", "候选人主导", "轻度提示"):
+            self.assertIn(phrase, summary)
+
+    def test_local_edit_does_not_reask_resolved_structure(self):
+        context = {
+            "mode": "tutorial", "session_kind": "full_case",
+            "case_type": "market_entry", "geography_relevant": True,
+            "geography": "China", "interview_format": "interviewee_led",
+            "assistance_needed": True, "assistance_level": "light",
+            "difficulty": "intermediate", "difficulty_source": "default",
+            "industry": "Consumer goods", "industry_source": "automatic",
+        }
+        self.assertEqual(setup_policy.missing_setup(context), ())
+        updated = setup_policy.apply_prestart_updates(context, industry="Retail")
+        self.assertEqual(setup_policy.missing_setup(updated), ())
+
+    def test_summary_and_state_use_same_flavour_values(self):
+        context = setup_policy.resolve_defaults({
+            "mode": "interview", "session_kind": "full_case",
+            "case_type": "market_entry", "geography": "China",
+            "interview_format": "interviewer_led", "difficulty": "advanced",
+            "industry": "Electric vehicles",
+        }, profile_level="beginner", automatic_industry="Retail")
+        summary = setup_policy.session_summary(context)
+        self.assertEqual(context["difficulty"], "advanced")
+        self.assertEqual(context["industry"], "Electric vehicles")
+        self.assertIn("Advanced", summary)
+        self.assertIn("Electric vehicles", summary)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

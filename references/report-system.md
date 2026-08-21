@@ -109,6 +109,10 @@ whose claims no longer match the session.
 
 **Semantic rules**
 
+- **Setup metadata comes from the locked Session state.** `case_type`, applicable `industry`,
+  `geography`, `difficulty`, `session_kind`, `interview_format` and focused-drill `planned_reps`
+  must be copied from the values shown in the pre-start Session Summary. Report assembly may not
+  re-infer or replace them after the case.
 - **An untested dimension may not carry a score.** `tested: false` with a number is rejected
   rather than rendered — a number would assert an assessment that was never made.
 - **A tutorial report may not carry a hiring band.** `headline.verdict` in a tutorial report is

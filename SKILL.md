@@ -12,7 +12,8 @@ Two independent session modes on one shared methodology base.
 > **Mode** determines whether this is assessment or teaching. **Session Kind** determines the
 > shape and terminal boundary of the training. **Case Type** and **Training Focus** say what the
 > user is practising. Never infer one of these from another. State and Assistance Level describe
-> what is happening now and how much help is allowed.
+> what is happening now and how much help is allowed. Resolve training structure, make case
+> flavour visible, and keep purely internal defaults automatic.
 
 ---
 
@@ -53,6 +54,10 @@ These override anything else in this skill, including a user request made mid-se
 7. **Every terminal boundary produces the report before anything new begins.** A completed Full
    Case never auto-starts another case. A Focused Drill pauses after every rep and never presents
    the next rep until the user chooses to continue.
+8. **The visible setup becomes the case contract.** Once the user accepts the Session Summary and
+   the formal session starts, Case Type, Geography, Difficulty, Industry, Session Kind and Format
+   stay fixed. Tutorial assistance may still change under §5.3. The final report must use the
+   same setup values; generation may not silently substitute them.
 
 ---
 
@@ -190,6 +195,11 @@ Before the formal start, resolve setup in this order:
 4. Ask for all applicable, unresolved user choices in **one short setup turn where practical**.
    Do not impose a question-count cap, and do not turn setup into a fixed form.
 
+#### A. Must resolve before start — training structure
+
+These fields materially change what training the user is doing. Ask only when an applicable
+choice remains unresolved; never repeat a choice already present in the request.
+
 | Dimension | When it needs the user's decision |
 |---|---|
 | **Mode** | The request is ambiguous between a formal assessment and teaching. Explain Interview vs Tutorial briefly. |
@@ -198,7 +208,32 @@ Before the formal start, resolve setup in this order:
 | **Geography** | It would materially change the market, customer behaviour, channel, regulation, currency, cost structure or answer. If absent, ask; offer Global, user-specified, or Random. Skip it for geography-neutral work such as pure decomposition, abstract calculations or an exhibit drill. |
 | **Interview format** | Every full case in either mode. `interviewee_led` means the Candidate chooses the path; `interviewer_led` means the Interviewer/Tutor controls progression. Focused drills and beginner fundamentals omit it. |
 | **Tutorial assistance** | It would change how the requested Tutorial starts and is not already clear. Ask in the same turn as any other missing choices. |
-| **Language / difficulty** | Keep the existing mirror/default behaviour unless the user specified a preference; never re-ask an explicit choice. |
+| **Focused Drill training focus** | The user chose a drill but did not say which capability to practise. |
+
+#### B. Resolved defaults — do not ask; show before start
+
+These fields affect the case experience but do not justify another setup question. Honour an
+explicit request; otherwise resolve them, display them in the Session Summary (§3.5), and allow a
+local edit before the prompt or first exercise. **Display is not a request for confirmation.**
+
+| Dimension | Resolution rule | Applicability |
+|---|---|---|
+| **Difficulty** | User request (including a relative or dimension-specific request) → reliable learner profile → stable default `intermediate`. User intent always wins. | Generated Full Cases and difficulty-bearing drills; omit for a foundational Beginner lesson where case difficulty has no meaning. |
+| **Industry** | Use the user's industry; otherwise choose a familiar, economically natural industry from Case Type, Geography and Difficulty. Do not choose obscurity for novelty. | Full generated cases and contextual drills; omit for abstract or industry-neutral drills. |
+| **Planned reps** | Use the user's positive count; otherwise exactly `3`. Never keep a hidden range. | Focused Drill only. |
+
+If a user changes one of these after seeing the summary, update only that value, show the revised
+summary briefly, and preserve every already-resolved structural choice. Do not reopen setup.
+
+#### C. Automatic — no question and no routine metadata
+
+| Dimension | Rule |
+|---|---|
+| **Language** | Mirror the user's current language unless they explicitly request another. |
+| **Case source** | Uploaded or explicitly named material → `user_provided`; otherwise `original`. |
+| **Interview assistance** | Fixed by Interview Mode at `minimal_realistic` while live; not a preference. |
+| **Beginner Curriculum entry point** | Infer from beginner intent and the existing lightweight diagnostic. |
+| **Unspecified Full Tutorial emphasis** | Cover the whole case normally; show Training Focus only when the user actually supplied one. |
 
 If mode is ambiguous, a concise explanation is enough:
 
@@ -227,8 +262,9 @@ unless the user explicitly says that the training format itself may be random. *
 missing is not random authorisation.**
 
 `scripts/setup_policy.py` is the executable decision model used by setup regression tests. It
-records minimum-commitment Session Kind inference, applicability and scoped random authorisation;
-it is not a required runtime step and not a substitute for reading the user.
+records minimum-commitment Session Kind inference, applicability, scoped random authorisation,
+resolved defaults and the natural-language summary; it is not a required runtime step and not a
+substitute for reading the user.
 
 ### 3.3 Language
 
@@ -274,19 +310,28 @@ Everything before that — setup questions, difficulty, explaining how it will r
 Do not deliver the opening prompt or begin a Tutorial exercise until every applicable material
 choice in §3.2 has been supplied or explicitly delegated.
 
-Immediately before the prompt or first exercise, state the settled shape and report timing in one
-line. This is a visible contract, not internal state:
+Immediately before the prompt or first exercise, show one short, natural **Session Summary**. It
+is a visible, editable contract rather than a form:
 
-- Full Tutorial Case: *"Setup complete: China · Market Sizing · Full Tutorial Case · Guided. The
-  HTML report is generated when this case finishes."*
-- Focused Drill: *"Setup complete: China · Market Sizing Focused Drill · Guided. This session has
-  3 short reps by default; after each one you may continue or end, and the combined HTML report is
-  generated when the drill ends."*
-- Interview: state Mode, Case Type, Geography and Format, and that feedback/report follows this
-  case. Beginner Curriculum: state the lesson focus and that the report follows the lesson.
+> **Session setup**
+>
+> China · Market Entry · Consumer goods · Intermediate
+> Full Tutorial case · You drive · Light assistance
+> The HTML learning report follows this case.
+> Industry and difficulty were selected automatically; tell me now if you'd like either changed.
 
-For a Focused Drill, use the user's explicit rep count; otherwise `planned_reps = 3`. Never keep a
-hidden 3–5 range.
+Interview summaries show Mode, Case Type, applicable Geography, Industry, Difficulty and Format,
+plus report timing; do not print internal assistance or Case Source. Tutorial Full Case summaries
+also show starting assistance. Focused Drill summaries show topic, applicable Geography,
+Difficulty, `planned_reps`, starting assistance, the between-rep stop option and combined-report
+timing. Omit Industry from industry-neutral drills and traditional Difficulty from foundational
+Beginner lessons. Never print raw enum names in Chinese.
+
+The summary does not add a confirmation gate. If the user continues, begin. If they change a
+resolved default, update only that value and show the revised summary. After the formal start,
+freeze the displayed values into the case blueprint and eventual report metadata. If a confirmed
+combination cannot support a coherent case, explain the conflict and request a change instead of
+silently substituting a different value.
 
 ### 3.6 What ends a session, and what starts a new one
 

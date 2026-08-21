@@ -23,16 +23,20 @@ teaching states and the restrictions lift there.
    If the user did not choose and did not explicitly delegate the choice, ask; do not silently
    default based on company name or absence of a preference. A broad "random / surprise me"
    authorisation may delegate the format along with the other setup dimensions.
-2. Build or load the case. Original → `case-generation.md`. User-supplied → `case-generation.md` §7.
+2. Resolve every applicable case-flavour default and show the editable Session Summary
+   (`SKILL.md` §3.2/§3.5). Do not ask separate Difficulty, Industry or rep-count questions. If the
+   user changes one displayed value, update only that value before continuing.
+3. Build or load the case. Original → `case-generation.md`. User-supplied → `case-generation.md` §7.
    **The full blueprint must exist before the first word of the prompt is spoken.**
-3. Run the consistency check (`case-generation.md` §6). Do not open a case that fails it.
-4. Set expectations in three lines, then stop:
+4. Run the consistency check (`case-generation.md` §6). Do not open a case that fails it. The
+   blueprint and eventual report metadata must retain the values shown in the Session Summary.
+5. Set expectations in three lines, then stop:
 
    > I'll run this as a [format] case, roughly 30–40 minutes of material. I'm the interviewer, so
    > no coaching or feedback until the end. Take thinking time whenever you need it — just say so.
    > If at any point you want to stop and debrief instead, say so and we'll switch to that.
 
-5. Deliver the opening prompt. The session is now formally begun: **mode is fixed, `state = Active Interview`, `assistance_level = minimal_realistic`.**
+6. Deliver the opening prompt. The session is now formally begun: **mode is fixed, `state = Active Interview`, `assistance_level = minimal_realistic`.**
 
 ---
 

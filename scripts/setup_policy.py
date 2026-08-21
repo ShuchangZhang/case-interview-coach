@@ -20,10 +20,324 @@ MODES = ("interview", "tutorial")
 SESSION_KINDS = ("full_case", "focused_drill", "beginner_curriculum")
 FORMAT_VALUES = ("interviewee_led", "interviewer_led")
 RANDOM_FIELDS = ("case_type", "geography", "interview_format")
+DIFFICULTIES = ("beginner", "intermediate", "advanced", "mbb")
+DEFAULT_DIFFICULTY = "intermediate"
+DEFAULT_DRILL_REPS = 3
+
+
+DIFFICULTY_ALIASES = {
+    "beginner": "beginner", "入门": "beginner", "初级": "beginner",
+    "简单": "beginner", "easy": "beginner",
+    "intermediate": "intermediate", "中等": "intermediate",
+    "中级": "intermediate", "medium": "intermediate",
+    "advanced": "advanced", "高阶": "advanced", "高难度": "advanced",
+    "hard": "advanced",
+    "mbb": "mbb", "mbb-level": "mbb", "mbb level": "mbb",
+    "最高难度": "mbb",
+}
+
+DIFFICULTY_LABELS = {
+    "en": {
+        "beginner": "Beginner", "intermediate": "Intermediate",
+        "advanced": "Advanced", "mbb": "MBB-level",
+    },
+    "zh": {
+        "beginner": "入门", "intermediate": "中等",
+        "advanced": "高难度（Advanced）", "mbb": "最高难度（MBB-level）",
+    },
+}
 
 
 def _normalise(text):
     return " ".join(str(text or "").strip().casefold().split())
+
+
+def _canonical_difficulty(value):
+    """Return one canonical difficulty enum, or ``None`` when not recognised."""
+    normalised = _normalise(value)
+    if not normalised:
+        return None
+    if normalised in DIFFICULTY_ALIASES:
+        return DIFFICULTY_ALIASES[normalised]
+    # Long natural-language requests are deliberately matched from most to least
+    # specific so "MBB-level" cannot collapse to a generic hard request.
+    for phrase in ("mbb-level", "mbb level", "最高难度", "mbb"):
+        if phrase in normalised:
+            return "mbb"
+    for phrase in ("advanced", "高难度", "高阶", "final round"):
+        if phrase in normalised:
+            return "advanced"
+    for phrase in ("intermediate", "中等", "中级"):
+        if phrase in normalised:
+            return "intermediate"
+    for phrase in ("beginner", "入门", "初级", "第一次练", "first time"):
+        if phrase in normalised:
+            return "beginner"
+    return None
+
+
+def _move_difficulty(value, steps):
+    index = DIFFICULTIES.index(value)
+    return DIFFICULTIES[max(0, min(len(DIFFICULTIES) - 1, index + steps))]
+
+
+def _scoped_difficulty_modifiers(request):
+    """Extract dimension-only requests that must not flatten into overall level."""
+    modifiers = {}
+    harder = any(marker in request for marker in
+                 ("难一点", "更难", "提高难度", "harder", "more difficult"))
+    easier = any(marker in request for marker in
+                 ("别太难", "简单一点", "容易一点", "降低难度",
+                  "easier", "less difficult", "not too hard"))
+    if any(marker in request for marker in ("图表", "exhibit")) and harder:
+        modifiers["exhibit"] = "harder"
+    if any(marker in request for marker in ("计算", "数学", "math", "quant")):
+        if easier:
+            modifiers["math"] = "easier"
+        elif harder:
+            modifiers["math"] = "harder"
+    if any(marker in request for marker in
+           ("商业判断", "商业洞察", "business judgment", "business judgement")):
+        if harder:
+            modifiers["business_judgment"] = "harder"
+        elif easier:
+            modifiers["business_judgment"] = "easier"
+    return modifiers
+
+
+def resolve_difficulty(requested=None, profile_level=None, current=None):
+    """Resolve difficulty with user intent above profile above a stable default.
+
+    The return value carries provenance so a Session Summary can explain an
+    automatic choice without exposing profile details. Relative user requests are
+    applied to the current level, then the profile level, then Intermediate.
+    """
+    profile = _canonical_difficulty(profile_level)
+    existing = _canonical_difficulty(current)
+    baseline = existing or profile or DEFAULT_DIFFICULTY
+    request = _normalise(requested)
+
+    if request:
+        scoped = _scoped_difficulty_modifiers(request)
+        if scoped:
+            explicit = _canonical_difficulty(request)
+            return {"value": explicit or baseline, "source": "user",
+                    "modifiers": scoped}
+        if any(marker in request for marker in
+               ("难一点", "更难", "提高难度", "harder", "more difficult")):
+            return {"value": _move_difficulty(baseline, 1), "source": "user"}
+        if any(marker in request for marker in
+               ("简单一点", "容易一点", "降低难度", "easier", "less difficult")):
+            return {"value": _move_difficulty(baseline, -1), "source": "user"}
+        explicit = _canonical_difficulty(request)
+        if explicit:
+            return {"value": explicit, "source": "user"}
+        raise ValueError("unrecognised difficulty request: " + str(requested))
+
+    if profile:
+        return {"value": profile, "source": "profile"}
+    return {"value": DEFAULT_DIFFICULTY, "source": "default"}
+
+
+def resolve_industry(requested=None, automatic=None, applicable=True):
+    """Resolve an applicable industry without adding a setup question."""
+    if not applicable:
+        return {"value": None, "source": None}
+    explicit = str(requested or "").strip()
+    if explicit:
+        return {"value": explicit, "source": "user"}
+    selected = str(automatic or "").strip()
+    if not selected:
+        raise ValueError("an applicable generated case needs an automatic industry")
+    return {"value": selected, "source": "automatic"}
+
+
+def resolve_defaults(context, profile_level=None, automatic_industry=None):
+    """Return Session state with all applicable visible defaults resolved.
+
+    This does not ask questions. The conversational layer first resolves training
+    structure with ``missing_setup``; this function then fills the case-flavour
+    values that must be shown before formal start.
+    """
+    resolved = dict(context)
+    kind = resolved.get("session_kind")
+
+    difficulty_applicable = resolved.get("difficulty_applicable")
+    if difficulty_applicable is None:
+        difficulty_applicable = kind != "beginner_curriculum"
+    if difficulty_applicable:
+        difficulty_source = resolved.get("difficulty_source")
+        if difficulty_source in ("default", "profile") and resolved.get("difficulty"):
+            # Already resolved in this setup pass; do not reinterpret it as a
+            # fresh user request or silently change it on a second render.
+            difficulty = {"value": resolved["difficulty"], "source": difficulty_source}
+        else:
+            requested = resolved.get("difficulty") if difficulty_source in (None, "user") else None
+            difficulty = resolve_difficulty(requested=requested,
+                                            profile_level=profile_level)
+        resolved["difficulty"] = difficulty["value"]
+        resolved["difficulty_source"] = difficulty["source"]
+        if difficulty.get("modifiers"):
+            resolved["difficulty_modifiers"] = difficulty["modifiers"]
+    else:
+        resolved["difficulty"] = None
+        resolved["difficulty_source"] = None
+
+    industry_applicable = resolved.get("industry_applicable")
+    if industry_applicable is None:
+        industry_applicable = kind == "full_case"
+    industry_source = resolved.get("industry_source")
+    if (industry_applicable and industry_source == "automatic" and
+            resolved.get("industry")):
+        industry = {"value": resolved["industry"], "source": "automatic"}
+    else:
+        requested_industry = (resolved.get("industry")
+                              if industry_source in (None, "user") else None)
+        industry = resolve_industry(requested_industry, automatic_industry,
+                                    applicable=industry_applicable)
+    resolved["industry"] = industry["value"]
+    resolved["industry_source"] = industry["source"]
+
+    if kind == "focused_drill":
+        reps = resolved.get("planned_reps")
+        if reps is None:
+            reps = DEFAULT_DRILL_REPS
+            resolved["planned_reps_source"] = "default"
+        else:
+            if isinstance(reps, bool) or not isinstance(reps, int) or reps <= 0:
+                raise ValueError("planned_reps must be a positive integer")
+            resolved["planned_reps_source"] = "user"
+        resolved["planned_reps"] = reps
+    return resolved
+
+
+def apply_prestart_updates(context, **updates):
+    """Apply local edits from the visible summary without reopening setup."""
+    if context.get("formal_started"):
+        raise ValueError("setup is locked after the session formally starts")
+    allowed = {"difficulty", "industry", "planned_reps"}
+    unknown = set(updates) - allowed
+    if unknown:
+        raise ValueError("not a resolved-default update: " + ", ".join(sorted(unknown)))
+
+    updated = dict(context)
+    if "difficulty" in updates:
+        result = resolve_difficulty(updates["difficulty"],
+                                    current=context.get("difficulty"))
+        updated["difficulty"] = result["value"]
+        updated["difficulty_source"] = "user"
+        if result.get("modifiers"):
+            updated["difficulty_modifiers"] = result["modifiers"]
+        else:
+            updated.pop("difficulty_modifiers", None)
+    if "industry" in updates:
+        result = resolve_industry(updates["industry"], applicable=True)
+        updated["industry"] = result["value"]
+        updated["industry_source"] = "user"
+    if "planned_reps" in updates:
+        reps = updates["planned_reps"]
+        if isinstance(reps, bool) or not isinstance(reps, int) or reps <= 0:
+            raise ValueError("planned_reps must be a positive integer")
+        updated["planned_reps"] = reps
+        updated["planned_reps_source"] = "user"
+    return updated
+
+
+def _humanise(value, language, labels=None):
+    if value is None:
+        return None
+    if labels and value in labels.get(language, {}):
+        return labels[language][value]
+    return str(value).replace("_", " ").strip()
+
+
+def session_summary(context, language="en"):
+    """Render the concise, editable contract immediately before formal start."""
+    lang = "zh" if language == "zh" else "en"
+    kind = context.get("session_kind")
+    mode = context.get("mode")
+    case_type_labels = {
+        "en": {
+            "profitability": "Profitability", "market_entry": "Market Entry",
+            "market entry": "Market Entry", "market_sizing": "Market Sizing",
+            "market sizing": "Market Sizing", "pricing": "Pricing",
+            "exhibit interpretation": "Exhibit interpretation",
+            "mental math": "Mental math", "case math": "Case math",
+        },
+        "zh": {
+            "profitability": "盈利能力", "market_entry": "市场进入",
+            "market entry": "市场进入", "market_sizing": "市场规模估算",
+            "market sizing": "市场规模估算", "pricing": "定价",
+            "exhibit interpretation": "图表解读", "mental math": "心算",
+            "case math": "案例计算",
+        },
+    }
+    format_labels = {
+        "en": {"interviewee_led": "You drive", "interviewer_led": "Interviewer/Tutor-led"},
+        "zh": {"interviewee_led": "候选人主导", "interviewer_led": "面试官／导师主导"},
+    }
+    assistance_labels = {
+        "en": {"guided": "Guided", "assisted": "Assisted",
+               "light": "Light assistance", "independent": "Independent"},
+        "zh": {"guided": "引导练习", "assisted": "适度提示",
+               "light": "轻度提示", "independent": "独立完成"},
+    }
+
+    topic = context.get("training_focus") if kind == "focused_drill" else context.get("case_type")
+    first_line = [context.get("geography"),
+                  _humanise(topic, lang, case_type_labels),
+                  context.get("industry")]
+    difficulty = context.get("difficulty")
+    if difficulty:
+        first_line.append(DIFFICULTY_LABELS[lang].get(difficulty, _humanise(difficulty, lang)))
+
+    if kind == "focused_drill":
+        second_line = [("Focused drill" if lang == "en" else "专项练习"),
+                       (("{} reps" if lang == "en" else "共 {} 题")
+                        .format(context.get("planned_reps", DEFAULT_DRILL_REPS))),
+                       _humanise(context.get("assistance_level"), lang, assistance_labels)]
+        timing = ("You may continue or end after each rep; one combined HTML report follows the session."
+                  if lang == "en" else
+                  "每题结束后都可以继续或提前结束；Session 结束后生成综合 HTML 报告。")
+    elif kind == "beginner_curriculum":
+        second_line = [("Beginner lesson" if lang == "en" else "基础教学"),
+                       _humanise(context.get("assistance_level"), lang, assistance_labels)]
+        timing = ("The HTML learning report follows this lesson."
+                  if lang == "en" else "本次教学结束后生成 HTML 学习报告。")
+    else:
+        if mode == "interview":
+            second_line = [("Formal full-case mock" if lang == "en" else "完整正式模拟"),
+                           _humanise(context.get("interview_format"), lang, format_labels)]
+            timing = ("The HTML debrief report follows this case."
+                      if lang == "en" else "当前 Case 完成后生成 HTML 复盘报告。")
+        else:
+            second_line = [("Full Tutorial case" if lang == "en" else "完整教学 Case"),
+                           _humanise(context.get("interview_format"), lang, format_labels),
+                           _humanise(context.get("assistance_level"), lang, assistance_labels)]
+            timing = ("The HTML learning report follows this case."
+                      if lang == "en" else "当前 Case 完成后生成 HTML 学习报告。")
+
+    automatic = []
+    if context.get("industry_source") == "automatic" and context.get("industry"):
+        automatic.append("industry" if lang == "en" else "行业")
+    if context.get("difficulty_source") in ("default", "profile") and difficulty:
+        automatic.append("difficulty" if lang == "en" else "难度")
+    note = ""
+    if automatic:
+        if lang == "en":
+            note = ("{} {} selected automatically; tell me now if you'd like {} changed."
+                    .format(" and ".join(automatic).capitalize(),
+                            "were" if len(automatic) > 1 else "was",
+                            "either" if len(automatic) > 1 else "it"))
+        else:
+            note = "{}由系统自动确定，可直接修改。".format("和".join(automatic))
+
+    title = "**Session setup**" if lang == "en" else "**本次设置**"
+    lines = [title, " · ".join(item for item in first_line if item),
+             " · ".join(item for item in second_line if item), timing]
+    if note:
+        lines.append(note)
+    return "\n\n".join(lines)
 
 
 def infer_session_kind(text):

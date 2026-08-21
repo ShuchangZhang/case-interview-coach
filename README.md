@@ -119,7 +119,7 @@ start, so an existing session may not see a newly cloned skill.
 Ask in plain language, in English or Chinese:
 
 ```text
-Run an advanced China market-entry case as an interviewee-led formal mock.
+Run an advanced China electric-vehicle market-entry case as an interviewee-led formal mock.
 
 Run a guided China market-sizing Tutorial as one Full Case.
 
@@ -131,6 +131,8 @@ Here's a casebook PDF—run case 3 as an interview.
 ```
 
 If Mode or training format is materially ambiguous, the skill asks before the case starts.
+Industry and difficulty are optional: when omitted, the skill chooses sensible defaults and shows
+them in an editable Session Summary before the session starts.
 
 ## Requirements and verification
 
@@ -306,7 +308,7 @@ git clone https://github.com/ShuchangZhang/case-interview-coach.git \
 直接用中文或英文描述你的训练目标：
 
 ```text
-开始一场中国市场的 Market Entry 正式 Mock，由 Candidate 主导。
+开始一场中国新能源汽车行业的高难度 Market Entry 正式 Mock，由 Candidate 主导。
 
 给我一套中国市场的 Market Sizing Tutorial Case，Guided。
 
@@ -318,6 +320,8 @@ git clone https://github.com/ShuchangZhang/case-interview-coach.git \
 ```
 
 如果 Mode 或训练方式仍有实质歧义，Skill 会在 Case 开始前询问。
+行业和难度都可以直接指定；如果不指定，Skill 会采用合理默认，并在正式开始前通过可修改的本次设置
+摘要展示出来。
 
 ## 环境要求与安装验证
 
