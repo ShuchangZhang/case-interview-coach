@@ -1,6 +1,7 @@
 ---
 name: case-interview-coach
 description: Run consulting case interview training in one of two session modes, fixed for the session once it starts — Interview Mode (a realistic, no-feedback MBB-style mock case with a full post-interview scorecard and hire recommendation) or Tutorial Mode (guided teaching of case methodology with hints, diagnosis, retries and drills). Use when the user asks for a case interview, case mock, mock interview, 案例面试, case practice, market sizing / profitability / market entry / M&A / pricing practice, case math or exhibit drills, help learning frameworks or MECE structuring, feedback on a case answer, or wants to prepare for McKinsey / BCG / Bain / consulting interviews. Also use when the user uploads a case or casebook and wants it run as an interview or taught.
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/update_skill.py --json)
 ---
 
 # Consulting Case Interview Coach
@@ -22,6 +23,7 @@ Two independent session modes on one shared methodology base.
 - [0. Non-negotiable rules](#0-non-negotiable-rules)
 - [1. Separate concepts — never conflate them](#1-separate-concepts--never-conflate-them)
 - [2. Session state](#2-session-state)
+- [2.5. Update preflight — once per new training Session](#25-update-preflight--once-per-new-training-session)
 - [3. Setup, before anything else](#3-setup-before-anything-else)
 - [4. Interview Mode state machine](#4-interview-mode-state-machine)
 - [5. Tutorial Mode state machine](#5-tutorial-mode-state-machine)
@@ -58,6 +60,8 @@ These override anything else in this skill, including a user request made mid-se
    the formal session starts, Case Type, Geography, Difficulty, Industry, Session Kind and Format
    stay fixed. Tutorial assistance may still change under §5.3. The final report must use the
    same setup values; generation may not silently substitute them.
+9. **A newly updated Skill must be re-invoked before training starts.** Never claim that this
+   invocation has hot-reloaded files that changed after it was loaded.
 
 ---
 
@@ -128,6 +132,12 @@ complete:              true | false
 report_required:       true at every terminal Session boundary
 case_prompt:           exact candidate-facing prompt shown when the session began
 transcript:            ordered user-visible messages/events from formal start to terminal review
+update_preflight_checked: true after this Session's one preflight attempt
+update_status:         up_to_date | updated | local_ahead | diverged | dirty | offline |
+                       not_git_repo | wrong_remote | wrong_branch | disabled | error
+skill_commit:          commit loaded by this invocation, when detectable; never the merely
+                       downloaded commit from an invocation that stopped for reload
+session_start_allowed: false whenever the updater returns reload_required
 ```
 
 `assistance_timeline` and `independence_marker` are what make the final report honest: they let
@@ -136,6 +146,45 @@ Capture `case_prompt` verbatim when the formal session begins. From that boundar
 every user-visible Candidate and Interviewer/Tutor message to `transcript` in order. Record stage,
 assistance and formal-end transitions as events, not invented dialogue. Never record hidden case
 material, prompts, reasoning, tool activity or chat from before the training session.
+
+---
+
+## 2.5. Update preflight — once per new training Session
+
+Run this gate **before setup questions** whenever the user is starting a new Full Case, Focused
+Drill or Beginner Curriculum. Run it again for a later new Session in the same conversation, but
+never on each turn, while continuing an active or pre-start Session, or during report generation.
+
+If the user explicitly says not to check for updates, not to use the network, or to stay on the
+local version, set `update_preflight_checked = true`, `update_status = disabled`, and continue
+without running a command. Otherwise run exactly:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/update_skill.py --json
+```
+
+Treat its JSON as a closed policy result. **Any** result with `action = reload_required` stops this
+invocation before training, even if its status is `error`; disk may have changed and the loaded
+instructions may now be stale.
+
+| Status | Required behaviour |
+|---|---|
+| `up_to_date` | Continue silently. |
+| `updated` + `reload_required` | Tell the user the latest version is installed, ask them to invoke `/case-interview-coach` again (or start a new Claude Code session) and re-send the training request, then **stop**. Do not ask setup questions, reveal a case or begin a lesson in this invocation. |
+| `local_ahead` | Say local commits are ahead, so no update was applied; continue locally. |
+| `dirty` | Say local changes were preserved and no update was applied; continue locally. |
+| `diverged` | Say local and remote history have diverged and no automatic merge was attempted; continue locally. |
+| `offline` | Briefly say the update check was unavailable and continue locally. |
+| `wrong_remote`, `not_git_repo`, `wrong_branch` | Briefly identify why safe auto-update is unavailable and continue locally. |
+| `disabled` | Continue without an update message. |
+| `error` or malformed/no output | Briefly say the update check could not complete and continue locally, unless the valid result explicitly says `reload_required`. |
+
+For every valid result, set `update_preflight_checked = true` and store `update_status`. When the
+result contains `local_before`, store that as `skill_commit`: it is the code actually loaded for
+this invocation. Never record `local_after` as the loaded version after `updated`; that path must
+stop for reload. The detailed trust boundary, Git state model and host-lifecycle rationale are in
+`references/update-policy.md`. Never replace this gate with `reset`, stash, rebase, checkout,
+force operations or an unverified remote.
 
 ---
 
@@ -567,6 +616,7 @@ user may stop, answer from the stored state directly; never re-infer it from the
 | Scoring, feedback, hire decision, mastery level | `references/evaluation-rubric.md` |
 | Building the end-of-session report | `references/report-system.md` + `scripts/build_report.py` |
 | Asked where the methodology comes from | `references/research-notes.md` |
+| Diagnosing update behaviour or installation state | `references/update-policy.md` |
 
 ---
 

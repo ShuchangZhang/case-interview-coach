@@ -53,6 +53,21 @@ class ReadmeMentalModelTests(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, self.text)
 
+    def test_safe_update_policy_is_discoverable_in_both_languages(self):
+        for phrase in (
+            "## Updates",
+            "expected GitHub `origin/main`",
+            "training pauses and asks you to re-invoke",
+            "## 更新",
+            "预期的 GitHub `origin/main`",
+            "本次训练会暂停并要求重新调用 Skill",
+            "CASE_INTERVIEW_COACH_NO_UPDATE=1",
+            "python3 scripts/update_skill.py --json",
+            "references/update-policy.md",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, self.text)
+
     def test_local_readme_links_resolve(self):
         targets = re.findall(r"(?<!!)\[[^]]+\]\(([^)]+)\)", self.text)
         for target in targets:

@@ -338,3 +338,42 @@ files exit 1; guard-rail scope; palette ramp properties.
   and the equivalent Chinese Interview plus English and Chinese Tutorial commands. The test suite checks every committed file byte-for-byte
   against fresh renderer output. When the report's visual structure changes materially, recapture
   the README screenshots in `assets/` from those generated HTML files.
+
+---
+
+# Iteration — Pre-session safe update
+
+Scope is installation maintenance only. Case methodology, generation, Mode/Session Kind setup,
+training state machines, scoring, learner profiles and report content are unchanged.
+
+## Lifecycle decision
+
+The official Claude Code lifecycle does not provide a standalone Skill with a reliable hook that
+runs both before its own first invocation and before every later training Session inside the same
+conversation. Skill contents loaded for an invocation also cannot be truthfully described as
+hot-reloaded after the underlying file changes. The design therefore uses the explicit fallback:
+the loaded Skill checks once before each new training Session; a successful disk update blocks
+training and requires re-invocation. The audit and official documentation links are recorded in
+[`references/update-policy.md`](../references/update-policy.md).
+
+## Safety model
+
+`scripts/update_skill.py` is a standalone Python-standard-library command. It derives the Skill
+root from `__file__`, trusts only the canonical project repository at `origin`, requires clean
+`main`, fetches `origin/main`, classifies ancestry with `merge-base`, and performs only a verified
+`merge --ff-only`. Dirty, ahead, divergent, detached, feature-branch, fork, non-Git and offline
+states keep local files. No reset, stash, rebase, checkout, force operation or conflict resolution
+exists in the implementation.
+
+The command returns structured JSON. `local_before`, not a newly downloaded `local_after`, is the
+loaded-version identity for the current invocation. `reload_required` is an explicit action and
+has priority over status wording, including defensive post-write uncertainty.
+
+## Validation
+
+`tests/test_update_skill.py` creates local temporary bare repositories and clones; it never uses
+the real GitHub repository. Coverage includes up-to-date, remote-ahead fast-forward, local-ahead,
+diverged, dirty, missing/wrong remote, timeout, feature branch, detached HEAD, non-Git install,
+opt-out, forbidden-command absence, one-check-per-Session state and correct loaded-commit
+semantics. README tests pin the bilingual network disclosure, opt-out, manual command and reload
+requirement.

@@ -111,8 +111,11 @@ git clone https://github.com/ShuchangZhang/case-interview-coach.git \
   ~/.claude/skills/case-interview-coach
 ```
 
-Start a new Claude Code session or reload skills in the current one. Skills are read at session
-start, so an existing session may not see a newly cloned skill.
+Start a new Claude Code session so the newly cloned skill is discovered before first use.
+
+## Updates
+
+Before each new training Session, a Git-cloned install on clean `main` makes a best-effort network check against the expected GitHub `origin/main` and fast-forwards only when safe. Dirty, offline, local-ahead, divergent, forked and non-Git installs keep using local files; if an update changes disk, training pauses and asks you to re-invoke the skill. Set `CASE_INTERVIEW_COACH_NO_UPDATE=1` or say “do not check for updates” to opt out. Manual check: `python3 scripts/update_skill.py --json`. See the [update policy](references/update-policy.md).
 
 ## Quick start
 
@@ -176,7 +179,7 @@ independence.
 
 ## Privacy and data
 
-The renderer runs locally and makes no network requests. Generated reports include the complete
+The report renderer runs locally and makes no network requests. Generated reports include the complete
 user-visible natural-language conversation from the training session, including anything you
 typed, plus assessments and learning progress. Review the HTML before sharing it publicly.
 
@@ -300,8 +303,11 @@ git clone https://github.com/ShuchangZhang/case-interview-coach.git \
   ~/.claude/skills/case-interview-coach
 ```
 
-启动一个新的 Claude Code Session，或重新加载当前 Session 的 skills。Skills 在 Session 启动时读取，
-已经运行的 Session 可能无法识别刚刚 Clone 的 Skill。
+首次使用前启动一个新的 Claude Code Session，确保刚刚 Clone 的 Skill 已被发现。
+
+## 更新
+
+每个新训练 Session 开始前，位于 clean `main` 的 Git Clone 会对预期的 GitHub `origin/main` 做一次尽力而为的联网检查，并且只在安全时 fast-forward。Dirty、离线、本地领先、历史分叉、Fork 或非 Git 安装都会保留并继续使用本地文件；如果更新已写入磁盘，本次训练会暂停并要求重新调用 Skill。可设置 `CASE_INTERVIEW_COACH_NO_UPDATE=1`，或直接说“不要检查更新”来关闭；手动检查命令为 `python3 scripts/update_skill.py --json`。详见[更新策略](references/update-policy.md)。
 
 ## 快速开始
 
@@ -361,7 +367,7 @@ trigger、两种报告、schema 与 guard-rail validation、HTML escaping、Tran
 
 ## 隐私与数据
 
-Renderer 在本地运行，不发起网络请求。生成的报告包含本次训练中全部用户可见的自然语言对话，包括
+报告 Renderer 在本地运行，不发起网络请求。生成的报告包含本次训练中全部用户可见的自然语言对话，包括
 你自行输入的内容，以及能力评价和学习进度。公开上传或分享 HTML 前请先检查内容。
 
 对话的保存与模型处理由宿主应用的数据政策决定。只有宿主提供 project-memory 工具时，Skill 才能
