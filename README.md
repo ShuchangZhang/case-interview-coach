@@ -1,7 +1,9 @@
 # Case Interview Coach
 
-A Claude skill for consulting case interview training. Two strictly separated session modes on one
-shared methodology base, and a self-contained HTML report at the end of every session.
+A Claude Code skill designed for high-fidelity consulting case interview mocks. It builds a
+coherent case before the session, behaves like a controlled interviewer during it, and produces
+an evidence-linked HTML debrief afterward. Tutorial support is available when you want coaching
+instead of assessment.
 
 **[English](#english) · [中文](#中文)**
 
@@ -9,493 +11,112 @@ shared methodology base, and a self-contained HTML report at the end of every se
 
 # English
 
-## Contents
+## What it does
 
-- [What this is](#what-this-is)
-- [The design rule: the mode is fixed, the session is not](#the-design-rule-the-mode-is-fixed-the-session-is-not)
-- [The two modes](#the-two-modes)
-- [What you get at the end of a session](#what-you-get-at-the-end-of-a-session)
-- [Report preview](#report-preview)
-- [Requirements](#requirements)
-- [Quick start](#quick-start)
-- [Verifying the install](#verifying-the-install)
-- [Your first session](#your-first-session)
-- [Where your data lives](#where-your-data-lives)
-- [Cross-session progress](#cross-session-progress)
-- [Running the tests](#running-the-tests)
-- [Repository layout](#repository-layout)
-- [Known limitations](#known-limitations)
-- [Methodology and sources](#methodology-and-sources)
-- [License](#license)
+A general-purpose LLM can give you a business problem. Case Interview Coach is designed to run the
+whole case experience: structured case generation, controlled information release, realistic
+interviewer behaviour, case math and exhibits, synthesis, and a report grounded in what you
+actually said.
 
-## What this is
-
-Practising case interviews alone has two failure modes. Practise with a tutor and you never find
-out whether you can do it unaided. Practise with a realistic interviewer and you get no teaching.
-Most tools blur the two, which produces a session that is neither: hints that make the score
-meaningless, or silence that teaches nothing.
-
-This skill separates them into two session modes, and holds the mode fixed for the whole session
-while letting everything else move.
-
-## The design rule: the mode is fixed, the session is not
-
-Three things are easy to conflate. Keeping them apart is what makes this work:
-
-| Concept | What it controls | Changes mid-session? |
-|---|---|---|
-| **Mode** | The purpose of the session, and how your performance is interpreted and reported | **No** |
-| **State** | Which phase of the session is running right now | **Yes** |
-| **Assistance Level** | How much help you may be given at this moment | **Yes** in Tutorial Mode; held at minimal-realistic during a live interview |
-
-**Mode** is fixed because it defines what the numbers *mean*. A score produced with hints and a
-score produced without them are not comparable, so a session cannot be half one and half the
-other. Changing mode means ending the session and starting a new one.
-
-**State and assistance are not fixed.** Within a session you can move freely:
-
-```
-INTERVIEW MODE
-Setup ─▶ Active Interview ─▶ Final Recommendation ─▶ Feedback ─▶ Complete
-             │
-             └─(you stop early)─▶ Debrief ─▶ Complete
-                                     │
-                                     └─▶ Post-Debrief Practice   [no longer a valid mock]
-
-TUTORIAL MODE
-Setup ─▶ Guided ⇄ Assisted ⇄ Light ⇄ Independent ─▶ Session Review ─▶ Complete
-```
-
-In Tutorial Mode the four assistance levels are freely traversable in either direction, and none
-is mandatory: start at Guided, or go straight to Independent, or step down one rung at a time. Say
-"stop hinting, let me do the rest myself" and the session obliges — it records where that happened
-and reports the assisted and independent stretches separately, rather than averaging them.
-
-In Interview Mode you can stop the case at any point and ask for the debrief. That is a state
-change, not a mode change: teaching becomes available because the interview has ended, and the
-report is badged incomplete.
-
-`Active Interview ─▶ Debrief` is the one one-way edge. Once answers have been revealed the case is
-spent — a genuine re-test needs a new session on a newly generated case.
-
-## The two modes
-
-| | Interview Mode | Tutorial Mode |
-|---|---|---|
-| Feels like | a real MBB-style interview | working through it with a coach |
-| During the case | no hints, no corrections, no "good framework", neutral tone | explanation, hints, diagnosis, retries |
-| Question it answers | "If this were real, how did I do?" | "What did I learn, and what can I do unaided?" |
-| Ends with | score per dimension + Strong Hire / Hire / Borderline / No Hire | mastery, independence, hint dependence, next training plan |
-| Hiring verdict | yes | **never** (unless you explicitly ask to be benchmarked) |
-
-Both modes reason from the same methodology: structures are built from the client's objective and
-the arithmetic of the business rather than recalled from a framework list; every number ends in a
-"so what"; the recommendation answers the question asked in its first sentence.
-
-A zero-assistance Tutorial session is **still Tutorial Mode**. Dialling the help down is a state
-change, not a mode change: the session never issues a hiring verdict, and its review keeps
-assisted and independent performance apart instead of averaging them into one misleading number. A
-genuine unassisted assessment requires an Interview Mode session on a case you have not seen.
-
-## What you get at the end of a session
-
-One self-contained HTML file. Both report types share a visual system but differ in content and in
-what their numbers mean:
-
-- **Interview report** — the complete original Case Prompt, case details, overall score and hiring band, a one-line causal diagnosis,
-  six capability meters, strengths and the detractors that actually cost you the result, key
-  moments, insights you did not reach, the interviewer assistance you needed, a stronger line of
-  analysis, your recommendation against a stronger one, what to train next, and a full session
-  transcript linked from the important evidence.
-- **Tutorial report** — the complete original Case Prompt, session focus, a one-line learning summary, capability *with independence
-  level* for each dimension, hint dependence per topic across reps, assisted and independent
-  phases evaluated separately, learning moments, recurring mistakes, a mastery check, and a next
-  training plan, and the full attempt → hint → retry transcript.
-
-Three rules are enforced in the renderer rather than left to prose:
-
-1. A tutorial report cannot emit a hiring band without an explicit benchmark request.
-2. An untested dimension cannot carry a number.
-3. Percentiles, offer probabilities and invented firm benchmarks are rejected outright.
-
-Violating any of them fails the build with a specific error and no output file, rather than
-producing a plausible-looking report that says something the session cannot support.
-
-Reports are single-file: inline CSS, no JavaScript required, no fonts, no CDN, no network calls.
-They open offline by double-click and print to A4/Letter without splitting cards.
+The core product is the mock interview and its debrief. Two training modes let you use the same
+case system either for independent assessment or guided learning.
 
 ## Report preview
 
-These are illustrative reports generated by the production renderer from the repository's
-fictional example data. What you see here is the same report system used at the end of a real
-session.
+Every completed session can produce a self-contained HTML report with the original Case Prompt,
+capability diagnosis, critical moments, missed insights, a complete natural-language transcript,
+links from analysis back to the relevant turns, and next training priorities. Reports work
+offline and contain no external scripts or tracking.
 
-### Interview Mode report
-
-Used after a formal mock to diagnose performance and assess interview readiness.
+### Interview report
 
 ![Interview Mode report preview](assets/interview-report-preview.png)
 
 [View the full Interview report example](examples/generated/interview-report.html) — GitHub may
-show the HTML source instead of rendering it as a webpage; download the file and open it locally
-in a browser for the complete report.
+show its source; download it and open it locally for the rendered report.
 
-### Tutorial Mode report
-
-Used after a teaching session to show mastery, hint dependence and how much can now be done
-independently.
+### Tutorial report
 
 ![Tutorial Mode report preview](assets/tutorial-report-preview.png)
 
 [View the full Tutorial report example](examples/generated/tutorial-report.html) — GitHub may
-show the HTML source instead of rendering it as a webpage; download the file and open it locally
-in a browser for the complete report.
-
-## Requirements
-
-**Host environment.** Built and tested on **Claude Code**, which is the environment this skill
-targets. It uses the standard `SKILL.md` + `references/` skill layout and invokes a local Python
-script to render reports.
-
-Other Claude surfaces that support the same skill format and can run a local script may work, but
-**they have not been tested and are not claimed as supported.** If you try one, the renderer
-smoke test below tells you quickly whether report generation works there.
-
-**Python.** 3.8 or newer, available as `python3` on your PATH. **No third-party packages** — the
-renderer and the test suite use the standard library only. There is nothing to `pip install`.
-
-**Optional — cross-session memory.** Learner profiles need project-memory tools (`project_read` /
-`project_write`). If the host does not provide them the skill degrades silently: sessions, cases,
-scoring and reports all work exactly the same, and only cross-session continuity is lost. See
-[Cross-session progress](#cross-session-progress).
-
-## Quick start
-
-**1. Clone into your skills directory**
-
-```bash
-git clone https://github.com/ShuchangZhang/case-interview-coach.git \
-  ~/.claude/skills/case-interview-coach
-```
-
-**2. Load it**
-
-Start a new Claude Code session, or reload skills in your current one. Skills are read at session
-start, so an already-running session will not see a freshly cloned skill.
-
-**3. Check it is there**
-
-Ask for a case interview in plain language (see [below](#your-first-session)). If the skill
-loaded, the first thing it does is settle which mode you want — before any case begins.
-
-## Verifying the install
-
-The report renderer can be exercised on its own, without running a session. This is the fastest
-way to confirm the clone is complete and your Python works:
-
-```bash
-cd ~/.claude/skills/case-interview-coach
-python3 scripts/build_report.py examples/interview-report.json -o interview-report.html
-python3 scripts/build_report.py examples/tutorial-report.json  -o tutorial-report.html
-```
-
-Each command prints `Wrote <file> (N bytes)` and exits 0. Open either file in a browser: you
-should see a complete, styled report built from the bundled fictional example.
-
-The script resolves its own location, so an absolute invocation works from any directory:
-
-```bash
-python3 ~/.claude/skills/case-interview-coach/scripts/build_report.py \
-  --example tutorial -o /tmp/demo.html
-```
-
-**On invalid input** the renderer writes no file, prints a `ValidationError` naming the field, the
-value it received and the legal range, and exits with status 2:
-
-```
-ValidationError: dimensions[0].score must be a finite number between 0 and 10; received 100
-No HTML was written.
-```
-
-Exit codes: `0` success · `2` validation or guard-rail failure · `1` usage or I/O error.
-
-## Your first session
-
-Say what you want in plain language, in English or Chinese. If the mode is ambiguous the skill
-asks once, then locks it for the session.
-
-```
-Run a consulting case interview in Interview Mode.
-
-I'm new to case interviews — teach me from scratch.
-
-Advanced profitability case, interviewee-led, interview mode.
-
-Market sizing drill, five reps, tutorial mode.
-
-Here's a casebook PDF — run case 3 as an interview.
-```
-
-To switch modes, end the current session and start a new one. This is deliberate: a case whose
-answers you have already seen cannot produce a valid assessment.
-
-## Where your data lives
-
-Everything runs locally. The renderer is a local Python script; it makes no network requests, and
-the HTML it produces contains no external references, no scripts and no tracking.
-
-**Generated reports contain the complete natural-language conversation from the training session,
-including anything you typed yourself, as well as assessments, mistakes and learning progress.**
-Review the HTML before uploading it anywhere public or sharing it with anyone. The local renderer
-does not upload this content or make network requests.
-
-Your conversation with Claude is of course governed by the host application's own data handling —
-that is outside this repository's control.
-
-## Cross-session progress
-
-If the host provides project-memory tools, the skill keeps a learner profile so later sessions can
-calibrate difficulty, track recurring mistakes and notice when hint dependence falls.
-
-**This depends entirely on the host environment.** Where those tools are unavailable the skill
-skips the profile silently — nothing errors, nothing blocks, and the session review still covers
-everything from the current session. Reports never claim a cross-session trend unless a profile
-was actually read.
-
-## Running the tests
-
-```bash
-cd ~/.claude/skills/case-interview-coach
-python3 -m unittest discover -s tests -v
-```
-
-Standard library `unittest`; no dependencies. Every fixture the suite references is committed
-under `tests/fixtures/`, so the results are reproducible from a fresh clone. The suite covers:
-both examples rendering; working-directory independence; untested dimensions showing as N/A;
-tutorial reports never showing a hiring band; markup in user text being escaped rather than
-executed; output containing no external references; and one fixture per invalid input — bad mode,
-bad completion status, bad assistance level, score above 10, negative score, `NaN`, string score,
-untested dimension carrying a score, inconsistent verdict flags, mode-specific fields in the wrong
-report, a tutorial hiring verdict, and three guard-rail violations — each of which must exit 2 and
-write nothing.
-
-## Repository layout
-
-| Path | Contents |
-|---|---|
-| `SKILL.md` | Router. Mode/State/Assistance model, both state machines, setup, session boundaries, time budgets |
-| `references/case-methodology.md` | Case arc, structuring, hypothesis loop, exhibits, brainstorming, synthesis, communication |
-| `references/case-math.md` | Quant discipline, formulas, mental math, sanity checks, market sizing |
-| `references/case-taxonomy.md` | 14 archetypes plus mixed cases: objectives, signals, modules, diagnostic trees, quant, exhibits, mistakes |
-| `references/case-generation.md` | Blueprint-first protocol, exhibit and quant design, consistency check, user-supplied cases, difficulty, geography |
-| `references/interview-mode.md` | Interviewer protocol, prohibitions, information release, tone, both format spines, feedback and debrief |
-| `references/tutorial-mode.md` | Teaching loop, beginner curriculum, progression ladder, drills, hint ladder, error diagnosis, session review |
-| `references/evaluation-rubric.md` | Six dimensions with behavioural anchors, non-averaging hire bands, incomplete-case rules, mastery levels |
-| `references/report-system.md` | Session Report schema, per-mode report specs, validation rules, visual system |
-| `references/research-notes.md` | Source tiers, cited sources, and which principles are sourced versus designed |
-| `scripts/build_report.py` | Session Report JSON to self-contained HTML |
-| `examples/` | English and Chinese Interview/Tutorial example JSON, plus renderer-generated HTML |
-| `assets/` | README report preview screenshots captured from the generated HTML |
-| `tests/` | Test suite and committed fixtures |
-| `docs/` | Design rationale and validation history |
-
-## Known limitations
-
-- **Tested on Claude Code only.** Other environments may work; none have been verified.
-- **Cross-session progress depends on the host** providing project-memory tools.
-- **The guard-rail scan is pattern-based.** It catches the named categories of unsupported claim —
-  percentiles, offer probabilities, invented benchmarks — not every possible invented statistic.
-  It is a backstop for the rule, not a replacement for it.
-- **No automated security audit has been run.** The renderer escapes untrusted text and makes no
-  network calls, and the test suite checks both; that is the extent of the claim.
-- **Reports are light-theme in print.** Dark mode is supported on screen; printing forces light.
-- **Scoring is a training instrument.** The bands are calibrated to published descriptions of what
-  firms assess, not to any firm's internal hiring bar.
-
-## Methodology and sources
-
-Built from firm-official recruiting material, convergent conclusions across established
-preparation resources, and case architecture study of firm-published sample cases. No case content
-is reproduced.
-
-Every source relied on is listed with URL and access date in
-[`references/research-notes.md`](references/research-notes.md) §1.1, which also separates what
-came from official firm material, what is a convergent conclusion across independent sources, and
-what is this project's own design decision.
-
-**Not affiliated with or endorsed by McKinsey, BCG, Bain, or any other firm.** Firm names are used
-only to describe publicly documented interview practices.
-
-## License
-
-[MIT](LICENSE). Applies to th
-
-# 中文
-
-## 目录
-
-- [这是什么](#这是什么)
-- [设计原则：模式固定，训练状态可变](#设计原则模式固定训练状态可变)
-- [两种模式](#两种模式)
-- [Session 结束后你会得到什么](#session-结束后你会得到什么)
-- [报告预览](#报告预览)
-- [环境要求](#环境要求)
-- [快速开始](#快速开始)
-- [验证安装](#验证安装)
-- [第一次 Session](#第一次-session)
-- [数据保存在哪里](#数据保存在哪里)
-- [跨 Session 进度](#跨-session-进度)
-- [运行测试](#运行测试)
-- [仓库结构](#仓库结构)
-- [已知限制](#已知限制)
-- [方法论与来源](#方法论与来源)
-- [许可证](#许可证)
-
-## 这是什么
-
-一个人练 Case Interview 有两种失败方式：找教练练，你永远不知道自己脱离提示能不能做出来；找一个
-真实的面试官练，你什么也学不到。大多数工具把两者混在一起，结果是两头不靠——要么提示多到分数
-失去意义，要么沉默到没有教学价值。
-
-这个 Skill 把两者拆成两种 session mode：**mode 在整个 session 内固定，但其余部分可以变化**。
-
-## 设计原则：模式固定，训练状态可变
-
-有三个概念很容易混为一谈，把它们分开正是这套设计成立的前提：
-
-| 概念 | 决定什么 | 能否中途改变 |
-|---|---|---|
-| **Mode（模式）** | 本次 session 的目的，以及你的表现如何被解读和报告 | **不能** |
-| **State（状态）** | 此刻正在进行的是哪个阶段 | **可以** |
-| **Assistance Level（辅助强度）** | 此刻允许给你多少帮助 | Tutorial Mode **可以**；正式面试进行中固定为最低限度 |
-
-**Mode 之所以固定**，是因为它定义了分数的**含义**。有提示做出来的分数和没提示做出来的分数不可
-比较，所以一次 session 不能一半是这个、一半是那个。换 mode 意味着结束当前 session，重新开一个。
-
-**但 state 和辅助强度并不固定。** 在同一个 session 内你可以自由移动：
-
-```
-INTERVIEW MODE
-Setup ─▶ Active Interview ─▶ Final Recommendation ─▶ Feedback ─▶ Complete
-             │
-             └─(你提前终止)─▶ Debrief ─▶ Complete
-                                 │
-                                 └─▶ Post-Debrief Practice   [不再是有效的 mock]
-
-TUTORIAL MODE
-Setup ─▶ Guided ⇄ Assisted ⇄ Light ⇄ Independent ─▶ Session Review ─▶ Complete
-```
-
-Tutorial Mode 的四档辅助强度可以双向自由切换，没有哪一档是必经的：你可以从 Guided 开始，也可以
-直接跳到 Independent，或者一档一档往下降。你说"后面别提示了，我自己做"，session 就照做——它会
-记录这个切换点，并在报告里把"有辅助"和"独立"两段分开评价，而不是平均成一个分数。
-
-Interview Mode 里你可以在任何时候中止 case 并要求复盘。**那是 state 变化，不是 mode 变化**：教学
-之所以变得可用，是因为面试已经结束了，而报告会被标记为未完成。
-
-`Active Interview ─▶ Debrief` 是唯一的单向边。一旦答案被揭示，这道 case 就用掉了——真正的重测
-需要一个新的 session 和一道新生成的 case。
-
-## 两种模式
+show its source; download it and open it locally for the rendered report.
+
+## Key capabilities
+
+- **Realistic mock interviews.** Run an original or user-supplied case in interviewer-led or
+  interviewee-led format, with information disclosed in response to the candidate's questions.
+  Formal mocks cover structuring, quant, exhibits, brainstorming and synthesis without teaching
+  the answer during the interview.
+- **Structured case generation.** Cases are designed from a complete internal blueprint—client
+  objective, root cause, hidden facts, quant modules and exhibits—then checked for numerical and
+  logical consistency. Structures and economics are adapted to the industry rather than pulled
+  from a generic framework list.
+- **Evidence-based debriefs.** Reports connect capability assessments and critical moments to the
+  original Case Prompt and exact transcript turns, then show missed insights, a stronger approach
+  and what to practise next.
+- **Tutorial support.** Beginners can learn the same methodology through explanation, hints,
+  retries and focused drills, with assisted and independent performance kept distinct.
+
+Learn more about [case generation](references/case-generation.md), the shared
+[case methodology](references/case-methodology.md), the
+[evaluation rubric](references/evaluation-rubric.md), and the
+[report system](references/report-system.md).
+
+## Interview vs Tutorial
+
+These are two ways to use the same case-interview system:
 
 | | Interview Mode | Tutorial Mode |
 |---|---|---|
-| 体感 | 一场真实的 MBB 风格面试 | 有教练带着做 |
-| Case 进行中 | 不提示、不纠错、不说"框架不错"，语气中性 | 讲解、提示、诊断、重做 |
-| 回答的问题 | "如果这是真的，我表现如何？" | "我学会了什么？哪些能独立完成？" |
-| 结束时给出 | 各维度评分 + Strong Hire / Hire / Borderline / No Hire | 掌握程度、独立程度、提示依赖、下一阶段训练计划 |
-| 招聘结论 | 有 | **没有**(除非你明确要求 benchmark) |
+| Purpose | Realistic formal mock | Guided learning or focused practice |
+| During the case | No teaching feedback; minimal realistic interviewer help | Explanations, hints, diagnosis and retries as needed |
+| Review | Independent performance and interview-readiness diagnosis | Mastery, independence, hint dependence and next training plan |
 
-两种模式共用同一套方法论：结构从客户目标和这门生意的算式出发，而不是从背过的框架列表里挑；每个
-数字都要落到"所以呢"；最终建议在第一句话就回答客户问的问题。
+The mode remains fixed for a session so assisted and unassisted performance are not presented as
+equivalent. Detailed boundaries and session behaviour live in
+[`SKILL.md`](SKILL.md), [Interview Mode](references/interview-mode.md), and
+[Tutorial Mode](references/tutorial-mode.md).
 
-零辅助的 Tutorial session **仍然是 Tutorial Mode**。把帮助调到零是 state 变化，不是 mode 变化：
-这次 session 不会产出招聘结论，复盘里也会把"有辅助"和"独立"的表现分开，而不是平均成一个会误导人
-的总分。真正的无辅助评估需要开一个 Interview Mode session，用一道你没见过的 Case。
+## Installation
 
-## Session 结束后你会得到什么
-
-一个自包含的 HTML 文件。两种报告共享同一套视觉语言，但内容和数字的含义不同：
-
-- **面试表现报告**——完整原始题目、Case 信息、总分与招聘档位、一句话因果诊断、六个能力条、优势与真正导致失分
-  的问题、关键节点、你没抓到的洞察、你用掉的 interviewer 帮助、更强的分析路径、你的建议与更强
-  版本的对比、下一次训练重点，以及可以从重要证据直接跳转的完整 Session Transcript。
-- **学习诊断报告**——完整原始题目、本次训练重点、一句话学习总结、每个能力的**表现 + 独立程度**、各主题的提示
-  依赖随练习次数的变化、教学阶段与独立阶段分开评价、关键学习节点、反复出现的问题、掌握程度盘点、
-  下一阶段训练计划，以及完整的“第一次尝试 → Hint → Retry”对话记录。
-
-有三条规则写在渲染器代码里，而不是留给文字约定：
-
-1. Tutorial 报告在没有明确 benchmark 请求时不能出现招聘档位。
-2. 未测试的维度不能带分数。
-3. Percentile、录取概率、编造的公司 benchmark 一律拒绝。
-
-违反任何一条会让构建失败并给出具体错误，不生成文件——而不是产出一份看起来正常、但说了这次
-session 无法支撑的话的报告。
-
-报告是单文件的：内联 CSS、不需要 JavaScript、不依赖字体、不依赖 CDN、不发网络请求。双击即可离线
-打开，打印成 A4 / Letter 时卡片不会被截断。
-
-## 报告预览
-
-以下是正式 renderer 根据仓库中的虚构 example 数据生成的示例报告。README 中看到的就是实际
-Session 结束时使用的同一套报告系统。
-
-### Interview Mode 报告
-
-用于正式 Mock 结束后的表现诊断与面试准备度评估。
-
-![Interview Mode 中文报告预览](assets/interview-report-preview.zh-CN.png)
-
-[查看完整中文 Interview 示例报告](examples/generated/interview-report.zh-CN.html)——GitHub 可能显示 HTML
-源码而不是直接渲染网页；请下载该文件并用本地浏览器打开，以查看完整报告。
-
-### Tutorial Mode 报告
-
-用于教学 Session 结束后的能力掌握、提示依赖和独立程度诊断。
-
-![Tutorial Mode 中文报告预览](assets/tutorial-report-preview.zh-CN.png)
-
-[查看完整中文 Tutorial 示例报告](examples/generated/tutorial-report.zh-CN.html)——GitHub 可能显示 HTML
-源码而不是直接渲染网页；请下载该文件并用本地浏览器打开，以查看完整报告。
-
-## 环境要求
-
-**宿主环境。** 在 **Claude Code** 上开发和测试，这是本 Skill 的目标环境。它使用标准的
-`SKILL.md` + `references/` 结构，并调用一个本地 Python 脚本生成报告。
-
-其他支持同样 Skill 格式、且能运行本地脚本的 Claude 环境可能可用，但**未经测试，不作为已支持环境
-声明**。如果你要试，下面的渲染器 smoke test 能最快告诉你报告生成在那里是否正常。
-
-**Python。** 3.8 或更高，且 `python3` 在 PATH 中。**不需要任何第三方包**——渲染器和测试套件
-只用标准库，没有需要 `pip install` 的东西。
-
-**可选——跨 session 记忆。** Learner profile 需要 project memory 工具(`project_read` /
-`project_write`)。如果宿主环境没有提供，Skill 会静默降级：session、Case、评分、报告全部照常工作，
-只是失去跨 session 的连续性。详见[跨 Session 进度](#跨-session-进度)。
-
-## 快速开始
-
-**1. Clone 到你的 skills 目录**
+Tested on **Claude Code**. Clone the repository into your skills directory:
 
 ```bash
 git clone https://github.com/ShuchangZhang/case-interview-coach.git \
   ~/.claude/skills/case-interview-coach
 ```
 
-**2. 加载**
+Start a new Claude Code session or reload skills in the current one. Skills are read at session
+start, so an existing session may not see a newly cloned skill.
 
-开一个新的 Claude Code session，或在当前 session 里重新加载 skills。Skill 在 session 启动时读取，
-已经在运行的 session 看不到刚 clone 进去的 skill。
+## Quick start
 
-**3. 确认它在**
+Ask in plain language, in English or Chinese:
 
-用自然语言要一道 case(见[下面](#第一次-session))。如果 skill 加载成功，它做的第一件事是确定你要
-哪种 mode——在任何 case 开始之前。
+```text
+Run an advanced profitability case as an interviewee-led formal mock.
 
-## 验证安装
+Give me a consulting case interview in Interview Mode.
 
-报告渲染器可以单独运行，不需要开 session。这是确认 clone 完整、Python 可用的最快方式：
+I'm new to case interviews—teach me from scratch.
+
+Tutorial Mode: five market-sizing drills.
+
+Here's a casebook PDF—run case 3 as an interview.
+```
+
+If your request does not make the training mode clear, the skill asks before the case starts.
+
+## Requirements and verification
+
+- **Host:** Claude Code is the tested and supported environment. Other hosts with compatible
+  skills and local-script support may work, but are not claimed as supported.
+- **Python:** 3.8 or newer as `python3`; no third-party packages.
+- **Optional memory:** Cross-session learner profiles require host-provided project-memory tools.
+  Without them, cases, sessions, evaluation and current-session reports still work.
+
+Verify the renderer with the bundled fictional examples:
 
 ```bash
 cd ~/.claude/skills/case-interview-coach
@@ -503,120 +124,215 @@ python3 scripts/build_report.py examples/interview-report.json -o interview-repo
 python3 scripts/build_report.py examples/tutorial-report.json  -o tutorial-report.html
 ```
 
-每条命令会打印 `Wrote <file> (N bytes)` 并以 0 退出。用浏览器打开任一文件，你应该看到一份完整
-的、带样式的报告，内容来自仓库自带的虚构示例。
+## How it works
 
-脚本会解析自己的位置，所以用绝对路径调用时在任何目录下都能工作：
+1. The skill settles the training goal and loads only the relevant methodology and mode guidance.
+2. For a generated case, it builds and consistency-checks a blueprint before revealing the prompt.
+3. It runs the session with controlled information release, then converts a validated session
+   record into one local HTML report.
 
-```bash
-python3 ~/.claude/skills/case-interview-coach/scripts/build_report.py \
-  --example tutorial -o /tmp/demo.html
-```
+The implementation is intentionally split between the router in [`SKILL.md`](SKILL.md), focused
+files in [`references/`](references/), and the local
+[`build_report.py`](scripts/build_report.py) renderer. See
+[design and validation notes](docs/design-and-validation-notes.md) for architecture history rather
+than duplicating it here.
 
-**遇到非法输入时**，渲染器不写文件，打印一条指明字段、收到的值和合法范围的 `ValidationError`,
-并以状态码 2 退出：
-
-```
-ValidationError: dimensions[0].score must be a finite number between 0 and 10; received 100
-No HTML was written.
-```
-
-退出码：`0` 成功 · `2` validation 或 guard-rail 失败 · `1` 用法或 I/O 错误。
-
-## 第一次 Session
-
-用自然语言说你要什么，中英文都可以。如果 mode 不明确，Skill 会问一次，然后在本次 session 内锁定。
-
-```
-给我做一次正式 mock,interviewee-led,advanced profitability case。
-
-我完全没接触过 Case Interview,请从头教我。
-
-Tutorial mode,只练 market sizing,五道。
-
-我上传一份 casebook PDF,请把第 3 题当作正式面试来跑。
-```
-
-要换 mode，结束当前 session 再开一个新的。这是刻意设计的：一道你已经看过答案的 Case，无法再产出
-有效的评估。
-
-## 数据保存在哪里
-
-全部在本地运行。渲染器是一个本地 Python 脚本，不发任何网络请求；它生成的 HTML 不含外部引用、不含
-脚本、不含追踪代码。
-
-**生成的报告会包含本次训练 Session 的完整自然语言对话，包括你自行输入的内容，以及能力评价、错误
-和学习进度。** 在上传到任何公开位置或分享给他人之前，请先检查 HTML。renderer 在本地运行，不会
-主动上传这些内容，也不会发起网络请求。
-
-你与 Claude 的对话本身当然受宿主应用自己的数据处理策略约束——那不在本仓库的控制范围内。
-
-## 跨 Session 进度
-
-如果宿主环境提供 project memory 工具，Skill 会维护一份 learner profile，让后续 session 能够校准
-难度、追踪反复出现的错误、并注意到提示依赖是否在下降。
-
-**这完全取决于宿主环境。** 在没有这些工具的环境里，Skill 会静默跳过 profile——不报错、不阻塞，
-本次 session 的复盘照样完整。只要没有真正读到 profile，报告就不会声称任何跨 session 趋势。
-
-## 运行测试
+## Testing
 
 ```bash
-cd ~/.claude/skills/case-interview-coach
 python3 -m unittest discover -s tests -v
 ```
 
-标准库 `unittest`，无依赖。测试引用的每一个 fixture 都已提交在 `tests/fixtures/` 下，所以从一份
-全新 clone 就能复现结果。覆盖范围包括：两个示例都能渲染；不依赖当前工作目录；未测试维度显示为
-N/A;Tutorial 报告永不出现招聘档位；用户文本里的标记被转义而不是被执行；输出中没有任何外部引用；
-以及每一类非法输入各一个 fixture——错误的 mode、错误的完成状态、错误的辅助等级、分数大于 10、
-负分、`NaN`、字符串分数、未测试维度带分数、verdict 标志自相矛盾、mode 专属字段出现在错误的报告
-里、Tutorial 出现招聘 verdict、以及三种 guard-rail 违规——每一个都必须以 2 退出且不写文件。
+The standard-library test suite runs in CI on Python 3.8 and 3.12. It covers both report modes,
+schema and guard-rail validation, HTML escaping, transcript evidence links, self-contained output,
+invalid-input failures and working-directory independence.
 
-## 仓库结构
+## Privacy and data
 
-| 路径 | 内容 |
-|---|---|
-| `SKILL.md` | 路由。Mode / State / Assistance 模型、两套状态机、setup、session 边界、时间预算 |
-| `references/case-methodology.md` | Case 流程、结构化、假设循环、exhibit、brainstorming、synthesis、沟通 |
-| `references/case-math.md` | 计算纪律、公式、心算、sanity check、market sizing |
-| `references/case-taxonomy.md` | 14 种 archetype 与综合型：目标、信号、模块、诊断树、quant、exhibit、常见错误 |
-| `references/case-generation.md` | Blueprint 优先流程、exhibit 与 quant 设计、一致性检查、用户上传 case、难度、地区 |
-| `references/interview-mode.md` | Interviewer 协议、禁止项、信息释放、语气、两种形式主线、feedback 与 debrief |
-| `references/tutorial-mode.md` | 教学循环、初学者课程、进阶阶梯、专项训练、提示阶梯、错误诊断、复盘 |
-| `references/evaluation-rubric.md` | 六个维度的行为锚点、非平均的 hire 档位、未完成 case 规则、掌握等级 |
-| `references/report-system.md` | Session Report schema、两种报告规范、validation 规则、视觉系统 |
-| `references/research-notes.md` | 来源分层、引用清单，以及哪些原则来自来源、哪些是本项目的设计 |
-| `scripts/build_report.py` | Session Report JSON 转自包含 HTML |
-| `examples/` | 中英文 Interview / Tutorial 示例 JSON 及 renderer 生成的 HTML |
-| `assets/` | 从生成后 HTML 截取的 README 报告预览图 |
-| `tests/` | 测试套件与已提交的 fixture |
-| `docs/` | 设计理由与验证记录 |
+The renderer runs locally and makes no network requests. Generated reports include the complete
+user-visible natural-language conversation from the training session, including anything you
+typed, plus assessments and learning progress. Review the HTML before sharing it publicly.
 
-## 已知限制
+Conversation storage and model processing are governed by the host application. Cross-session
+progress is available only when the host supplies project-memory tools.
 
-- **只在 Claude Code 上测试过。** 其他环境可能可用，但都未经验证。
-- **跨 session 进度取决于宿主环境**是否提供 project memory 工具。
-- **Guard-rail 扫描基于模式匹配。** 它能抓住已列举的几类无依据声明——percentile、录取概率、
-  编造的 benchmark——但不是每一种可能被编出来的统计数字。它是规则的兜底，不是规则的替代。
-- **没有做过自动化安全审计。** 渲染器会转义不可信文本、不发网络请求，测试对这两点都有覆盖；声明
-  仅限于此。
-- **报告打印时强制浅色。** 屏幕上支持深色模式，打印固定为浅色。
-- **评分是训练工具。** 档位是按公开资料中各家公司描述的考察点校准的，不等同于任何公司内部的实际
-  招聘线。
+## Methodology and sources
+
+The methodology draws on public recruiting material from McKinsey, BCG and Bain, selected case
+preparation resources, and the architecture of firm-published sample cases. No case content is
+reproduced. The complete URLs, access dates and source-to-method mapping are in
+[`references/research-notes.md`](references/research-notes.md).
+
+**Not affiliated with or endorsed by McKinsey, BCG, Bain, or any other firm.**
+
+## Known limitations
+
+- Claude Code is the only tested host environment.
+- Cross-session progress depends on host-provided memory capabilities.
+- Generated cases and assessments remain LLM-driven; blueprint and renderer checks reduce, but do
+  not eliminate, inconsistency or judgment errors.
+- The scoring system is a training instrument, not any firm's internal hiring bar, and the skill
+  does not replace feedback from an experienced human interviewer.
+
+## License
+
+[MIT](LICENSE). Applies to the entire repository.
+
+---
+
+# 中文
+
+## 这是什么
+
+这是一个面向 Consulting Case Interview 的高真实度 AI Mocking Skill。它会在 Session 前建立完整且
+一致的 Case，过程中像面试官一样控制信息披露，结束后再根据你真正说过的内容生成有证据链接的 HTML
+复盘报告。
+
+核心产品是完整的 Case Mock 与深度复盘；Interview Mode 和 Tutorial Mode 是同一套 Case 系统针对
+独立测评和引导学习提供的两种训练方式。
+
+## 报告预览
+
+每次完成 Session 后都可以生成一份自包含 HTML 报告，包括原始 Case Prompt、能力诊断、关键节点、
+遗漏洞察、完整自然语言 Transcript、从分析跳回原始回答的 evidence link，以及下一步训练重点。报告
+可以离线打开，不包含外部脚本或追踪代码。
+
+### Interview 报告
+
+![Interview Mode 中文报告预览](assets/interview-report-preview.zh-CN.png)
+
+[查看完整中文 Interview 示例报告](examples/generated/interview-report.zh-CN.html)——GitHub 可能显示
+HTML 源码；下载后在本地浏览器打开即可查看完整报告。
+
+### Tutorial 报告
+
+![Tutorial Mode 中文报告预览](assets/tutorial-report-preview.zh-CN.png)
+
+[查看完整中文 Tutorial 示例报告](examples/generated/tutorial-report.zh-CN.html)——GitHub 可能显示
+HTML 源码；下载后在本地浏览器打开即可查看完整报告。
+
+## 核心能力
+
+- **真实 Case Mock。** 支持原创或用户提供的 Case、interviewer-led 与 interviewee-led 形式，并根据
+  Candidate 的问题释放相应信息。正式 Mock 覆盖 structuring、quant、exhibit、brainstorming 和
+  synthesis，过程中不进行教学式答案提示。
+- **结构化 Case Generation。** 先建立包含客户目标、root cause、hidden facts、quant modules 和
+  exhibits 的完整 blueprint，再检查数字与逻辑一致性。Case 结构和商业逻辑会根据行业 economics
+  调整，而不是套用通用框架列表。
+- **有证据的深度复盘。** 报告把能力诊断和关键节点链接到原始 Case Prompt 与具体 Transcript turn，
+  并给出遗漏洞察、更强的分析路径和下一步训练重点。
+- **Tutorial 支持。** 初学者可以通过讲解、提示、重试和专项练习学习同一套方法论；报告会区分有辅助
+  与独立完成的表现。
+
+深入了解：[Case generation](references/case-generation.md)、
+[Case methodology](references/case-methodology.md)、
+[Evaluation rubric](references/evaluation-rubric.md) 和
+[Report system](references/report-system.md)。
+
+## Interview 与 Tutorial
+
+它们是使用同一套 Case Interview 系统的两种方式：
+
+| | Interview Mode | Tutorial Mode |
+|---|---|---|
+| 目的 | 高真实度正式 Mock | 引导学习或专项训练 |
+| Case 过程中 | 不给教学反馈，只提供最低限度的真实 interviewer 帮助 | 按需要提供讲解、提示、诊断和重试 |
+| 复盘重点 | 独立表现和面试准备度诊断 | 掌握程度、独立程度、提示依赖和下一阶段计划 |
+
+Mode 在一次 Session 中保持固定，避免把有辅助和无辅助的表现解释成同一件事。详细边界和 Session
+行为请查看 [`SKILL.md`](SKILL.md)、[Interview Mode](references/interview-mode.md) 和
+[Tutorial Mode](references/tutorial-mode.md)。
+
+## 安装
+
+本项目在 **Claude Code** 上开发和测试。Clone 到 skills 目录：
+
+```bash
+git clone https://github.com/ShuchangZhang/case-interview-coach.git \
+  ~/.claude/skills/case-interview-coach
+```
+
+启动一个新的 Claude Code Session，或重新加载当前 Session 的 skills。Skills 在 Session 启动时读取，
+已经运行的 Session 可能无法识别刚刚 Clone 的 Skill。
+
+## 快速开始
+
+直接用中文或英文描述你的训练目标：
+
+```text
+给我做一次正式 Mock，interviewee-led，advanced profitability case。
+
+来一场 Consulting Case Interview，使用 Interview Mode。
+
+我完全没接触过 Case Interview，请从头教我。
+
+Tutorial Mode，只练 Market Sizing，五道。
+
+我上传一份 Casebook PDF，请把第 3 题当作正式面试来跑。
+```
+
+如果你的请求没有明确训练方式，Skill 会在 Case 开始前询问。
+
+## 环境要求与安装验证
+
+- **宿主环境：** Claude Code 是唯一经过测试和正式支持的环境。其他支持兼容 Skill 格式和本地脚本的
+  宿主可能可用，但不在已验证范围内。
+- **Python：** 3.8 或更高，命令为 `python3`；不需要第三方依赖。
+- **可选记忆：** 跨 Session learner profile 依赖宿主提供的 project-memory 工具。没有这些工具时，
+  Case、Session、测评和本次报告仍然正常工作。
+
+使用仓库自带的虚构示例验证 renderer：
+
+```bash
+cd ~/.claude/skills/case-interview-coach
+python3 scripts/build_report.py examples/interview-report.json -o interview-report.html
+python3 scripts/build_report.py examples/tutorial-report.json  -o tutorial-report.html
+```
+
+## 工作原理
+
+1. Skill 确定训练目标，只加载本次需要的方法论和 Mode 指南。
+2. 对于生成型 Case，先建立并检查完整 blueprint，再向 Candidate 释放题目。
+3. Session 中控制信息披露；结束后把通过验证的 Session 记录转换成一份本地 HTML 报告。
+
+实现被刻意拆分为 [`SKILL.md`](SKILL.md) 中的路由、[`references/`](references/) 中按需读取的指南，
+以及本地 [`build_report.py`](scripts/build_report.py) renderer。架构演进和验证历史见
+[Design and validation notes](docs/design-and-validation-notes.md)，README 不再重复维护这些细节。
+
+## 测试
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+测试套件只使用 Python 标准库，CI 覆盖 Python 3.8 和 3.12。测试范围包括两种报告、schema 与
+guard-rail validation、HTML escaping、Transcript evidence link、自包含输出、非法输入失败，以及
+不依赖当前工作目录运行。
+
+## 隐私与数据
+
+Renderer 在本地运行，不发起网络请求。生成的报告包含本次训练中全部用户可见的自然语言对话，包括
+你自行输入的内容，以及能力评价和学习进度。公开上传或分享 HTML 前请先检查内容。
+
+对话的保存与模型处理由宿主应用的数据政策决定。只有宿主提供 project-memory 工具时，Skill 才能
+维护跨 Session 进度。
 
 ## 方法论与来源
 
-基于咨询公司官方招聘资料、多个成熟备考资源之间的共同结论，以及对公司公开 sample case 的
-架构研究。不复制任何 case 内容。
+方法论参考 McKinsey、BCG、Bain 的公开招聘材料、选定的 Case 备考资源，以及咨询公司公开 sample
+case 的架构。不复制任何 Case 内容。完整 URL、访问日期和方法论映射见
+[`references/research-notes.md`](references/research-notes.md)。
 
-所有依赖的来源都带 URL 和访问日期列在
-[`references/research-notes.md`](references/research-notes.md) §1.1，其中同时区分了：哪些来自官方
-材料、哪些是多个独立来源的共同结论、哪些是本项目自己的设计决定。
+**本项目与 McKinsey、BCG、Bain 或任何其他咨询公司均无关联，也未获得其背书。**
 
-**与 McKinsey、BCG、Bain 或任何其他公司均无关联，也未获其背书。** 提到公司名称仅用于描述公开
-记载的面试实践。
+## 已知限制
+
+- 目前只在 Claude Code 上完成测试。
+- 跨 Session 进度取决于宿主是否提供 memory 能力。
+- 生成型 Case 和测评仍由 LLM 驱动；blueprint 与 renderer 检查可以降低、但不能消除逻辑不一致或
+  判断偏差。
+- 评分是训练工具，不代表任何公司的内部招聘标准，也不能替代有经验的真人 Interviewer 的反馈。
 
 ## 许可证
 
-[MIT](LICENSE)。适用于整个仓库——代码、skill 配置、方法论文件、文档、示例与测试一视同仁。
+[MIT](LICENSE)，适用于整个仓库。
