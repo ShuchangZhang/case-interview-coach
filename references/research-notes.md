@@ -7,22 +7,47 @@ sourced fact. Principles are recorded here, not source text.
 
 ## 1. Source tiers used
 
-**Tier 1 — Firm official recruiting material.** McKinsey's interviewing pages and its four
-published sample cases (Beautify, Diconsa, Electro-Light, Talbot Trucks); BCG Careers' case
-interview preparation page and its interactive practice cases; Bain's case interview page.
+**Tier 1 — Firm official recruiting material.** The highest-authority input on how real
+interviews behave and what they assess. McKinsey's interviewing page and its published sample
+cases; BCG Careers' case interview preparation page and its interactive practice cases; Bain's
+interviewing and case-interview preparation pages and its published practice cases.
 
-**Tier 2 — Established preparation methodology.** Widely-used, mutually independent prep
-resources covering frameworks, structuring, math, exhibits, brainstorming, synthesis and scoring
-(CaseCoach; StrategyCase; Hacking the Case Interview; Road to Offer; Management Consulted;
-Victor Cheng's *Case Interview Secrets*, via summaries).
+**Tier 2 — Established preparation methodology.** Widely-used preparation resources, consulted to
+find where independent sources *converge* on frameworks, structuring, case math, exhibits,
+brainstorming, synthesis and scoring. No single provider's framework set was adopted.
 
-**Tier 3 — Publicly available cases and casebooks.** Firm sample cases and openly published
-university consulting-club casebooks, used only to study **case architecture** — how a case is
-assembled, how interviewer guides separate candidate-facing from interviewer-only information,
-how exhibits and math modules are embedded, how progression and insight chains are built.
+**Tier 3 — Case architecture.** How a case is assembled: how an interviewer guide separates
+candidate-facing from interviewer-only information, how exhibits and math modules are embedded,
+how progression and insight chains are built. This came from the **firm-published sample cases in
+Tier 1**, which are the openly available examples that include interviewer guidance.
 
-No casebook content is reproduced in this skill. Nothing was drawn from material that prohibits
+No case content is reproduced in this skill. Nothing was drawn from material that prohibits
 copying, redistribution, or use with generative AI.
+
+### 1.1 Cited sources
+
+Verified as reachable on the access date below. Where a claim in this skill rests on a specific
+source, it rests on one of these.
+
+| Source | Page | URL | Accessed | Supports |
+|---|---|---|---|---|
+| McKinsey & Company | Interviewing at McKinsey — Tips and Resources | https://www.mckinsey.com/careers/interviewing | 2026-08-21 | What a case interview is; what is assessed; that cases are client scenarios |
+| McKinsey & Company | Talbot Trucks (sample case) | https://www.mckinsey.com/careers/interviewing/talbot-trucks | 2026-08-21 | Real case architecture; question-type sequence; interviewer-led progression |
+| Boston Consulting Group | Consulting Case Study Interview Preparation | https://careers.bcg.com/global/en/case-interview-preparation | 2026-08-21 | Case interview format; that there is often no single right answer; assessed behaviours |
+| Bain & Company | Interviewing | https://www.bain.com/careers/hiring-process/interviewing/ | 2026-08-21 | Case interview as assisted problem-solving; assumptions and quick math |
+| Bain & Company | Preparing for the Case Interview | https://www.bain.com/careers/hiring-process/case-interview/ | 2026-08-21 | Clarify objective, structure thinking, think aloud, listen and adapt |
+| Bain & Company | FashionCo. (practice case) | https://www.bain.com/careers/hiring-process/interviewing/fashion-case-study/ | 2026-08-21 | Case architecture for a revenue-decline diagnostic |
+| PrepLounge | The Complete Guide to Your Case Interview Preparation | https://www.preplounge.com/en/case-interview-basics | 2026-08-21 | Case-type taxonomy; structuring and MECE; case math inventory |
+| Hacking the Case Interview | Case Interview Frameworks: The Ultimate Guide (2026) | https://www.hackingthecaseinterview.com/pages/case-interview-frameworks | 2026-08-21 | Tailored-over-memorised structuring; framework quality criteria |
+
+**Usage note.** Tier 1 and Tier 2 pages are cited as references, in the ordinary sense of citing a
+publicly readable web page. No page's text, exhibits or cases are reproduced here; what is
+recorded in this skill are principles restated in our own words, plus the design decisions in §4.
+
+**On sources not cited.** Other well-known preparation material — including books consulted only
+through second-hand summaries — informed general familiarity but is deliberately **not** listed
+above, because a citation the reader cannot open and check is not a citation. Where this skill
+states a convergent conclusion (§3), the convergence claim rests on the cited sources.
 
 ---
 

@@ -1,0 +1,160 @@
+{
+  "language": "en",
+  "session": {
+    "id": "fx-tutorial-assisted",
+    "date": "2026-08-21",
+    "mode": "tutorial",
+    "case_type": "Profitability",
+    "industry": "Coffee chain (fictional: Meridian Coffee)",
+    "difficulty": "Beginner",
+    "training_focus": "Structuring + basic case math",
+    "completion": "complete",
+    "assistance_start": "guided",
+    "assistance_end": "assisted"
+  },
+  "headline": {
+    "learning_summary": "You can now do the first-level profit breakdown and the percentage work without help, and you stopped needing hints from the third rep onward; the weak spot is second-level structure, where you produce branches but never say which one to look at first."
+  },
+  "dimensions": [
+    {
+      "name": "Problem Structuring",
+      "score": 6,
+      "tested": true,
+      "independence": "assisted",
+      "evidence": "First-level breakdown is now reliable; second-level branches still default to generic buckets."
+    },
+    {
+      "name": "Quantitative Skills",
+      "score": 8,
+      "tested": true,
+      "independence": "independent",
+      "evidence": "All three calculations completed unaided, with units stated before computing."
+    },
+    {
+      "name": "Business Judgment & Insight",
+      "score": 5,
+      "tested": true,
+      "independence": "guided",
+      "evidence": "Needed a prompt each time before asking what a finding meant for the client."
+    },
+    {
+      "name": "Exhibit Interpretation",
+      "tested": false,
+      "score": null,
+      "evidence": "Not practised this session."
+    },
+    {
+      "name": "Communication",
+      "score": 6.5,
+      "tested": true,
+      "independence": "light",
+      "evidence": "Clear delivery; occasionally explains the method before stating the answer."
+    },
+    {
+      "name": "Synthesis / Recommendation",
+      "tested": false,
+      "score": null,
+      "evidence": "Not practised this session."
+    }
+  ],
+  "hints": {
+    "by_topic": [
+      {
+        "topic": "Structuring",
+        "sequence": [
+          "Level 3",
+          "Level 2",
+          "Level 1",
+          "Independent"
+        ],
+        "note": "Hint strength fell across four reps and the fourth needed nothing. This is learning, not luck."
+      },
+      {
+        "topic": "Case math",
+        "sequence": [
+          "Level 1",
+          "Independent"
+        ],
+        "note": "One reminder to write the equation first; not needed again."
+      },
+      {
+        "topic": "Observation to insight",
+        "sequence": [
+          "Level 3",
+          "Level 3"
+        ],
+        "note": "Both attempts needed a partial answer. This is the clearest thing to train next."
+      }
+    ]
+  },
+  "phases": {
+    "assisted": {
+      "covered": "First-level profit tree, price times volume, percentage change, unit tracking.",
+      "hints": "Structuring Level 3 then Level 2; one Level 1 hint on math.",
+      "corrected": "The first attempt reached for market/customer/competition. After being asked what the client actually wanted and how profit is computed, you rebuilt from profit drivers and carried the new method into the second attempt without being told to."
+    }
+  },
+  "key_moments": [
+    {
+      "stage": "First structuring attempt",
+      "quote": "I'd look at market, customer and competition.",
+      "what_you_did": "Reached for a memorised general framework.",
+      "intervention": "Rather than supplying branches, I asked two questions: what is the client actually trying to fix, and what is profit computed from?",
+      "retry": "You rebuilt from profit = revenue - cost and split volume into footfall x conversion.",
+      "learning": "A structure comes from the client's objective and the arithmetic of the business, not from whichever framework is most familiar."
+    },
+    {
+      "stage": "Second calculation",
+      "what_you_did": "Started computing immediately and lost track of units midway.",
+      "intervention": "Level 1 hint: write down the unit of the answer you are trying to produce.",
+      "retry": "You restarted from 'profit per store per month' and worked backwards to the inputs you needed.",
+      "learning": "Fixing the unit of the answer first usually makes the calculation path obvious."
+    }
+  ],
+  "recurring_mistakes": [
+    {
+      "label": "Branches listed without a priority",
+      "status": "new",
+      "note": "Three of four structuring reps. The branches keep improving; the question of where to start is never answered."
+    },
+    {
+      "label": "Data read without asking what it means",
+      "status": "new",
+      "note": "Both observation-to-insight attempts stopped at description."
+    }
+  ],
+  "mastery": {
+    "independent": [
+      "First-level breakdown of profit = revenue - cost",
+      "Revenue = price x volume",
+      "Percentage change and growth rate",
+      "Stating the unit before computing"
+    ],
+    "needs_help": [
+      "Industry-specific second-level structure",
+      "Choosing which branch to investigate first, with a reason",
+      "Deriving a business implication from an observation"
+    ]
+  },
+  "transferable_lessons": [
+    "Build the structure from the client's objective and the arithmetic of the business, not from a framework you already know.",
+    "After every piece of data, answer the question 'so what?' once.",
+    "Fix the unit of the answer first and the calculation path usually appears on its own."
+  ],
+  "next_priorities": [
+    {
+      "title": "Branch prioritisation",
+      "current": "Sensible branches, never a stated starting point.",
+      "target": "After presenting any structure, say 'I would start with X, because Y' without being asked.",
+      "drill": "Five structuring reps. Rule: a structure is not complete until you have named the first branch to investigate and justified it. A branch you cannot justify gets deleted.",
+      "assistance": "Start at Light assistance; switch to Independent for the last three."
+    },
+    {
+      "title": "Observation to insight",
+      "current": "Trends are found reliably; the business meaning is not.",
+      "target": "Complete Observation to Why to Implication to Next step unaided.",
+      "drill": "Five exhibit reps, each requiring all four steps.",
+      "assistance": "Light assistance for the first two, Independent thereafter."
+    }
+  ]
+}

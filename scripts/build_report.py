@@ -2,26 +2,41 @@
 """
 Render a Session Report JSON into a single self-contained HTML file.
 
-Usage:
     python3 build_report.py report.json -o out.html
+    python3 build_report.py --example interview -o out.html
 
-One data object, two templates. `session.mode` selects which sections render
-and how the numbers are labelled. Scoring and content come from the JSON;
-this script only lays them out.
+Standard library only. No network access, at build time or in the output.
 
-Guarantees enforced here (not left to prose):
-  * Tutorial reports never emit a hiring band unless benchmark_requested is true,
-    and then only with a visible disclaimer.
-  * Aborted sessions are always badged incomplete.
-  * Untested dimensions render as "not tested" with no bar and no number.
-  * No section renders from absent data — empty in, absent out.
+Paths are resolved from this file's own location, never from the caller's working
+directory, so the script works when invoked by absolute path from any project:
+
+    python3 ~/.claude/skills/case-interview-coach/scripts/build_report.py ...
+
+Input is validated before anything is rendered. Two classes of problem are treated
+very differently:
+
+  * Untrusted *text* (a case answer containing markup) is HTML-escaped and rendered.
+    Escaping is a rendering concern and never fails the build.
+  * A *validation* or *guard-rail* violation (bad enum, out-of-range score, a hiring
+    verdict in a tutorial report, an unverifiable benchmark claim) aborts the build:
+    no HTML is written, a specific error naming the field, its value and the legal
+    range goes to stderr, and the exit status is non-zero.
+
+Exit codes: 0 success · 2 validation/guard-rail failure · 1 usage or I/O error.
 """
 
-import argparse, html, json, re, sys, datetime
+import argparse, html, json, math, os, re, sys, datetime
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SKILL_ROOT = os.path.dirname(SCRIPT_DIR)
+EXAMPLES_DIR = os.path.join(SKILL_ROOT, "examples")
+
 
 # ---------------------------------------------------------------- palette ---
-# Values from the validated reference palette. Ordinal blue ramps verified with
-# scripts/validate_palette.js (--ordinal, both modes): ALL CHECKS PASS.
+# Ordinal blue ramps: single hue, monotone lightness, adjacent-step gaps >= 0.06 L,
+# and the surface-facing end clearing 2:1 contrast on its own surface. Both ramps are
+# re-checked by tests/test_build_report.py::PaletteTests, which is the executable
+# record of these properties.
 ORDINAL_LIGHT = ["#86b6ef", "#5598e7", "#2a78d6", "#104281"]
 ORDINAL_DARK  = ["#184f95", "#256abf", "#3987e5", "#9ec5f4"]
 
@@ -138,11 +153,233 @@ L = {
     },
 }
 
+# ---------------------------------------------------------------- schema ---
+MODES = ("interview", "tutorial")
+COMPLETIONS = ("complete", "aborted", "partial")
+INDEPENDENCE = ("guided", "assisted", "light", "independent")
+ASSIST_LEVELS = ("none", "light", "moderate", "substantial")
+HIRING_VERDICTS = ("strong hire", "hire", "borderline", "no hire")
+
+# Interview-only and tutorial-only top-level keys. A key belonging to the other
+# mode is a data-construction bug, not a stylistic choice: it means the report was
+# assembled from the wrong template and would render misleading semantics.
+INTERVIEW_ONLY = ("missed_insights", "assistance", "stronger_path",
+                  "recommendation_compare")
+TUTORIAL_ONLY = ("hints", "phases", "recurring_mistakes", "mastery",
+                 "transferable_lessons")
+
+# Claims the report has no evidence for. Scanned ONLY over evaluative prose --
+# the text where the skill judges the user -- never over case content, because a
+# case may legitimately discuss an industry average or a conversion rate.
 FABRICATION_PATTERNS = [
-    r"percentile", r"top\s*\d+\s*%", r"better than \d+%", r"超过\s*\d+\s*%",
-    r"录取(概率|率)", r"pass rate", r"acceptance (rate|probability)",
-    r"industry average", r"行业平均", r"MBB candidates",
+    (r"percentile", "percentile ranking"),
+    (r"top\s*\d+\s*%", "top-N% claim"),
+    (r"better than\s+\d+\s*%", "comparative ranking"),
+    (r"超过\s*\d+\s*%\s*(的)?\s*(候选人|candidates|面试者)", "comparative ranking"),
+    (r"(录取|通过|offer)\s*(概率|率|possibility|probability)", "offer probability"),
+    (r"\b(pass|acceptance|offer)\s+rate\b", "offer probability"),
+    (r"industry average\s+score", "invented benchmark"),
+    (r"行业平均分", "invented benchmark"),
+    (r"\b(MBB|McKinsey|BCG|Bain)\b[^.。]{0,40}\b(benchmark|平均分|baseline)\b",
+     "invented firm benchmark"),
+    (r"\b(benchmark)\b[^.。]{0,20}\b(is|为|是)\s*\d", "invented benchmark"),
 ]
+
+# Fields whose text is an evaluation of the user. Guard rails apply here only.
+EVALUATIVE_PATHS = (
+    "headline.one_line_diagnosis", "headline.learning_summary",
+    "dimensions[].evidence", "strengths[]", "weaknesses[]",
+    "recurring_mistakes[]", "mastery", "transferable_lessons[]",
+    "next_priorities[]", "assistance.summary", "phases",
+)
+
+
+class ValidationError(Exception):
+    """A problem in the input data. Aborts the build; no HTML is produced."""
+
+
+def _err(field, value, expected):
+    raise ValidationError(
+        "{} must be {}; received {!r}".format(field, expected, value))
+
+
+def _check_enum(value, allowed, field, optional=True):
+    if value is None:
+        if optional:
+            return
+        _err(field, value, "one of " + ", ".join(allowed))
+    if not isinstance(value, str) or value.strip().lower() not in allowed:
+        _err(field, value, "one of " + ", ".join(allowed))
+
+
+def _check_score(value, field):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        _err(field, value, "a number between 0 and 10")
+    if math.isnan(value) or math.isinf(value):
+        _err(field, value, "a finite number between 0 and 10")
+    if not (0 <= value <= 10):
+        _err(field, value, "a finite number between 0 and 10")
+
+
+def _walk_evaluative(d):
+    """Yield (path, text) for every evaluative string in the document."""
+    def strings(obj, path):
+        if isinstance(obj, str):
+            yield path, obj
+        elif isinstance(obj, dict):
+            for k, v in obj.items():
+                yield from strings(v, "{}.{}".format(path, k))
+        elif isinstance(obj, list):
+            for i, v in enumerate(obj):
+                yield from strings(v, "{}[{}]".format(path, i))
+
+    head = d.get("headline") or {}
+    for key in ("one_line_diagnosis", "learning_summary"):
+        if head.get(key):
+            yield "headline." + key, head[key]
+    for i, dim in enumerate(d.get("dimensions") or []):
+        if isinstance(dim, dict) and dim.get("evidence"):
+            yield "dimensions[{}].evidence".format(i), dim["evidence"]
+    for key in ("strengths", "weaknesses", "recurring_mistakes",
+                "transferable_lessons", "next_priorities", "mastery", "phases"):
+        if d.get(key):
+            yield from strings(d[key], key)
+    asst = d.get("assistance") or {}
+    if asst.get("summary"):
+        yield "assistance.summary", asst["summary"]
+
+
+def validate(d):
+    """Raise ValidationError on the first problem found. Returns the mode."""
+    if not isinstance(d, dict):
+        _err("document root", type(d).__name__, "a JSON object")
+
+    session = d.get("session")
+    if not isinstance(session, dict):
+        _err("session", session, "an object")
+
+    mode = session.get("mode")
+    _check_enum(mode, MODES, "session.mode", optional=False)
+    mode = mode.strip().lower()
+    tutorial = mode == "tutorial"
+
+    completion = session.get("completion", "complete")
+    _check_enum(completion, COMPLETIONS, "session.completion", optional=False)
+    completion = completion.strip().lower()
+
+    for key in ("assistance_start", "assistance_end"):
+        _check_enum(session.get(key), INDEPENDENCE, "session." + key)
+
+    lang = d.get("language", "en")
+    if lang not in L:
+        _err("language", lang, "one of " + ", ".join(sorted(L)))
+
+    # --- dimensions -------------------------------------------------------
+    dims = d.get("dimensions")
+    if dims is not None and not isinstance(dims, list):
+        _err("dimensions", dims, "an array")
+    for i, dim in enumerate(dims or []):
+        base = "dimensions[{}]".format(i)
+        if not isinstance(dim, dict):
+            _err(base, dim, "an object")
+        if not dim.get("name"):
+            _err(base + ".name", dim.get("name"), "a non-empty string")
+        tested = dim.get("tested", True)
+        if not isinstance(tested, bool):
+            _err(base + ".tested", tested, "true or false")
+        score = dim.get("score")
+        if tested:
+            if score is not None:
+                _check_score(score, base + ".score")
+        elif score is not None:
+            # An untested dimension must never carry a number: rendering one would
+            # assert an assessment that was never made.
+            _err(base + ".score", score,
+                 "null when tested is false (an untested dimension cannot hold a score)")
+        _check_enum(dim.get("independence"), INDEPENDENCE, base + ".independence")
+
+    # --- assistance -------------------------------------------------------
+    asst = d.get("assistance")
+    if asst is not None:
+        if not isinstance(asst, dict):
+            _err("assistance", asst, "an object")
+        _check_enum(asst.get("level"), ASSIST_LEVELS, "assistance.level")
+
+    # --- headline / verdict ----------------------------------------------
+    head = d.get("headline")
+    if head is not None and not isinstance(head, dict):
+        _err("headline", head, "an object")
+    head = head or {}
+
+    verdict = head.get("verdict")
+    available = head.get("verdict_available")
+    overall = head.get("overall_score")
+    benchmark = bool(head.get("benchmark_requested"))
+
+    if overall is not None:
+        _check_score(overall, "headline.overall_score")
+
+    if verdict is not None:
+        if not isinstance(verdict, str) or verdict.strip().lower() not in HIRING_VERDICTS:
+            _err("headline.verdict", verdict,
+                 "one of Strong Hire, Hire, Borderline, No Hire (or null)")
+
+    if tutorial:
+        # A tutorial session is taught, hinted and retried; a hiring band asserts an
+        # unassisted judgment that this session cannot support.
+        if verdict is not None and not benchmark:
+            raise ValidationError(
+                "headline.verdict is not permitted in a tutorial report "
+                "(received {!r}). A tutorial session measures learning, not hiring "
+                "readiness. Set headline.benchmark_requested to true only when the "
+                "user explicitly asked to be benchmarked.".format(verdict))
+        for key in INTERVIEW_ONLY:
+            if d.get(key):
+                _err(key, "present", "absent in a tutorial report (interview-only field)")
+    else:
+        if benchmark:
+            _err("headline.benchmark_requested", benchmark,
+                 "absent in an interview report (an interview report is already an assessment)")
+        for key in TUTORIAL_ONLY:
+            if d.get(key):
+                _err(key, "present", "absent in an interview report (tutorial-only field)")
+
+        if available is not None and not isinstance(available, bool):
+            _err("headline.verdict_available", available, "true or false")
+        if available is False and verdict is not None:
+            raise ValidationError(
+                "headline.verdict must be null when headline.verdict_available is false; "
+                "received {!r}. A report cannot both decline and issue a verdict.".format(verdict))
+        if available is False and not head.get("verdict_unavailable_reason"):
+            _err("headline.verdict_unavailable_reason", None,
+                 "a non-empty explanation when verdict_available is false")
+        if verdict is not None and available is False:
+            _err("headline.verdict", verdict, "null when verdict_available is false")
+        if completion == "aborted" and verdict is not None and available is not True:
+            raise ValidationError(
+                "headline.verdict is set on an aborted session without "
+                "headline.verdict_available: true. An aborted case must state explicitly "
+                "that enough was observed to support a verdict.")
+
+    return mode
+
+
+def check_guard_rails(d):
+    """Raise ValidationError on claims the session cannot evidence."""
+    hits = []
+    for path, text in _walk_evaluative(d):
+        for pattern, label in FABRICATION_PATTERNS:
+            m = re.search(pattern, text, re.IGNORECASE)
+            if m:
+                hits.append((path, label, m.group(0)))
+    if hits:
+        lines = ["Guard-rail violation: the report asserts claims this session has no "
+                 "evidence for. No HTML was written."]
+        for path, label, snippet in hits:
+            lines.append("  - {}: {} ({!r})".format(path, label, snippet))
+        lines.append("Remove the claim, or replace it with an observation from this "
+                     "session, and regenerate.")
+        raise ValidationError("\n".join(lines))
 
 
 def esc(x):
@@ -429,23 +666,10 @@ def build(d):
     mode = s.get("mode", "interview")
     tutorial = (mode == "tutorial")
     head = d.get("headline", {}) or {}
-    warnings = []
 
-    # --- guard rails -------------------------------------------------------
+    # Validation and guard rails already ran (see main); build() renders only
+    # data that has been accepted. Nothing is silently dropped here.
     completion = s.get("completion", "complete")
-    if completion == "aborted":
-        head = dict(head)
-        if head.get("verdict") and not head.get("verdict_available", False):
-            head["verdict"] = None
-    if tutorial and head.get("verdict") and not head.get("benchmark_requested"):
-        warnings.append("Tutorial report: hiring verdict dropped "
-                        "(benchmark_requested was not set).")
-        head = dict(head); head["verdict"] = None; head["overall_score"] = None
-
-    blob = json.dumps(d, ensure_ascii=False).lower()
-    for pat in FABRICATION_PATTERNS:
-        if re.search(pat, blob):
-            warnings.append(f"Possible fabricated benchmark in content: /{pat}/ — remove it.")
 
     title = t["tutorial_title"] if tutorial else t["interview_title"]
     subq = t["tutorial_q"] if tutorial else t["interview_q"]
@@ -642,23 +866,71 @@ def build(d):
 {''.join(body)}
 {foot}
 </main></body></html>"""
-    return doc, warnings
+    return doc
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("json_path")
-    ap.add_argument("-o", "--out", required=True)
-    a = ap.parse_args()
-    with open(a.json_path, encoding="utf-8") as f:
-        data = json.load(f)
-    doc, warns = build(data)
-    with open(a.out, "w", encoding="utf-8") as f:
-        f.write(doc)
-    for w in warns:
-        print(f"WARNING: {w}", file=sys.stderr)
-    print(f"Wrote {a.out} ({len(doc):,} bytes)")
+def resolve_input(args):
+    """Resolve the input path from --example or a positional path."""
+    if args.example:
+        path = os.path.join(EXAMPLES_DIR, "{}-report.json".format(args.example))
+        if not os.path.exists(path):
+            raise SystemExit(
+                "error: bundled example not found at {}\n"
+                "The skill directory may be incomplete; re-clone it.".format(path))
+        return path
+    if not args.json_path:
+        raise SystemExit("error: give a report JSON path, or --example interview|tutorial")
+    return args.json_path
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description="Render a Session Report JSON into a self-contained HTML file.",
+        epilog="Paths resolve from the script's own location, so an absolute "
+               "invocation works from any working directory.")
+    ap.add_argument("json_path", nargs="?", help="path to a Session Report JSON file")
+    ap.add_argument("--example", choices=("interview", "tutorial"),
+                    help="render a bundled example instead of a file (smoke test)")
+    ap.add_argument("-o", "--out", required=True, help="output HTML path")
+    ap.add_argument("--skill-root", action="store_true",
+                    help="print the resolved skill directory and exit")
+    args = ap.parse_args(argv)
+
+    if args.skill_root:
+        print(SKILL_ROOT)
+        return 0
+
+    path = resolve_input(args)
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("error: no such file: {}".format(path), file=sys.stderr)
+        return 1
+    except json.JSONDecodeError as e:
+        print("error: {} is not valid JSON: {}".format(path, e), file=sys.stderr)
+        return 1
+
+    try:
+        validate(data)
+        check_guard_rails(data)
+    except ValidationError as e:
+        print("ValidationError: {}".format(e), file=sys.stderr)
+        print("No HTML was written.", file=sys.stderr)
+        return 2
+
+    doc = build(data)
+    try:
+        with open(args.out, "w", encoding="utf-8") as f:
+            f.write(doc)
+    except OSError as e:
+        print("error: could not write {}: {}".format(args.out, e), file=sys.stderr)
+        return 1
+
+    print("Wrote {} ({:,} bytes)".format(args.out, len(doc)))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

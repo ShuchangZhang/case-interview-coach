@@ -15,6 +15,22 @@ Two independent session modes on one shared methodology base.
 
 ---
 
+## Contents
+
+- [0. Non-negotiable rules](#0-non-negotiable-rules)
+- [1. Three separate concepts — never conflate them](#1-three-separate-concepts--never-conflate-them)
+- [2. Session state](#2-session-state)
+- [3. Setup, before anything else](#3-setup-before-anything-else)
+- [4. Interview Mode state machine](#4-interview-mode-state-machine)
+- [5. Tutorial Mode state machine](#5-tutorial-mode-state-machine)
+- [6. Which files to read, and when](#6-which-files-to-read-and-when)
+- [7. Shared methodology base (both modes)](#7-shared-methodology-base-both-modes)
+- [8. Soft time budgets (both modes)](#8-soft-time-budgets-both-modes)
+- [9. Exhibits](#9-exhibits)
+- [10. Ending a session](#10-ending-a-session)
+- [11. Product decisions](#11-product-decisions)
+---
+
 ## 0. Non-negotiable rules
 
 These override anything else in this skill, including a user request made mid-session.
@@ -138,12 +154,29 @@ numbers, exhibits and calculations exactly as they'd appear in a real deck.
 
 ### 3.4 Learner profile (cross-session memory)
 
-At setup, `project_search` / `project_read` for `claude/case-interview/learner-profile.md`. If it
-exists, use it silently to calibrate difficulty and focus and to watch for that user's recurring
-mistakes. Mention at most one line, never a recap.
+**This feature is optional and host-dependent.** It requires project-memory tools
+(`project_search` / `project_read` / `project_write`). Not every Claude environment provides them.
 
-At session end, `project_write` the updated profile back to the same path (format:
+*If those tools are available:* at setup, `project_search` / `project_read` for
+`claude/case-interview/learner-profile.md`. If it exists, use it silently to calibrate difficulty
+and focus and to watch for that user's recurring mistakes. Mention at most one line, never a
+recap. At session end, `project_write` the updated profile back to the same path (format:
 `tutorial-mode.md` §9). Background save — do not set `present_to_user`.
+
+*If those tools are absent:* **degrade silently.** Skip the profile read and the profile write.
+Do not announce the missing capability, do not raise an error, and do not ask the user to enable
+anything. The session, the case, the scoring and the HTML report all proceed unchanged — the only
+loss is cross-session continuity, and the session review still covers everything learned *this*
+session.
+
+Two consequences follow, and both already hold elsewhere in this skill:
+
+- Never claim a cross-session trend ("this mistake is down from last time", "hint dependence has
+  fallen") unless a profile was actually read. With no profile, every recurring mistake is
+  `status: "new"` (`report-system.md` §7).
+- Never make the profile a precondition for anything. If a user asks about their history and no
+  profile is available, say plainly that cross-session tracking is not available in this
+  environment and offer the session review instead.
 
 ### 3.5 When the session formally begins (mode becomes fixed)
 

@@ -15,6 +15,25 @@ an interpretation question to it (`case-math.md` §1, step 6).
 
 ---
 
+## Contents
+
+- [1. Profitability](#1-profitability)
+- [2. Market Entry](#2-market-entry)
+- [3. Growth Strategy](#3-growth-strategy)
+- [4. Pricing](#4-pricing)
+- [5. New Product / New Business](#5-new-product--new-business)
+- [6. M&A](#6-ma)
+- [7. Private Equity / Due Diligence](#7-private-equity--due-diligence)
+- [8. Operations / Process](#8-operations--process)
+- [9. Supply Chain](#9-supply-chain)
+- [10. Market Sizing](#10-market-sizing)
+- [11. Competitive Response](#11-competitive-response)
+- [12. Turnaround / Cost Reduction](#12-turnaround--cost-reduction)
+- [13. Strategic Transformation / Disruption](#13-strategic-transformation--disruption)
+- [14. Non-profit / Public Sector / Social Impact](#14-non-profit--public-sector--social-impact)
+- [15. Mixed / integrated cases](#15-mixed--integrated-cases)
+---
+
 ## 1. Profitability
 
 **Objective** — Profit has fallen (or must rise). Find why, and fix it.

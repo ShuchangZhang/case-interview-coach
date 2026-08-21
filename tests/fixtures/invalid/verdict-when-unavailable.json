@@ -1,0 +1,179 @@
+{
+  "language": "en",
+  "session": {
+    "id": "example-interview-001",
+    "date": "2026-08-21",
+    "mode": "interview",
+    "case_type": "Profitability + Pricing",
+    "industry": "Regional grocery chain (fictional: Northwind Markets)",
+    "geography": "US",
+    "difficulty": "Advanced",
+    "interview_format": "interviewee_led",
+    "case_source": "original",
+    "completion": "complete"
+  },
+  "headline": {
+    "verdict": "Hire",
+    "verdict_available": false,
+    "overall_score": 7.2,
+    "one_line_diagnosis": "The structure was built from grocery economics rather than a memorised template and the math was clean and narrated, but the exhibit work stopped at description, so the central insight and the final recommendation both arrived with thinner evidence than the case actually supported.",
+    "verdict_unavailable_reason": "Not enough was observed."
+  },
+  "dimensions": [
+    {
+      "name": "Problem Structuring",
+      "score": 8,
+      "tested": true,
+      "evidence": "Opened from shrink rate and sales per square foot rather than a generic revenue/cost split."
+    },
+    {
+      "name": "Quantitative Skills",
+      "score": 8.5,
+      "tested": true,
+      "evidence": "Stated the equation and the unit before computing; ran an order-of-magnitude check unprompted."
+    },
+    {
+      "name": "Business Judgment & Insight",
+      "score": 7,
+      "tested": true,
+      "evidence": "Identified shrink as structural rather than seasonal, but never asked what drives it upstream."
+    },
+    {
+      "name": "Exhibit Interpretation",
+      "score": 5.5,
+      "tested": true,
+      "evidence": "Read the category margins accurately but did not quantify the gaps or tie them to the objective."
+    },
+    {
+      "name": "Communication",
+      "score": 7.5,
+      "tested": true,
+      "evidence": "Signposted each stage; two answers ran long enough to bury the point."
+    },
+    {
+      "name": "Synthesis / Recommendation",
+      "tested": false,
+      "score": null,
+      "evidence": "Not exercised — the interview ran out of modules before a second synthesis was requested."
+    }
+  ],
+  "assistance": {
+    "level": "light",
+    "summary": "One directional prompt in the whole case; the candidate drove every other transition.",
+    "events": [
+      {
+        "stage": "Exhibit 2",
+        "prompt": "\"Is any category behaving differently from the others?\"",
+        "effect": "Candidate then located the frozen-category anomaly without further help."
+      }
+    ]
+  },
+  "strengths": [
+    {
+      "title": "The structure was built, not recalled",
+      "detail": "Volume was broken into footfall x conversion x basket size, with shrink pulled out as its own branch. Shrink is the real margin lever in this format, and a candidate reciting a framework would not have surfaced it."
+    },
+    {
+      "title": "The calculation path was declared before the arithmetic",
+      "detail": "Before the breakeven the candidate said 'fixed cost divided by unit contribution margin' and confirmed the inputs, which made the reasoning checkable rather than just the answer."
+    }
+  ],
+  "weaknesses": [
+    {
+      "title": "The exhibit stopped at description",
+      "detail": "The statement was 'frozen is losing share', followed by a move to the next topic.",
+      "impact": "This exhibit was the hinge of the case. Leaving it undeveloped removed the strongest single piece of evidence from the final recommendation."
+    },
+    {
+      "title": "Only one of three supporting reasons carried a number",
+      "detail": "The recommendation asserted a mix problem but quantified none of it.",
+      "impact": "In a real interview this reads as a gap between the analysis and the conclusion, which is what separates a Hire from a Strong Hire here."
+    }
+  ],
+  "key_moments": [
+    {
+      "stage": "Initial structure",
+      "quote": "I want to look at footfall, conversion and basket size, and separately at shrink in fresh.",
+      "what_you_did": "Presented a four-branch structure after roughly 90 seconds of think time and named fresh as the starting point.",
+      "worked": "The branches are the genuine drivers of this format, and a priority was given with a reason attached.",
+      "problem": "No expectation was stated — the structure said where to look but not what the candidate thought would be found.",
+      "consequence": "The analysis became a sequential check of each branch rather than a test of a hypothesis.",
+      "stronger": "Adding 'I expect the problem is in fresh, because it carries the highest margin and the highest spoilage risk' would have given every subsequent step something to confirm or kill."
+    },
+    {
+      "stage": "Exhibit 2 — margin by category",
+      "what_you_did": "Read the margin rate for each of the four categories in turn.",
+      "problem": "The gaps were never quantified and the 'so what' was never asked.",
+      "consequence": "Missed that frozen carries an above-average margin while losing share — the contradiction the case is built on.",
+      "stronger": "Compute that frozen sits about six points above the blended margin, then note its share is falling anyway; that points straight at placement or replenishment rather than demand."
+    }
+  ],
+  "missed_insights": [
+    {
+      "title": "The highest-margin category shrinking means this is not a demand problem",
+      "evidence_available": "Exhibit 2 category margin rates, and Exhibit 1 category share-of-sales over three years.",
+      "where_you_stopped": "Both exhibits were read correctly, but as two separate facts.",
+      "should_have_concluded": "Frozen carries the highest margin and is losing share while lower-margin dry goods gains it. That is a mix shift, not a footfall problem.",
+      "why_it_matters": "The client arrived planning to spend on promotions to drive traffic. The mix reading points instead at placement and replenishment, which costs roughly an order of magnitude less and does not further dilute margin."
+    }
+  ],
+  "stronger_path": {
+    "note": "A tighter line does not check four branches in parallel. One category-level split answers both 'is demand falling' and 'is the mix moving' at the same time, which is what makes it faster rather than merely shorter.",
+    "nodes": [
+      {
+        "label": "Profit is down",
+        "detail": "Establish first whether the loss sits in margin rate or in volume",
+        "children": [
+          {
+            "label": "Split margin and volume by category",
+            "detail": "A single decomposition that exposes the mix effect directly",
+            "children": [
+              {
+                "label": "High-margin category losing share -> mix shift"
+              },
+              {
+                "label": "Category margin rates stable -> cost side ruled out"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "recommendation_compare": {
+    "yours": "I would recommend the client run promotions to bring back footfall, and also work on reducing shrink in fresh.",
+    "issues": [
+      {
+        "criterion": "Answers the question asked",
+        "note": "The client asked why profit fell. This opens with what to do and skips the diagnosis."
+      },
+      {
+        "criterion": "Evidence density",
+        "note": "Three supporting reasons, one number."
+      },
+      {
+        "criterion": "Risks",
+        "note": "No mention that promotions would compress margin further — the opposite of the stated objective."
+      },
+      {
+        "criterion": "Next steps",
+        "note": "'Reduce shrink' is a goal, not an executable next step."
+      }
+    ],
+    "stronger": "Profit fell because of category mix, not footfall: frozen dropped from 22% to 15% of sales while dry goods, six margin points lower, took its place, and that shift alone accounts for roughly two thirds of the margin gap. I would therefore not increase promotional spend, which would compress margin further. I would start with a placement and replenishment review of the frozen category. The main risk is that the share loss is demand-driven rather than execution-driven, in which case merchandising changes will not recover it. Next step: pull twelve months of frozen out-of-stock rates and shelf-space allocation, which is enough to separate the two within two weeks."
+  },
+  "next_priorities": [
+    {
+      "title": "Move exhibits from description to implication",
+      "current": "Charts are read accurately, then left as observations.",
+      "why": "The exhibit is usually where a case turns. Stopping at description discards the strongest available evidence.",
+      "drill": "Run five exhibit reps. For each, state one observation and one insight, and the insight must cite a number you computed yourself from the chart."
+    },
+    {
+      "title": "Raise the evidence density of the recommendation",
+      "current": "Answer-first delivery is solid; the supporting reasons are not quantified.",
+      "why": "An unquantified reason reads as an assertion, and assertions do not survive a partner's follow-up.",
+      "drill": "Run three synthesis reps: given the case facts, deliver only the 90-second recommendation, under the rule that every supporting reason must carry a number that appeared in the case."
+    }
+  ]
+}

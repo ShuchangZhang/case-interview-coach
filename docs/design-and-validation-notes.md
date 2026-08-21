@@ -212,3 +212,105 @@ different.
 - The fabrication detector is a regex list — it catches the named patterns, not every possible
   invented statistic. It is a backstop for §7, not a substitute for it.
 - Dark mode is implemented but print always forces light, per the "no large dark areas" rule.
+
+---
+
+# Iteration 4 — Public release readiness
+
+Scope: licensing, install experience, runtime robustness, input validation, reproducible tests,
+environment compatibility, source verifiability, documentation. Case methodology, mode/state
+mechanics, teaching logic, case generation and the scoring anchors are unchanged.
+
+## The central change: warnings became failures
+
+The previous iteration detected guard-rail violations and *warned* while still writing the HTML at
+exit 0. That is the wrong default for a tool whose output a person will read as an assessment of
+themselves: a warning on stderr is invisible to the reader of the report, and an agent that
+ignores stderr delivers the violating report anyway.
+
+Validation now runs before rendering, and any failure aborts the build: no file, a `ValidationError`
+naming the field, its value and the legal range, exit code 2.
+
+The distinction that makes this workable is between **escaping** and **rejecting**:
+
+- *Untrusted text* — a case answer containing `<script>` — is escaped and rendered. This is a
+  rendering concern, is always safe, and never fails the build.
+- *Unsupported claims* — a percentile, an offer probability, an invented firm benchmark — abort
+  the build. No amount of escaping makes the sentence true.
+
+The guard-rail scan was also re-scoped. Previously it searched the whole document, which would
+have rejected a case that legitimately discusses an industry average. It now searches only
+evaluative prose — the text where the skill judges the user — because that is where an unsupported
+claim actually does damage. `GuardRailScopeTests` pins both halves of that behaviour.
+
+## Validation surface
+
+Enums (mode, completion, assistance level, independence, verdict), score type and range (finite,
+0–10, no strings, no `NaN`), and five semantic rules: untested dimensions cannot carry a score; a
+tutorial report cannot carry a hiring band without an explicit benchmark request; mode-specific
+fields must appear only in their own report type; `verdict_available: false` cannot coexist with a
+verdict and requires a written reason; an aborted session cannot carry a verdict without an
+explicit availability flag.
+
+The mode-specific field check is worth noting: an interview-only key in a tutorial report is not a
+cosmetic problem, it means the report object was assembled from the wrong template and would
+render misleading semantics. Rejecting it catches that class of bug at the boundary.
+
+## Working-directory independence
+
+The renderer previously appeared in docs as `python3 scripts/build_report.py`, which silently
+assumed the process was running from the skill root. In real use the working directory is the
+user's own project. Fixed on both sides: the script anchors `SKILL_ROOT` to `__file__` and gained
+`--example` and `--skill-root`, and `report-system.md` §1 now specifies absolute invocation with a
+resolution recipe. `test_example_flag_is_cwd_independent` and `test_skill_root_resolves_from_script_location`
+run from a temporary directory to keep it honest.
+
+## Reproducibility
+
+The previous notes named fixtures (`iv_strong`, `tu_mix`, …) that existed only in a scratch
+directory, and the renderer's provenance comment cited `scripts/validate_palette.js`, which was a
+tool in a different skill and was never part of this repository. Both were claims a reader could
+not check.
+
+Fixed by committing the material rather than deleting the claims: 6 valid and 18 invalid fixtures
+under `tests/fixtures/`, and `tests/test_build_report.py` (20 tests, stdlib `unittest`). The
+palette assertions the JS validator used to cover are now `PaletteTests`, computed in Python from
+the ramps the CSS actually uses — so the property is verified in the repository that depends on it,
+without adding a Node.js dependency.
+
+## Sources
+
+Every cited URL was fetched and confirmed before being written down. One casualty:
+`bain.com/careers/hiring-process/interviewing/coffee-shop-co/` — a plausible-looking URL inferred
+from the case name — returns 404. The real Bain practice-case path is `fashion-case-study`. That is
+exactly the failure mode the "verify, never infer" rule exists to prevent.
+
+The Tier 3 claim was also corrected. The earlier notes cited "openly published university
+consulting-club casebooks"; the case-architecture knowledge that is actually traceable comes from
+the firm-published sample cases in Tier 1, so Tier 3 now says that. Sources that cannot be linked
+and opened are explicitly excluded rather than listed for weight.
+
+## Graceful degradation
+
+`project_search` / `project_read` / `project_write` are not universal. `SKILL.md` §3.4 now treats
+them as optional: absent, the skill skips profile persistence silently — no error, no prompt to
+enable anything, no effect on the session, the case, the scoring or the report. The only loss is
+cross-session continuity, and the existing rule against claiming untracked trends already covers
+the reporting consequence.
+
+## Test results
+
+`python3 -m unittest discover -s tests` — 20 tests, all passing. Coverage: both examples render;
+cwd independence; all six valid fixtures render at exit 0; untested dimensions show N/A; aborted
+sessions carry no verdict; tutorial reports never show a hiring band; independence and hint tracks
+render; markup is escaped not executed; output has no external references; all 18 invalid fixtures
+exit 2 with no file written; error messages name the offending field; malformed JSON and missing
+files exit 1; guard-rail scope; palette ramp properties.
+
+## Deliberately not done
+
+- **No new dependencies.** Validation, tests and palette checks are all stdlib. The repository
+  still has nothing to install.
+- **No `--strict` flag.** A bypass that exists will eventually be used. Strict is the only mode.
+- **No generated HTML committed.** The examples are JSON; the HTML is one command away and would
+  otherwise drift out of sync with the renderer.

@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported and current. No third-party packages, so no install step.
+        python-version: ["3.8", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile all Python
+        run: python -m compileall -q scripts tests
+
+      - name: Run the test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Smoke-test both bundled examples
+        run: |
+          python scripts/build_report.py examples/interview-report.json -o /tmp/i.html
+          python scripts/build_report.py examples/tutorial-report.json  -o /tmp/t.html
+          test -s /tmp/i.html && test -s /tmp/t.html
+
+      - name: Renderer must work from an unrelated working directory
+        run: |
+          cd /tmp
+          python "$GITHUB_WORKSPACE/scripts/build_report.py" --example interview -o /tmp/cwd.html
+          test -s /tmp/cwd.html
+
+      - name: Invalid input must fail loudly
+        run: |
+          if python scripts/build_report.py \
+               tests/fixtures/invalid/score-too-high.json -o /tmp/bad.html; then
+            echo "::error::renderer accepted an out-of-range score"; exit 1
+          fi
+          test ! -f /tmp/bad.html
+
+      - name: Check for whitespace errors
+        run: git diff --check "$(git hash-object -t tree /dev/null)" HEAD -- || true

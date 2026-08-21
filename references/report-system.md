@@ -26,12 +26,32 @@ how performance is scored.** It governs only what happens after the session ends
    already specify. **The rubric and the content rules are unchanged** — this system changes the
    container, not the judgment.
 3. Write that content into a **Session Report JSON** (§3).
-4. Render:
+4. Render it. **Invoke the script by its absolute path inside the skill directory** — never as a
+   bare relative path, because the working directory is the user's project, not the skill:
+
    ```bash
-   python3 scripts/build_report.py report.json -o case_interview_report_<id>.html
+   python3 <skill-dir>/scripts/build_report.py report.json -o case_interview_report_<id>.html
    ```
-5. Read any `WARNING:` the script prints and fix the data — warnings mean a rule was violated.
-6. Deliver the HTML (§8), then update the learner profile as usual.
+
+   `<skill-dir>` is the directory containing this skill's `SKILL.md` — typically
+   `~/.claude/skills/case-interview-coach`. If it is not known, resolve it once:
+
+   ```bash
+   SKILL_DIR=$(dirname "$(find ~/.claude/skills -name SKILL.md -path '*case-interview-coach*' \
+     2>/dev/null | head -1)")
+   python3 "$SKILL_DIR/scripts/build_report.py" report.json -o report.html
+   ```
+
+   The script itself resolves everything it needs from its own location, so an absolute
+   invocation works from any directory. `--skill-root` prints the directory it resolved.
+5. **A non-zero exit means no report exists.** The script validates before it renders: on a bad
+   enum, an out-of-range score, an inconsistent verdict, or a guard-rail violation it writes no
+   HTML, prints a `ValidationError` naming the field, the value and the legal range, and exits 2.
+   Fix the data and re-run. **Never deliver a report after a failed render, and never work around
+   a validation error by loosening the data** — the check exists because that particular claim
+   would have been unsupported.
+6. Deliver the HTML (§8), then update the learner profile if the host provides project memory
+   (`SKILL.md` §3.4 — silently skipped when it does not).
 
 **Never hand-assemble the HTML from prose.** The JSON step is what keeps the two report types
 structurally consistent and keeps the guard rails enforceable.
@@ -45,20 +65,57 @@ Adapt to the environment if a different convention fits better; keep the date an
 
 ---
 
-## 2. Guard rails the script enforces
+## 2. Validation and guard rails — the build fails, it does not warn
 
-Do not try to work around these — they exist because the two reports mean different things.
+The renderer validates before it renders. Anything below stops the build: **no HTML is written,
+a `ValidationError` naming the field goes to stderr, and the exit status is 2.** Nothing is
+silently corrected or quietly dropped, because a report that was quietly altered is a report
+whose claims no longer match the session.
 
-- **A Tutorial report emits no hiring band.** Setting `headline.verdict` without
-  `headline.benchmark_requested: true` gets it stripped and warned. With the flag, it renders
-  behind a visible "indicative benchmark only" disclaimer.
-- **An aborted session is always badged incomplete**, with the stage it ended at.
-- **Untested dimensions render as "not tested"** — no bar, no number. Never invent a score to
-  fill the row.
-- **Empty in, absent out.** A section with no data does not render. A short honest report beats a
-  padded one.
-- **Fabricated-benchmark detector**: percentile claims, "top N%", acceptance/pass rates, industry
-  averages, "better than X% of MBB candidates" trigger a warning. Remove them — see §7.
+**Schema**
+
+| Field | Must be |
+|---|---|
+| `session.mode` | `interview` or `tutorial` |
+| `session.completion` | `complete`, `aborted` or `partial` |
+| `session.assistance_start` / `_end` | `guided`, `assisted`, `light` or `independent` |
+| `dimensions[].score` | a finite number in 0–10 — not a string, not `NaN`, not out of range |
+| `dimensions[].independence` | one of the four assistance levels |
+| `assistance.level` | `none`, `light`, `moderate` or `substantial` |
+| `headline.verdict` | Strong Hire / Hire / Borderline / No Hire, or null |
+
+**Semantic rules**
+
+- **An untested dimension may not carry a score.** `tested: false` with a number is rejected
+  rather than rendered — a number would assert an assessment that was never made.
+- **A tutorial report may not carry a hiring band.** `headline.verdict` in a tutorial report is
+  rejected unless `headline.benchmark_requested: true`, which is set only when the user
+  explicitly asked to be benchmarked; it then renders behind a visible disclaimer.
+- **Mode-specific fields stay in their mode.** Interview-only keys (`missed_insights`,
+  `assistance`, `stronger_path`, `recommendation_compare`) in a tutorial report — or
+  tutorial-only keys (`hints`, `phases`, `recurring_mistakes`, `mastery`,
+  `transferable_lessons`) in an interview report — mean the report was assembled from the wrong
+  template, and are rejected.
+- **Verdict consistency.** `verdict_available: false` with a verdict set is a contradiction and
+  is rejected; `verdict_available: false` requires a written reason; an aborted session may not
+  carry a verdict without `verdict_available: true` stated explicitly.
+- **Guard rails on evaluative claims.** Percentile rankings, "top N%", offer or pass
+  probabilities, invented firm benchmarks and industry-average scores are rejected — see §7.
+
+**Two things that are not failures**
+
+- **Empty in, absent out.** A section with no data simply does not render. A short honest report
+  beats a padded one.
+- **Untrusted text is escaped, never rejected.** A case answer containing `<script>` or `&` is
+  HTML-escaped and rendered as literal text. Escaping is a rendering concern; it is not a
+  truthfulness problem and it never fails the build. Only unsupported *claims* fail.
+
+**Reproducing this.** `tests/test_build_report.py` runs every rule above against committed
+fixtures in `tests/fixtures/`, including one fixture per invalid case:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
 
 ---
 
@@ -281,13 +338,23 @@ implemented in `scripts/build_report.py`; do not hand-roll a different one.
 Only what this session actually produced may appear: real scores, real hint records, real
 assistance level, real phases, and real learner history when it exists.
 
-Never render, under any framing: global percentiles · "better than X% of candidates" · offer or
-pass probabilities · industry average scores · firm-internal benchmarks · trend lines across
+Never write, under any framing: global percentiles · "better than X% of candidates" · offer or
+pass probabilities · industry-average scores · firm-internal benchmarks · trend lines across
 sessions that never happened.
 
+**These are enforced, not advised.** The renderer scans the *evaluative* text — the one-line
+diagnosis or learning summary, dimension evidence, strengths, weaknesses, recurring mistakes,
+mastery, transferable lessons, next priorities, assistance summary and phase notes — and refuses
+to build if it finds such a claim.
+
+The scan is deliberately scoped to evaluative prose and does **not** cover case content. A case
+may legitimately state an industry average margin or a conversion rate; that is data the client
+has. The rule is about claims made **about the user**, for which this session holds no evidence.
+
 Cross-session comparisons ("this error is down from last time", "hint dependence has fallen") are
-allowed **only** when the learner profile actually contains that history. With no history, say
-nothing about trends. Never put personal information unrelated to case training into the report.
+allowed **only** when a learner profile was actually read (`SKILL.md` §3.4 — it may be absent
+entirely, in which case there is no history to compare against and every recurring mistake is
+`new`). Never put personal information unrelated to case training into the report.
 
 ---
 
