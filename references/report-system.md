@@ -83,6 +83,7 @@ whose claims no longer match the session.
 | `dimensions[].independence` | one of the four assistance levels |
 | `assistance.level` | `none`, `light`, `moderate` or `substantial` |
 | `headline.verdict` | Strong Hire / Hire / Borderline / No Hire, or null |
+| `headline.benchmark_requested` | a JSON boolean — `true` or `false`, never a string or number |
 
 **Semantic rules**
 
@@ -91,11 +92,22 @@ whose claims no longer match the session.
 - **A tutorial report may not carry a hiring band.** `headline.verdict` in a tutorial report is
   rejected unless `headline.benchmark_requested: true`, which is set only when the user
   explicitly asked to be benchmarked; it then renders behind a visible disclaimer.
-- **Mode-specific fields stay in their mode.** Interview-only keys (`missed_insights`,
-  `assistance`, `stronger_path`, `recommendation_compare`) in a tutorial report — or
-  tutorial-only keys (`hints`, `phases`, `recurring_mistakes`, `mastery`,
-  `transferable_lessons`) in an interview report — mean the report was assembled from the wrong
-  template, and are rejected.
+- **Mode-specific fields stay in their mode**, at every level. A field belonging to the other
+  mode means the report was assembled from the wrong template, and is rejected. The split is
+  maintained in one place — `MODE_FIELDS` in `scripts/build_report.py`:
+
+  | Scope | Interview-only | Tutorial-only |
+  |---|---|---|
+  | document root | `missed_insights`, `assistance`, `stronger_path`, `recommendation_compare` | `hints`, `phases`, `recurring_mistakes`, `mastery`, `transferable_lessons` |
+  | `session` | `interview_format` | `training_focus`, `assistance_start`, `assistance_end`, `independence_marker` |
+  | `headline` | — | `benchmark_requested` |
+
+  Everything else in `session` is shared (`SHARED_SESSION_FIELDS`). Adding a field means adding
+  one line to that registry, not another branch in the validator.
+- **`headline.benchmark_requested` must be a JSON boolean.** `true` or `false` only — a string,
+  number or `null` is rejected rather than coerced. This matters more than it looks: `"false"` is
+  a truthy string in Python, so coercion would silently unlock the hiring verdict a tutorial
+  report must never carry.
 - **Verdict consistency.** `verdict_available: false` with a verdict set is a contradiction and
   is rejected; `verdict_available: false` requires a written reason; an aborted session may not
   carry a verdict without `verdict_available: true` stated explicitly.

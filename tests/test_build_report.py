@@ -11,6 +11,7 @@ below are reproducible by anyone who clones the repository.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -119,6 +120,9 @@ class ValidInputTests(unittest.TestCase):
 class EscapingTests(unittest.TestCase):
     """Untrusted text is escaped and rendered. Escaping never fails the build."""
 
+    PAYLOAD = ('<script>alert(1)</script><img src=x onerror=alert(2)>'
+               '<svg onload=alert(3)> 5 < 7 & "q"')
+
     def test_markup_in_user_text_is_escaped_not_executed(self):
         proc, html = render(os.path.join(FIXTURES, "html-injection.json"))
         self.assertEqual(proc.returncode, 0, proc.stderr)
@@ -126,6 +130,41 @@ class EscapingTests(unittest.TestCase):
         self.assertNotIn("<img src=x onerror=alert(2)>", html)
         self.assertIn("&lt;script&gt;", html)
         self.assertIn("&amp;", html)
+
+    def test_no_attacker_controlled_tag_survives_as_a_tag(self):
+        """The threat model is tag *parsing*, not the substring appearing at all.
+
+        An escaped payload legitimately contains the text 'onerror=', so grepping
+        for that is a false positive. What matters is that no attacker string is
+        parsed as an element or an event-handler attribute.
+        """
+        import html as html_mod
+        with open(os.path.join(EXAMPLES, "interview-report.json"),
+                  encoding="utf-8") as f:
+            doc = json.load(f)
+        doc["headline"]["one_line_diagnosis"] = self.PAYLOAD
+
+        with tempfile.TemporaryDirectory() as tmp:
+            src = os.path.join(tmp, "in.json")
+            out = os.path.join(tmp, "out.html")
+            with open(src, "w", encoding="utf-8") as f:
+                json.dump(doc, f)
+            proc = run([src, "-o", out])
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            with open(out, encoding="utf-8") as f:
+                page = f.read()
+
+        # The renderer's own inline <style> is the only tag of these kinds.
+        tags = [t.lower() for t in re.findall(
+            r"<\s*(script|img|svg|iframe|object|embed|link|style)\b", page, re.I)]
+        self.assertEqual([t for t in tags if t != "style"], [],
+                         "an attacker-controlled tag was parsed as a tag")
+        self.assertIsNone(re.search(r"<[a-zA-Z][^>]*\son[a-z]+\s*=", page),
+                          "an event-handler attribute reached the output")
+        self.assertNotIn("javascript:", page.lower())
+        self.assertNotIn(self.PAYLOAD, page, "raw payload must not appear")
+        self.assertIn(html_mod.escape(self.PAYLOAD, quote=True), page,
+                      "payload must appear, escaped")
 
     def test_output_has_no_external_references(self):
         proc, html = render(os.path.join(EXAMPLES, "interview-report.json"))
@@ -155,6 +194,16 @@ class InvalidInputTests(unittest.TestCase):
         "guardrail-percentile": "Guard-rail",
         "guardrail-offer-rate": "Guard-rail",
         "guardrail-firm-benchmark": "Guard-rail",
+        "benchmark-string-false-bypass": "benchmark_requested",
+        "benchmark-string-true": "JSON boolean",
+        "benchmark-int-one": "JSON boolean",
+        "benchmark-int-zero": "JSON boolean",
+        "benchmark-null": "JSON boolean",
+        "session-interview-format-in-tutorial": "session.interview_format",
+        "session-training-focus-in-interview": "session.training_focus",
+        "session-assistance-start-in-interview": "session.assistance_start",
+        "session-assistance-end-in-interview": "session.assistance_end",
+        "session-independence-marker-in-interview": "session.independence_marker",
     }
 
     def test_every_invalid_fixture_is_rejected(self):
@@ -218,6 +267,129 @@ class GuardRailScopeTests(unittest.TestCase):
         doc["headline"]["one_line_diagnosis"] = "You are in the top 10% of candidates."
         with self.assertRaises(build_report.ValidationError):
             build_report.check_guard_rails(doc)
+
+
+class BenchmarkRequestedTests(unittest.TestCase):
+    """headline.benchmark_requested must be a real JSON boolean.
+
+    Regression guard for an audit finding: the field was read through bool(),
+    so the string "false" — which is truthy in Python — unlocked the hiring
+    verdict that a tutorial report must never carry.
+    """
+
+    def _doc(self, value=..., mode="tutorial"):
+        name = "tutorial-report.json" if mode == "tutorial" else "interview-report.json"
+        with open(os.path.join(EXAMPLES, name), encoding="utf-8") as f:
+            doc = json.load(f)
+        if value is not ...:
+            doc["headline"]["benchmark_requested"] = value
+        return doc
+
+    def test_absent_field_defaults_to_false(self):
+        doc = self._doc()
+        self.assertNotIn("benchmark_requested", doc["headline"])
+        build_report.validate(doc)  # must not raise
+        doc["headline"]["verdict"] = "Hire"
+        with self.assertRaises(build_report.ValidationError):
+            build_report.validate(doc)
+
+    def test_true_permits_a_benchmarked_tutorial_verdict(self):
+        doc = self._doc(True)
+        doc["headline"]["verdict"] = "Borderline"
+        build_report.validate(doc)  # must not raise
+
+    def test_false_behaves_exactly_like_absent(self):
+        doc = self._doc(False)
+        build_report.validate(doc)
+        doc["headline"]["verdict"] = "Hire"
+        with self.assertRaises(build_report.ValidationError):
+            build_report.validate(doc)
+
+    def test_non_boolean_values_are_rejected_not_coerced(self):
+        for value in ("false", "true", 1, 0, None, [], {}, "yes"):
+            with self.subTest(value=value):
+                with self.assertRaises(build_report.ValidationError) as cm:
+                    build_report.validate(self._doc(value))
+                self.assertIn("JSON boolean", str(cm.exception))
+
+    def test_string_false_cannot_unlock_a_tutorial_verdict(self):
+        """The exact audit payload, end to end through the CLI."""
+        path = os.path.join(INVALID, "benchmark-string-false-bypass.json")
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+        self.assertEqual(doc["session"]["mode"], "tutorial")
+        self.assertEqual(doc["headline"]["benchmark_requested"], "false")
+        self.assertEqual(doc["headline"]["verdict"], "Hire")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, "out.html")
+            proc = run([path, "-o", out])
+            self.assertEqual(proc.returncode, 2, proc.stderr)
+            self.assertFalse(os.path.exists(out), "no HTML may be written")
+            self.assertIn("benchmark_requested", proc.stderr)
+
+    def test_python_truthiness_would_have_accepted_it(self):
+        """Pins why the isinstance check matters rather than restating it."""
+        self.assertTrue(bool("false"))
+
+
+class ModeSpecificSessionFieldTests(unittest.TestCase):
+    """Session-level configuration fields must not cross modes."""
+
+    def _doc(self, mode):
+        name = "tutorial-report.json" if mode == "tutorial" else "interview-report.json"
+        with open(os.path.join(EXAMPLES, name), encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_registry_covers_every_mode_specific_session_field(self):
+        interview = set(build_report.MODE_FIELDS["interview"]["session"])
+        tutorial = set(build_report.MODE_FIELDS["tutorial"]["session"])
+        shared = set(build_report.SHARED_SESSION_FIELDS)
+        self.assertEqual(interview & tutorial, set(), "a field cannot belong to both modes")
+        self.assertEqual((interview | tutorial) & shared, set(),
+                         "a field cannot be both shared and mode-specific")
+        self.assertIn("interview_format", interview)
+        for key in ("training_focus", "assistance_start", "assistance_end",
+                    "independence_marker"):
+            self.assertIn(key, tutorial)
+
+    def test_every_session_key_in_the_examples_is_classified(self):
+        """A new field cannot be added without a home in the registry."""
+        known = (set(build_report.SHARED_SESSION_FIELDS)
+                 | set(build_report.MODE_FIELDS["interview"]["session"])
+                 | set(build_report.MODE_FIELDS["tutorial"]["session"]))
+        for mode in ("interview", "tutorial"):
+            with self.subTest(mode=mode):
+                keys = set(self._doc(mode)["session"])
+                self.assertEqual(keys - known, set(),
+                                 "unclassified session field(s) in the {} example".format(mode))
+
+    def test_interview_field_rejected_in_tutorial_session(self):
+        doc = self._doc("tutorial")
+        doc["session"]["interview_format"] = "interviewer_led"
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("session.interview_format", str(cm.exception))
+
+    def test_tutorial_fields_rejected_in_interview_session(self):
+        cases = {
+            "training_focus": "structuring",
+            "assistance_start": "guided",
+            "assistance_end": "independent",
+            "independence_marker": {"at": "Exhibit 2"},
+        }
+        for key, value in cases.items():
+            with self.subTest(field=key):
+                doc = self._doc("interview")
+                doc["session"][key] = value
+                with self.assertRaises(build_report.ValidationError) as cm:
+                    build_report.validate(doc)
+                self.assertIn("session." + key, str(cm.exception))
+
+    def test_valid_examples_keep_their_own_mode_fields(self):
+        build_report.validate(self._doc("interview"))   # has interview_format
+        build_report.validate(self._doc("tutorial"))    # has training_focus etc.
+
 
 
 class PaletteTests(unittest.TestCase):

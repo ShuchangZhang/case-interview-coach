@@ -45,6 +45,15 @@ jobs:
             echo "::error::renderer accepted an out-of-range score"; exit 1
           fi
           test ! -f /tmp/bad.html
+          # A string "false" is truthy in Python; it must not unlock a tutorial verdict.
+          if python scripts/build_report.py \
+               tests/fixtures/invalid/benchmark-string-false-bypass.json \
+               -o /tmp/bypass.html; then
+            echo "::error::benchmark_requested accepted a non-boolean"; exit 1
+          fi
+          test ! -f /tmp/bypass.html
 
       - name: Check for whitespace errors
-        run: git diff --check "$(git hash-object -t tree /dev/null)" HEAD -- || true
+        # Diffing the whole tree against the empty tree checks every tracked line.
+        # No `|| true`: a whitespace error must fail the job, or the gate is theatre.
+        run: git diff --check "$(git hash-object -t tree /dev/null)" HEAD --

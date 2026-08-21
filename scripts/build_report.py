@@ -160,13 +160,54 @@ INDEPENDENCE = ("guided", "assisted", "light", "independent")
 ASSIST_LEVELS = ("none", "light", "moderate", "substantial")
 HIRING_VERDICTS = ("strong hire", "hire", "borderline", "no hire")
 
-# Interview-only and tutorial-only top-level keys. A key belonging to the other
-# mode is a data-construction bug, not a stylistic choice: it means the report was
-# assembled from the wrong template and would render misleading semantics.
-INTERVIEW_ONLY = ("missed_insights", "assistance", "stronger_path",
-                  "recommendation_compare")
-TUTORIAL_ONLY = ("hints", "phases", "recurring_mistakes", "mastery",
-                 "transferable_lessons")
+# ---------------------------------------------- mode-specific field registry ---
+# The single place that answers "which fields belong to which mode?".
+# A field belonging to the other mode is a data-construction bug, not a stylistic
+# choice: it means the report was assembled from the wrong template and would
+# render misleading semantics. Adding a field means adding one line here rather
+# than another `if mode == ...` branch somewhere in validate().
+#
+# Scopes: "top" = document root, "session" = the session object,
+#         "headline" = the headline object.
+MODE_FIELDS = {
+    "interview": {
+        "top": ("missed_insights", "assistance", "stronger_path",
+                "recommendation_compare"),
+        "session": ("interview_format",),
+        "headline": (),
+    },
+    "tutorial": {
+        "top": ("hints", "phases", "recurring_mistakes", "mastery",
+                "transferable_lessons"),
+        "session": ("training_focus", "assistance_start", "assistance_end",
+                    "independence_marker"),
+        "headline": ("benchmark_requested",),
+    },
+}
+
+# Session fields both modes may carry. Listed so the split above is auditable at
+# a glance: anything here is shared, anything in MODE_FIELDS is exclusive.
+SHARED_SESSION_FIELDS = ("id", "date", "mode", "case_type", "industry",
+                         "geography", "difficulty", "case_source", "completion",
+                         "aborted_at_stage")
+
+JSON_TYPE_NAMES = {str: "string", bool: "boolean", int: "number", float: "number",
+                   list: "array", dict: "object", type(None): "null"}
+
+
+def _json_type(value):
+    return JSON_TYPE_NAMES.get(type(value), type(value).__name__)
+
+
+def _describe(value):
+    """Human-readable 'type value' for an error message; 'null' stands alone."""
+    name = _json_type(value)
+    return name if value is None else "{} {!r}".format(name, value)
+
+
+def _article(word):
+    """'an interview' / 'a tutorial' — keeps generated messages grammatical."""
+    return ("an " if word[0].lower() in "aeiou" else "a ") + word
 
 # Claims the report has no evidence for. Scanned ONLY over evaluative prose --
 # the text where the skill judges the user -- never over case content, because a
@@ -314,7 +355,28 @@ def validate(d):
     verdict = head.get("verdict")
     available = head.get("verdict_available")
     overall = head.get("overall_score")
-    benchmark = bool(head.get("benchmark_requested"))
+    # A JSON boolean, never a coerced truthy value. bool("false") is True in
+    # Python, so accepting a string here would silently unlock the hiring verdict
+    # a tutorial report must never carry.
+    benchmark = head.get("benchmark_requested", False)
+    if not isinstance(benchmark, bool):
+        raise ValidationError(
+            "headline.benchmark_requested must be a JSON boolean (true or false); "
+            "received {}. Values are never coerced: a string, number or null is "
+            "rejected rather than interpreted.".format(_describe(benchmark)))
+
+    # --- mode-specific field isolation (one pass, driven by MODE_FIELDS) ---
+    foreign = "tutorial" if mode == "interview" else "interview"
+    for scope, container in (("top", d), ("session", session), ("headline", head)):
+        for key in MODE_FIELDS[foreign][scope]:
+            if container.get(key):
+                path = key if scope == "top" else "{}.{}".format(scope, key)
+                raise ValidationError(
+                    "{} is {} field and must not appear in {} report; received "
+                    "{!r}. Its presence means the report object was assembled "
+                    "from the wrong template.".format(
+                        path, _article(foreign) + "-only",
+                        _article(mode), container.get(key)))
 
     if overall is not None:
         _check_score(overall, "headline.overall_score")
@@ -333,16 +395,10 @@ def validate(d):
                 "(received {!r}). A tutorial session measures learning, not hiring "
                 "readiness. Set headline.benchmark_requested to true only when the "
                 "user explicitly asked to be benchmarked.".format(verdict))
-        for key in INTERVIEW_ONLY:
-            if d.get(key):
-                _err(key, "present", "absent in a tutorial report (interview-only field)")
     else:
         if benchmark:
             _err("headline.benchmark_requested", benchmark,
                  "absent in an interview report (an interview report is already an assessment)")
-        for key in TUTORIAL_ONLY:
-            if d.get(key):
-                _err(key, "present", "absent in an interview report (tutorial-only field)")
 
         if available is not None and not isinstance(available, bool):
             _err("headline.verdict_available", available, "true or false")
