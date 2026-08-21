@@ -240,21 +240,20 @@ HTML 源码；下载后在本地浏览器打开即可查看完整报告。
 
 ## 核心能力
 
-- **真实 Case Mock。** 支持原创或用户提供的 Case、interviewer-led 与 interviewee-led 形式，并根据
-  Candidate 的问题释放相应信息。正式 Mock 覆盖 structuring、quant、exhibit、brainstorming 和
-  synthesis，过程中不进行教学式答案提示。
-- **结构化 Case Generation。** 先建立包含客户目标、root cause、hidden facts、quant modules 和
-  exhibits 的完整 blueprint，再检查数字与逻辑一致性。Case 结构和商业逻辑会根据行业 economics
-  调整，而不是套用通用框架列表。
-- **有证据的深度复盘。** 报告把能力诊断和关键节点链接到原始 Case Prompt 与具体 Transcript turn，
-  并给出遗漏洞察、更强的分析路径和下一步训练重点。
-- **Tutorial 支持。** 初学者可以通过讲解、提示、重试和专项练习学习同一套方法论；报告会区分有辅助
-  与独立完成的表现。
+- **真实案例模拟。** 支持原创或用户提供的案例，可以由面试者主导，也可以由面试官主导，并根据面试者
+  提出的问题逐步披露信息。正式模拟覆盖问题拆解、定量分析、图表分析、头脑风暴和结论汇总，过程中不
+  提供教学式答案提示。
+- **结构化案例生成。** 先建立包含客户目标、根本原因、隐藏信息、定量分析模块和图表的完整案例蓝图，
+  再检查数字与逻辑一致性。案例结构和商业逻辑会结合具体行业的经营规律进行调整，而不是套用通用框架。
+- **有证据支撑的深度复盘。** 报告将能力诊断和关键节点链接到原始题目与完整对话中的具体轮次，并指出
+  遗漏的洞察、提供更优的分析路径和下一步训练重点。
+- **教学支持。** 初学者可以通过讲解、提示、重试和专项练习学习同一套方法论；报告会明确区分在帮助下
+  完成和独立完成的表现。
 
-深入了解：[Case generation](references/case-generation.md)、
-[Case methodology](references/case-methodology.md)、
-[Evaluation rubric](references/evaluation-rubric.md) 和
-[Report system](references/report-system.md)。
+深入了解：[案例生成](references/case-generation.md)、
+[案例面试方法论](references/case-methodology.md)、
+[评价标准](references/evaluation-rubric.md)和
+[报告系统](references/report-system.md)。
 
 ## Mode 与训练方式
 
