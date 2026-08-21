@@ -143,7 +143,7 @@
     "verdict": "Hire",
     "verdict_available": true,
     "overall_score": 7.2,
-    "one_line_diagnosis": "Strong structuring, placing you in the 88th percentile of candidates we have seen."
+    "one_line_diagnosis": "The structure was built from grocery economics rather than a memorised template and the math was clean and narrated, but the exhibit work stopped at description, so the central insight and the final recommendation both arrived with thinner evidence than the case actually supported."
   },
   "dimensions": [
     {
@@ -309,66 +309,9 @@
   },
   "annotations": [
     {
-      "turn_id": "T02",
+      "turn_id": "T99",
       "type": "strength",
-      "category": "Clarifying",
-      "headline": "Two questions that could change the approach",
-      "comment": "Asking whether the decline was concentrated, and whether a single cost line had moved, would each have redirected the analysis. That is what makes them worth the time."
-    },
-    {
-      "turn_id": "T04",
-      "type": "strength",
-      "category": "Structure",
-      "headline": "Shrink pulled out as its own branch",
-      "comment": "The branches are the genuine drivers of this format, and you named a starting point with a reason attached."
-    },
-    {
-      "turn_id": "T04",
-      "type": "polish",
-      "category": "Hypothesis",
-      "comment": "You said where you would look but not what you expected to find. Adding “I expect the problem is in fresh, because it carries the highest margin and the highest spoilage risk” turns each step into a test."
-    },
-    {
-      "turn_id": "T06",
-      "type": "strength",
-      "category": "Calculation",
-      "headline": "Path stated before the arithmetic, unit carried through",
-      "comment": "Naming fixed cost ÷ saving per basket before computing made the reasoning checkable, not just the answer."
-    },
-    {
-      "turn_id": "T08",
-      "type": "needs_improvement",
-      "category": "Exhibit",
-      "comment": "Accurate but purely descriptive. Seven points moving from frozen to dry goods is a fact; what it does to blended margin is the analysis, and that step was skipped."
-    },
-    {
-      "turn_id": "T10",
-      "type": "critical",
-      "category": "Exhibit",
-      "headline": "The two exhibits were never read together",
-      "comment": "You listed the margins in order and noted frozen was losing share, but stopped short of connecting the two. The contradiction — highest margin, falling share — is the whole case.",
-      "improvement": "Compute the gap first: frozen sits about six points above dry goods. Applied to seven points of share, that is roughly 0.4 points of blended margin, which is most of the shortfall."
-    },
-    {
-      "turn_id": "T11",
-      "type": "hint_given",
-      "category": "Interviewer prompt",
-      "comment": "The interviewer asked whether any category behaved differently. This is the one assist in the case, and it is why the insight in T12 counts as prompted rather than independent."
-    },
-    {
-      "turn_id": "T12",
-      "type": "improved",
-      "category": "Insight",
-      "headline": "Right conclusion, but it needed the prompt",
-      "comment": "Identifying mix shift rather than a footfall problem is exactly right. Reaching it unprompted is what separates this from a stronger performance."
-    },
-    {
-      "turn_id": "T14",
-      "type": "needs_improvement",
-      "category": "Recommendation",
-      "headline": "Opens with what to do, having skipped the diagnosis",
-      "comment": "The client asked why profit fell. Promotions are also the wrong lever here: they would compress margin further, which is the opposite of the objective, and no risk or next step was offered.",
-      "improvement": "Lead with the diagnosis, quantify it, then give a recommendation that follows from it — with the risk that share loss might be demand-driven."
+      "comment": "points at a turn that does not exist"
     }
   ],
   "takeaways": [

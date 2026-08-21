@@ -1,12 +1,54 @@
 {
   "language": "en",
-  "case_prompt": "A fictional retailer has declining profit. Diagnose the cause.",
+  "case_prompt": "Your client is Northwind Markets, a fictional regional grocery chain operating 48 stores across the US Midwest. Over the last three years, annual revenue has remained close to $1.2 billion, but operating profit has fallen from $72 million to $42 million. Management wants to understand what caused the decline and what it should do over the next 12 months to restore profitability. The store footprint and accounting policy have not changed materially during this period. You may ask clarifying questions before structuring your analysis.",
   "transcript": [
-    {"id": "T01", "type": "message", "role": "interviewer", "stage": "opening", "content": "A fictional retailer has declining profit. Diagnose the cause."},
-    {"id": "T02", "type": "message", "role": "candidate", "stage": "structure", "content": "I cannot continue the formal mock. Please end it and debrief."},
-    {"id": "E01", "type": "event", "stage": "formal_interview_end", "content": "Formal Interview Ends Here"},
-    {"id": "E02", "type": "event", "stage": "debrief_start", "content": "Post-Interview Debrief Begins"},
-    {"id": "T03", "type": "message", "role": "interviewer", "stage": "debrief", "content": "The formal mock is over. We can now review the structure segment."}
+    {
+      "id": "T01",
+      "type": "message",
+      "role": "interviewer",
+      "stage": "opening",
+      "tags": [
+        "Case Prompt"
+      ],
+      "content": "Your client is Northwind Markets, a fictional regional grocery chain operating 48 stores across the US Midwest. Over the last three years, annual revenue has remained close to $1.2 billion, but operating profit has fallen from $72 million to $42 million. Management wants to understand what caused the decline and what it should do over the next 12 months to restore profitability. The store footprint and accounting policy have not changed materially during this period. You may ask clarifying questions before structuring your analysis."
+    },
+    {
+      "id": "T02",
+      "type": "message",
+      "role": "candidate",
+      "stage": "clarifying",
+      "content": "Is the decline concentrated in a particular region or store format, and has management already identified any major cost increase?"
+    },
+    {
+      "id": "T03",
+      "type": "message",
+      "role": "interviewer",
+      "stage": "clarifying",
+      "content": "The decline appears across regions and formats. Management has not identified a single major cost increase."
+    },
+    {
+      "id": "T04",
+      "type": "message",
+      "role": "candidate",
+      "stage": "structure",
+      "tags": [
+        "Structure",
+        "Critical Moment"
+      ],
+      "content": "I want to look at footfall, conversion and basket size, and separately at shrink in fresh. I would start with fresh because spoilage can affect both realised revenue and margin."
+    },
+    {
+      "id": "E01",
+      "type": "event",
+      "stage": "formal_interview_end",
+      "content": "Formal Interview Ends Here"
+    },
+    {
+      "id": "E02",
+      "type": "event",
+      "stage": "debrief_start",
+      "content": "Post-Interview Debrief Begins"
+    }
   ],
   "session": {
     "id": "fx-interview-aborted",
@@ -24,15 +66,18 @@
   "headline": {
     "verdict": null,
     "verdict_available": false,
-    "verdict_unavailable_reason": "Only about eight minutes of the structuring stage were observed; the remaining five dimensions were never exercised. One structure cannot support a hiring conclusion.",
-    "one_line_diagnosis": "The structure opened from generic buckets rather than from the entry decision itself, which left every branch untestable and stalled the case before any analysis began."
+    "verdict_unavailable_reason": "Only the structuring stage was observed; the remaining five dimensions were never exercised. One structure cannot support a hiring conclusion.",
+    "one_line_diagnosis": "The structure opened from generic buckets rather than from the decision itself, which left every branch untestable and stalled the case before any analysis began."
   },
   "dimensions": [
     {
       "name": "Problem Structuring",
       "score": 3.5,
       "tested": true,
-      "evidence": "Four generic buckets, no priority, no hypothesis."
+      "evidence": "Generic buckets, no priority, no hypothesis.",
+      "turn_refs": [
+        "T04"
+      ]
     },
     {
       "name": "Quantitative Skills",
@@ -53,7 +98,7 @@
       "name": "Communication",
       "score": 5,
       "tested": true,
-      "evidence": "Clear, but the structure statement ran close to four minutes."
+      "evidence": "Clear, but the structure statement ran long."
     },
     {
       "name": "Synthesis / Recommendation",
@@ -62,56 +107,9 @@
     }
   ],
   "assistance": {
-    "level": "light",
-    "summary": "One directional prompt in the whole case; the candidate drove every other transition.",
-    "events": [
-      {
-        "stage": "Exhibit 2",
-        "prompt": "\"Is any category behaving differently from the others?\"",
-        "effect": "Candidate then located the frozen-category anomaly without further help."
-      }
-    ]
+    "level": "none",
+    "summary": "No prompts were given before the candidate stopped."
   },
-  "strengths": [
-    {
-      "title": "The structure was built, not recalled",
-      "detail": "Volume was broken into footfall x conversion x basket size, with shrink pulled out as its own branch. Shrink is the real margin lever in this format, and a candidate reciting a framework would not have surfaced it."
-    },
-    {
-      "title": "The calculation path was declared before the arithmetic",
-      "detail": "Before the breakeven the candidate said 'fixed cost divided by unit contribution margin' and confirmed the inputs, which made the reasoning checkable rather than just the answer."
-    }
-  ],
-  "weaknesses": [
-    {
-      "title": "The exhibit stopped at description",
-      "detail": "The statement was 'frozen is losing share', followed by a move to the next topic.",
-      "impact": "This exhibit was the hinge of the case. Leaving it undeveloped removed the strongest single piece of evidence from the final recommendation."
-    },
-    {
-      "title": "Only one of three supporting reasons carried a number",
-      "detail": "The recommendation asserted a mix problem but quantified none of it.",
-      "impact": "In a real interview this reads as a gap between the analysis and the conclusion, which is what separates a Hire from a Strong Hire here."
-    }
-  ],
-  "key_moments": [
-    {
-      "stage": "Initial structure",
-      "quote": "I want to look at footfall, conversion and basket size, and separately at shrink in fresh.",
-      "what_you_did": "Presented a four-branch structure after roughly 90 seconds of think time and named fresh as the starting point.",
-      "worked": "The branches are the genuine drivers of this format, and a priority was given with a reason attached.",
-      "problem": "No expectation was stated — the structure said where to look but not what the candidate thought would be found.",
-      "consequence": "The analysis became a sequential check of each branch rather than a test of a hypothesis.",
-      "stronger": "Adding 'I expect the problem is in fresh, because it carries the highest margin and the highest spoilage risk' would have given every subsequent step something to confirm or kill."
-    },
-    {
-      "stage": "Exhibit 2 — margin by category",
-      "what_you_did": "Read the margin rate for each of the four categories in turn.",
-      "problem": "The gaps were never quantified and the 'so what' was never asked.",
-      "consequence": "Missed that frozen carries an above-average margin while losing share — the contradiction the case is built on.",
-      "stronger": "Compute that frozen sits about six points above the blended margin, then note its share is falling anyway; that points straight at placement or replenishment rather than demand."
-    }
-  ],
   "next_priorities": [
     {
       "title": "Move exhibits from description to implication",
@@ -125,5 +123,44 @@
       "why": "An unquantified reason reads as an assertion, and assertions do not survive a partner's follow-up.",
       "drill": "Run three synthesis reps: given the case facts, deliver only the 90-second recommendation, under the rule that every supporting reason must carry a number that appeared in the case."
     }
+  ],
+  "core_feedback": {
+    "priority": {
+      "headline": "The structure was not built for the decision",
+      "detail": "None of the branches, as stated, could be tested against the data available, so there was no way to choose where to start.",
+      "turn_refs": [
+        "T04"
+      ]
+    },
+    "next_step": {
+      "headline": "Make every branch answerable",
+      "detail": "Five structuring reps: for each branch, say what data would settle it and what you would do with either answer. Delete branches that fail that test."
+    }
+  },
+  "annotations": [
+    {
+      "turn_id": "T02",
+      "type": "strength",
+      "category": "Clarifying",
+      "headline": "Two questions that could change the approach",
+      "comment": "Asking whether the decline was concentrated, and whether a single cost line had moved, would each have redirected the analysis. That is what makes them worth the time."
+    },
+    {
+      "turn_id": "T04",
+      "type": "strength",
+      "category": "Structure",
+      "headline": "Shrink pulled out as its own branch",
+      "comment": "The branches are the genuine drivers of this format, and you named a starting point with a reason attached."
+    },
+    {
+      "turn_id": "T04",
+      "type": "polish",
+      "category": "Hypothesis",
+      "comment": "You said where you would look but not what you expected to find. Adding “I expect the problem is in fresh, because it carries the highest margin and the highest spoilage risk” turns each step into a test."
+    }
+  ],
+  "takeaways": [
+    "A branch you cannot test is not part of a structure.",
+    "Choose a starting point out loud, with the reason attached."
   ]
 }

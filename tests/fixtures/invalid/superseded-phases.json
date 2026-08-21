@@ -129,8 +129,7 @@
     }
   },
   "headline": {
-    "learning_summary": "You can now do the first-level profit breakdown and the per-store revenue calculation unaided, and you stopped needing hints from the third rep onward. What has not settled yet: after listing branches you do not say which one you would look at first, or why.",
-    "verdict": "Hire"
+    "learning_summary": "You can now do the first-level profit breakdown and the per-store revenue calculation unaided, and you stopped needing hints from the third rep onward. What has not settled yet: after listing branches you do not say which one you would look at first, or why."
   },
   "dimensions": [
     {
@@ -300,5 +299,10 @@
     "Build the structure from the formula behind the metric the client asked about, not from a framework you memorised.",
     "A structure is not finished until the branches are ordered — an unordered structure cannot move the analysis.",
     "Write down the unit of the answer first and the calculation path usually appears."
-  ]
+  ],
+  "phases": {
+    "assisted": {
+      "covered": "x"
+    }
+  }
 }

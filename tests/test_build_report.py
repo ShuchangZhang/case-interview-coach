@@ -64,7 +64,7 @@ class ExampleTests(unittest.TestCase):
         proc, html = render(os.path.join(EXAMPLES, "tutorial-report.zh-CN.json"))
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("Case Interview 学习报告", html)
-        self.assertIn("能力评估", html)
+        self.assertIn("能力概览", html)
 
     def test_chinese_interview_example_renders(self):
         proc, html = render(os.path.join(EXAMPLES, "interview-report.zh-CN.json"))
@@ -132,10 +132,9 @@ class ValidInputTests(unittest.TestCase):
                     self.assertNotIn(band, html)
                 self.assertNotIn('class="result__verdict"', html)
 
-    def test_tutorial_report_shows_independence_and_hint_track(self):
+    def test_tutorial_report_shows_independence(self):
         proc, html = render(os.path.join(FIXTURES, "tutorial-independent.json"))
         self.assertIn("Independence", html)
-        self.assertIn("hint__seq", html)
 
     def test_assistance_level_is_rendered_for_interview(self):
         proc, html = render(os.path.join(FIXTURES, "interview-weak.json"))
@@ -281,7 +280,7 @@ class GuardRailScopeTests(unittest.TestCase):
         with open(os.path.join(EXAMPLES, "interview-report.json"),
                   encoding="utf-8") as f:
             doc = json.load(f)
-        doc["key_moments"][0]["what_you_did"] = (
+        doc["annotations"][0]["comment"] = (
             "Compared the client's 12% margin against the industry average of 18% "
             "and the 34% conversion rate in the exhibit.")
         build_report.check_guard_rails(doc)  # must not raise
@@ -455,8 +454,9 @@ class PromptTranscriptTests(unittest.TestCase):
         self.assertEqual(interview.returncode, 0, interview.stderr)
         self.assertEqual(tutorial.returncode, 0, tutorial.stderr)
         self.assertIn("Interviewer", interview_html)
-        self.assertNotIn("<b>Tutor</b>", interview_html)
-        self.assertIn("<b>Tutor</b>", tutorial_html)
+        self.assertNotIn("<b>Coach</b>", interview_html)
+        self.assertIn("<b>Coach</b>", tutorial_html)
+        self.assertIn("<b>Interviewer</b>", interview_html)
 
     def test_critical_moment_links_to_existing_turn(self):
         proc, page = render(os.path.join(EXAMPLES, "interview-report.json"))
@@ -466,7 +466,7 @@ class PromptTranscriptTests(unittest.TestCase):
 
     def test_missing_turn_reference_fails_validation(self):
         _, doc = self._example("interview-report")
-        doc["key_moments"][0]["turn_refs"] = ["T999"]
+        doc["dimensions"][0]["turn_refs"] = ["T999"]
         with self.assertRaises(build_report.ValidationError) as cm:
             build_report.validate(doc)
         self.assertIn("T999", str(cm.exception))
@@ -529,7 +529,7 @@ class PromptTranscriptTests(unittest.TestCase):
         proc, page = render(os.path.join(EXAMPLES, "tutorial-report.json"))
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn('class="transcript__event" id="E02"', page)
-        self.assertIn("Independent practice began", page)
+        self.assertIn("no further hints", page)
 
     def test_long_transcript_renders_completely_and_print_css_reveals_it(self):
         _, doc = self._example("interview-report")
@@ -541,7 +541,7 @@ class PromptTranscriptTests(unittest.TestCase):
         ]
         for item in doc.get("dimensions", []) + doc.get("strengths", []) + doc.get("weaknesses", []):
             item.pop("turn_refs", None)
-        for item in doc.get("key_moments", []) + doc.get("missed_insights", []) + doc.get("next_priorities", []):
+        for item in doc.get("annotations", []) + doc.get("missed_insights", []) + doc.get("next_priorities", []):
             item.pop("turn_refs", None)
         for item in (doc.get("assistance") or {}).get("events", []):
             item.pop("turn_refs", None)
@@ -562,6 +562,224 @@ class PromptTranscriptTests(unittest.TestCase):
                 for record in doc["transcript"]:
                     self.assertEqual(set(record) - set(build_report.TRANSCRIPT_FIELDS), set())
 
+
+
+class ReportLanguageTests(unittest.TestCase):
+    """A Chinese report reads as Chinese. Internal enums never reach the page."""
+
+    # Internal vocabulary that must be translated before it is rendered.
+    ENUMS = ("Assisted", "Independent", "Guided", "Light", "Level 1", "Level 2",
+             "Level 3", "Hint", "Retry", "Learning", "Critical Moment",
+             "Case Prompt", "Mastered", "Covered", "assistance_start",
+             "assistance_end", "assistance_change", "needs_improvement",
+             "hint_given")
+
+    @staticmethod
+    def visible(path, drop_transcript=False):
+        with open(path, encoding="utf-8") as f:
+            page = f.read()
+        page = re.sub(r"<style.*?</style>", "", page, flags=re.S)
+        if drop_transcript:
+            page = re.sub(r'<section class="sec transcript">.*?</section>', "",
+                          page, flags=re.S)
+            page = re.sub(r'<p class="foot">.*?</p>', "", page, flags=re.S)
+        import html as html_mod
+        return html_mod.unescape(re.sub(r"<[^>]+>", " ", page))
+
+    def test_chinese_reports_render_no_internal_enum(self):
+        for name in ("tutorial-report.zh-CN.html", "interview-report.zh-CN.html"):
+            path = os.path.join(EXAMPLES, "generated", name)
+            text = self.visible(path)
+            for token in self.ENUMS:
+                with self.subTest(report=name, token=token):
+                    self.assertNotIn(token, text)
+
+    def test_chinese_analysis_prose_is_chinese(self):
+        """Outside the verbatim transcript, only agreed loanwords may remain."""
+        allowed = {"Case Interview", "Hire"}   # report title; verdict, glossed in place
+        for name in ("tutorial-report.zh-CN.html", "interview-report.zh-CN.html"):
+            path = os.path.join(EXAMPLES, "generated", name)
+            text = self.visible(path, drop_transcript=True)
+            found = {w.strip() for w in re.findall(r"[A-Za-z][A-Za-z /&]{2,}", text)}
+            with self.subTest(report=name):
+                self.assertEqual(found - allowed, set())
+
+    def test_chinese_report_uses_chinese_ui_labels(self):
+        path = os.path.join(EXAMPLES, "generated", "tutorial-report.zh-CN.html")
+        text = self.visible(path)
+        for label in ("本次最重要的三件事", "能力概览", "逐轮复盘", "复盘点评",
+                      "如果你只记住三件事", "独立程度"):
+            with self.subTest(label=label):
+                self.assertIn(label, text)
+
+    def test_english_verdict_is_not_glossed(self):
+        """The gloss is for Chinese only; an English report says Hire plainly."""
+        with open(os.path.join(EXAMPLES, "generated", "interview-report.html"),
+                  encoding="utf-8") as f:
+            page = f.read()
+        self.assertIn('class="result__verdict">Hire<', page)
+
+    def test_transcript_keeps_original_wording(self):
+        """Whatever was said is reproduced exactly, in either language."""
+        for stem in ("tutorial-report.zh-CN", "interview-report.zh-CN",
+                     "tutorial-report", "interview-report"):
+            with open(os.path.join(EXAMPLES, stem + ".json"), encoding="utf-8") as f:
+                doc = json.load(f)
+            with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                      encoding="utf-8") as f:
+                page = f.read()
+            import html as html_mod
+            for record in doc["transcript"]:
+                with self.subTest(report=stem, turn=record["id"]):
+                    self.assertIn(html_mod.escape(record["content"], quote=True), page)
+
+    def test_no_transcript_turn_is_omitted(self):
+        for stem in ("tutorial-report.zh-CN", "interview-report"):
+            with open(os.path.join(EXAMPLES, stem + ".json"), encoding="utf-8") as f:
+                doc = json.load(f)
+            with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                      encoding="utf-8") as f:
+                page = f.read()
+            for record in doc["transcript"]:
+                with self.subTest(report=stem, turn=record["id"]):
+                    self.assertIn('id="{}"'.format(record["id"]), page)
+
+
+class FeedbackProminenceTests(unittest.TestCase):
+    """The most important feedback is near the top and easy to find."""
+
+    @staticmethod
+    def page(stem):
+        with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                  encoding="utf-8") as f:
+            return f.read()
+
+    def test_core_feedback_block_exists(self):
+        for stem in ("tutorial-report", "interview-report",
+                     "tutorial-report.zh-CN", "interview-report.zh-CN"):
+            with self.subTest(report=stem):
+                self.assertIn('class="cfwrap"', self.page(stem))
+
+    def test_core_feedback_holds_at_most_three_items(self):
+        for stem in ("tutorial-report", "interview-report"):
+            with self.subTest(report=stem):
+                self.assertLessEqual(self.page(stem).count('<article class="cf '), 3)
+
+    def test_core_feedback_precedes_the_transcript_and_the_detail(self):
+        for stem in ("tutorial-report", "tutorial-report.zh-CN"):
+            page = self.page(stem)
+            with self.subTest(report=stem):
+                self.assertLess(page.index('class="cfwrap"'),
+                                page.index('class="sec transcript"'))
+                self.assertLess(page.index('class="cfwrap"'),
+                                page.index('class="takeaways"'))
+
+    def test_biggest_gap_and_next_step_are_both_present(self):
+        for stem in ("tutorial-report", "interview-report"):
+            page = self.page(stem)
+            with self.subTest(report=stem):
+                self.assertIn("cf--work", page)
+                self.assertIn("cf--next", page)
+
+    def test_takeaways_close_the_report(self):
+        for stem in ("tutorial-report", "tutorial-report.zh-CN"):
+            page = self.page(stem)
+            with self.subTest(report=stem):
+                self.assertIn('class="takeaways"', page)
+                self.assertGreater(page.index('class="takeaways"'),
+                                   page.index('class="sec transcript"'))
+
+
+class AnnotatedTranscriptTests(unittest.TestCase):
+    """Comments sit beside the turn they are about, clearly marked as comments."""
+
+    @staticmethod
+    def doc_and_page(stem):
+        with open(os.path.join(EXAMPLES, stem + ".json"), encoding="utf-8") as f:
+            doc = json.load(f)
+        with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                  encoding="utf-8") as f:
+            return doc, f.read()
+
+    def test_annotated_turns_carry_their_comment_inline(self):
+        doc, page = self.doc_and_page("tutorial-report")
+        for ann in doc["annotations"]:
+            turn = ann["turn_id"]
+            start = page.index('id="{}"'.format(turn))
+            end = page.index("</article>", start)
+            with self.subTest(turn=turn):
+                self.assertIn('class="ann ', page[start:end],
+                              "comment for {} is not inside that turn".format(turn))
+
+    def test_unannotated_turns_get_no_comment(self):
+        doc, page = self.doc_and_page("tutorial-report")
+        annotated = {a["turn_id"] for a in doc["annotations"]}
+        for record in doc["transcript"]:
+            if record["id"] in annotated or record["type"] != "message":
+                continue
+            start = page.index('id="{}"'.format(record["id"]))
+            end = page.index("</article>", start)
+            with self.subTest(turn=record["id"]):
+                self.assertNotIn('class="ann ', page[start:end])
+
+    def test_both_praise_and_criticism_are_supported(self):
+        _, page = self.doc_and_page("tutorial-report")
+        self.assertIn("ann--strength", page)
+        self.assertIn("ann--needs_improvement", page)
+        self.assertIn("ann--critical", page)
+
+    def test_comment_is_structurally_separate_from_the_original_words(self):
+        doc, page = self.doc_and_page("tutorial-report")
+        # The comment is a sibling <aside>, never inside the quoted content div.
+        for match in re.finditer(r'<div class="transcript__content">(.*?)</div>',
+                                 page, re.S):
+            self.assertNotIn("ann__", match.group(1))
+        self.assertIn("<aside class=\"ann", page)
+
+    def test_every_comment_is_labelled_as_written_afterwards(self):
+        doc, page = self.doc_and_page("tutorial-report")
+        self.assertEqual(page.count('class="ann__src"'), len(doc["annotations"]))
+
+    def test_annotation_referencing_a_missing_turn_is_rejected(self):
+        proc, html = render(os.path.join(INVALID, "annotation-unknown-turn.json"))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIsNone(html)
+        self.assertIn("turn_id", proc.stderr)
+
+    def test_annotation_type_must_be_known(self):
+        proc, _ = render(os.path.join(INVALID, "annotation-bad-type.json"))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("type", proc.stderr)
+
+
+class DeduplicationTests(unittest.TestCase):
+    """One finding is reported once."""
+
+    def test_superseded_sections_are_rejected_not_silently_dropped(self):
+        for name in ("superseded-key-moments", "superseded-hints", "superseded-phases"):
+            with self.subTest(fixture=name):
+                proc, html = render(os.path.join(INVALID, name + ".json"))
+                self.assertEqual(proc.returncode, 2)
+                self.assertIsNone(html)
+                self.assertIn("no longer rendered", proc.stderr)
+
+    def test_each_section_heading_appears_once(self):
+        for stem in ("tutorial-report", "interview-report",
+                     "tutorial-report.zh-CN", "interview-report.zh-CN"):
+            with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                      encoding="utf-8") as f:
+                headings = re.findall(r"<h2>(.*?)</h2>", f.read())
+            with self.subTest(report=stem):
+                self.assertEqual(sorted(headings), sorted(set(headings)))
+
+    def test_report_has_a_small_number_of_sections(self):
+        """The redesign traded section count for prominence; keep it that way."""
+        for stem in ("tutorial-report", "interview-report"):
+            with open(os.path.join(EXAMPLES, "generated", stem + ".html"),
+                      encoding="utf-8") as f:
+                headings = re.findall(r"<h2>(.*?)</h2>", f.read())
+            with self.subTest(report=stem):
+                self.assertLessEqual(len(headings), 9, headings)
 
 
 class PaletteTests(unittest.TestCase):

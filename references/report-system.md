@@ -97,6 +97,12 @@ whose claims no longer match the session.
 | `transcript[].type` | `message` or `event` |
 | message `role` | Interview: `candidate` / `interviewer`; Tutorial: `candidate` / `tutor` |
 | analysis `turn_refs` | non-empty array containing only IDs that exist in `transcript` |
+| `core_feedback` | at most three items, keyed `strength` / `priority` / `next_step`, each with a `headline` and a `detail` |
+| `annotations[].turn_id` | an ID that exists in `transcript` |
+| `annotations[].type` | `strength`, `needs_improvement`, `critical`, `hint_given`, `improved` or `polish` |
+| `annotations[].comment` | a non-empty explanation |
+| `takeaways` | at most three short strings |
+| `hints` / `phases` / `key_moments` | **rejected** — superseded, see §10 |
 
 **Semantic rules**
 
@@ -257,6 +263,27 @@ shared. Omit anything you have no real data for.
   },
   "transferable_lessons": [ "..." ],      // [T]
 
+  // --- the three things that matter most: the top-of-report block ---
+  "core_feedback": {
+    "strength":  { "headline": "...", "detail": "...", "turn_refs": ["T08"] },
+    "priority":  { "headline": "...", "detail": "...", "turn_refs": ["T02","T04"] },
+    "next_step": { "headline": "...", "detail": "..." }
+  },
+
+  // --- inline coach comments; see §11 ---
+  "annotations": [
+    { "turn_id": "T04",
+      "type": "strength" | "needs_improvement" | "critical" |
+              "hint_given" | "improved" | "polish",
+      "category": "结构",            // optional, short
+      "headline": "...",             // optional, one line
+      "comment": "...",              // required
+      "improvement": "..." }         // optional: how to do it differently
+  ],
+
+  // --- at most three, the closing memory aid ---
+  "takeaways": [ "...", "...", "..." ],
+
   "next_priorities": [
     { "title": "...", "current": "...", "why": "...",      // why → [I]
       "target": "...", "drill": "...", "assistance": "..." } // target/assistance → [T]
@@ -267,6 +294,9 @@ shared. Omit anything you have no real data for.
 ---
 
 ## 4. Interview report — what each section must contain
+
+> Section order and prominence are set out in §12; comments on individual turns in §11.
+> The content requirements below are unchanged — only where they are shown has moved.
 
 The opening order is title and metadata, the complete original Case Prompt, then the result and
 one-line summary. This lets the reader recover the problem before interpreting the assessment.
@@ -313,6 +343,11 @@ nothing else was sampled").
 ---
 
 ## 5. Tutorial report — what each section must contain
+
+> Section order and prominence are set out in §12; comments on individual turns in §11.
+> The content requirements below are unchanged — only where they are shown has moved.
+> Hint dependence and the assisted/independent split are now shown through
+> `dimensions[].independence` and comments on the turns themselves (§10.1).
 
 **Never** a hiring band by default. This report is about progress, not selection.
 
@@ -427,3 +462,129 @@ The report contains the user's complete natural-language contributions within th
 session. The local renderer does not upload them or make network requests. Tell users to review the
 HTML before sharing it publicly, because their own answers may contain information they do not
 want to disclose.
+
+---
+
+## 10. Report language
+
+A report has **one primary language**, taken from `language`. Everything the reader sees is
+written in it.
+
+**Analysis prose is written, transcript text is quoted.** These are different obligations and the
+difference is absolute:
+
+- *Analysis* — the summary, core feedback, capability evidence, comments, mastery lists, next
+  steps, takeaways — is written for this reader and must read naturally in the report language. In
+  a Chinese report that means 市场规模估算, 合理性校验, 计算路径, 敏感性分析, 独立完成 — not
+  Market Sizing, Sanity Check, Calculation Tree, Sensitivity, Independent.
+- *Transcript* — see §11 — is reproduced exactly as it was said, including whatever mixture of
+  languages the session actually contained. Never translate, tidy or normalise it.
+
+English survives in analysis prose in only two cases. First, a term that is genuinely standard in
+the industry may appear glossed on first use — 敏感性分析（Sensitivity Analysis）— and unglossed
+after. Second, a term with no stable natural translation may stay in English. The test is whether
+the English *helps the reader understand faster*, never whether it sounds more professional. A
+Chinese sentence carrying four or five English terms fails that test:
+
+> ✗ 你已经完成 base case 和 sensitivity，但 sanity check 和 triangulation 仍然偏 weak。
+> ✓ 你已经能够独立完成基准估算和敏感性分析，但合理性校验仍然依赖提示，而且还没有主动设计第二条
+>   独立估算路径来交叉验证。
+
+**Internal enums are never printed.** `guided` / `assisted` / `light` / `independent`, hint
+levels, annotation types, tags and stage names are data-model tokens. The renderer maps every one
+of them through `humanise()` before it reaches the page, so the reader sees 先自己做，卡住时给提示
+rather than `Assisted`. Keep using the enums in the JSON — just never assume they are readable.
+
+### 10.1 What replaced what
+
+Three sections were folded into the turn-by-turn review, because each was restating a finding the
+review already carries in context. The renderer **rejects** them rather than ignoring them, and
+the error names the replacement:
+
+`mastery.needs_help` and `recurring_mistakes` render as one list, so they must not restate each
+other. A gap that shows up repeatedly belongs in `recurring_mistakes`, where it can carry the
+evidence ("three of four reps"); `needs_help` is for gaps that are not recurring patterns. Writing
+both is the single easiest way to make one finding look like two, and no amount of validation can
+detect it — only care when writing the data.
+
+| Removed | Now lives in |
+|---|---|
+| `key_moments` | `annotations` — a key moment is a comment on the turn it happened in |
+| `hints` | `annotations` on the turns where hint strength changed, plus `dimensions[].independence` |
+| `phases` | `annotations` either side of the assistance change, plus `dimensions[].independence` |
+
+---
+
+## 11. The turn-by-turn review
+
+The transcript is not an appendix. It is the second half of the report, and the place where
+detailed feedback belongs — beside the words it is about, rather than in a section the reader has
+to hold in memory while scrolling.
+
+**The transcript is verbatim.** Every user-visible turn appears, in order, in the exact words
+used. Do not delete uncommented turns, summarise a long answer, fix the candidate's grammar,
+translate their English, or tidy their mixed-language phrasing. Its entire value is being a
+faithful record.
+
+**Comment selectively.** Annotate a turn only when there is something to learn: a key structuring
+answer, an important calculation, an exhibit reading, a real insight, a clear error, a visible
+improvement, the final recommendation. Clarifying questions and transitional turns usually need
+nothing. Commenting everything recreates the overload this design removed.
+
+**Comment on strengths too**, not only errors — a reader needs to know which habits to keep, and
+a report that only marks mistakes teaches the wrong lesson.
+
+**Shape of a comment.** Claim, then why, then how to change it if that is not obvious:
+
+```jsonc
+{"turn_id": "T04",
+ "type": "needs_improvement",
+ "category": "结构",
+ "headline": "计算链没有闭环到题目要求的单位",
+ "comment": "你用人口和渗透率估出了健身用户数，但题目要的是门店数，中间缺少「每家门店服务多少用户」这个转换变量。",
+ "improvement": "以后先写出最终答案的单位，再逐步检查每个变量能否连续转换到它。"}
+```
+
+Two or three sentences. Not an essay, and never a bare verdict: "这里不错" and "思路很好" say
+nothing. Name the specific thing that was good and why it was good.
+
+**Tutorial: show the arc.** The most valuable thing a tutorial report can show is
+error → hint → retry → principle. Annotate all four points so the movement is visible in place.
+And keep the distinction the rest of this skill depends on: *"once the calculation path was
+given, you executed it accurately"* — never *"you have mastered market sizing"*.
+
+**Interview: comments are post-session only.** Annotating a mock is fine — `strength`,
+`needs_improvement`, `critical` all apply. But do not write teaching that did not happen: no
+"if you had been given a hint here", no step-by-step coaching mid-case. `hint_given` belongs in an
+interview report only where the interviewer actually assisted, and where it did happen, say so —
+it is what separates a prompted insight from an independent one.
+
+**Comments are visibly not part of the conversation.** The renderer puts each one in its own
+element, outside the quoted content, labelled 复盘点评 / *post-session comment*. Never blur that
+line.
+
+---
+
+## 12. Reading order
+
+The report is built to be read twice: once in two minutes, once properly.
+
+| | Section | Job |
+|---|---|---|
+| 1 | Case information | what this was |
+| 2 | The prompt, verbatim | what was actually asked |
+| 3 | One-line summary | the whole session in a sentence |
+| 4 | **The three things that matter most** | the heaviest block on the page: best work, biggest gap, next step |
+| 5 | Capability overview | scores with independence, one line each, links into the transcript |
+| 6 | Turn-by-turn review | the full conversation with comments in place |
+| 7 | Mastery / missed insights | what is established and what is not |
+| 8 | Next training plan | 1–3 priorities |
+| 9 | If you remember three things | what should survive the week |
+
+A reader who stops after §4 still knows their most important problem and their next step. Sections
+5–9 are for the reader who came back to work.
+
+**Scores are a band, not a measurement.** Render the number with the behavioural description
+beside it, and in a tutorial report give independence equal weight — `6 / 10 · 需要提示` says more
+than a large `6` ever will.
+

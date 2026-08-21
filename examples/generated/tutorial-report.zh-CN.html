@@ -120,15 +120,7 @@ border:1px dashed var(--axis);border-radius:6px}
 .pri{border-top:1px solid var(--rule);padding:.95rem 0 .2rem}
 .pri:first-of-type{border-top:0;padding-top:0}
 .pri h3{margin:0 0 .5rem}
-.transcript{padding:0;overflow:hidden}
-.transcript summary{cursor:pointer;list-style:none;padding:1.25rem 1.5rem;display:flex;
-justify-content:space-between;align-items:baseline;gap:1rem}
-.transcript summary::-webkit-details-marker{display:none}
-.transcript summary span{font-size:1.05rem;letter-spacing:.01em;text-transform:uppercase;
-color:var(--ink2);font-weight:650}
-.transcript summary small{font-size:.78rem;color:var(--muted);font-weight:500}
-.transcript[open] summary{border-bottom:1px solid var(--rule)}
-.transcript__body{padding:1.2rem 1.5rem 1.5rem}
+.transcript__body{padding:0}
 .privacy-note{font-size:.82rem;color:var(--ink2);border-left:3px solid var(--axis);
 padding-left:.7rem;margin:0 0 1rem}
 .transcript__item{border:1px solid var(--ring);border-radius:7px;padding:.75rem .9rem;
@@ -142,6 +134,52 @@ font-size:.8rem;color:var(--ink2)}
 .transcript__event{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin:.9rem 0;
 padding:.55rem .75rem;border:1px dashed var(--axis);border-radius:6px;color:var(--ink2);font-size:.84rem;
 scroll-margin-top:1rem}
+/* --- section lead + prominence tiers ------------------------------------ */
+.sec__lead{font-size:.88rem;color:var(--ink2);margin:-.35rem 0 1rem}
+.sec--lead{border-color:var(--o3);border-width:1px;box-shadow:0 1px 0 var(--ring)}
+.sec--lead>h2{color:var(--ink);font-size:1.15rem;text-transform:none;letter-spacing:0}
+.sec--compact .dim{padding:.55rem 0}
+.sec--compact .dim__ev{margin:.3rem 0 0}
+.sec--takeaway{background:var(--page);border-style:solid}
+
+/* --- core feedback ------------------------------------------------------ */
+.cfwrap{display:grid;gap:.7rem}
+.cf{border:1px solid var(--ring);border-left:4px solid var(--axis);border-radius:8px;
+padding:.9rem 1.1rem;background:var(--page)}
+.cf--good{border-left-color:var(--o3)}
+.cf--work{border-left-color:var(--crit)}
+.cf--next{border-left-color:var(--o1)}
+.cf__kind{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+color:var(--muted);margin:0 0 .3rem;font-weight:650}
+.cf__head{font-size:1.05rem;margin:0 0 .35rem;line-height:1.35}
+.cf__detail{font-size:.95rem;line-height:1.6;margin:0;color:var(--ink)}
+.cf .evidence{margin-top:.5rem}
+
+/* --- inline coach comments --------------------------------------------- */
+.ann{margin:.7rem 0 0;padding:.65rem .85rem;border-radius:6px;
+background:var(--surface);border:1px solid var(--ring);border-left:3px solid var(--axis)}
+.ann--strength{border-left-color:var(--good)}
+.ann--improved{border-left-color:var(--good)}
+.ann--needs_improvement{border-left-color:var(--warn)}
+.ann--critical{border-left-color:var(--crit)}
+.ann--hint_given{border-left-color:var(--o2)}
+.ann--polish{border-left-color:var(--axis)}
+.ann__meta{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap;margin:0 0 .3rem}
+.ann__badge{font-size:.75rem;font-weight:700;letter-spacing:.02em}
+.ann__cat{font-size:.75rem;color:var(--ink2)}
+.ann__src{font-size:.68rem;color:var(--muted);text-transform:uppercase;
+letter-spacing:.05em;margin-left:auto}
+.ann__head{font-size:.92rem;font-weight:650;margin:0 0 .25rem;line-height:1.45}
+.ann__body{font-size:.9rem;line-height:1.6;margin:0;color:var(--ink2)}
+.ann__imp{font-size:.9rem;line-height:1.6;margin:.4rem 0 0;color:var(--ink2);
+padding-left:.7rem;border-left:2px solid var(--rule)}
+.transcript__item--noted{background:var(--surface)}
+
+/* --- takeaways ---------------------------------------------------------- */
+.takeaways{margin:0;padding-left:1.3rem}
+.takeaways li{margin:0 0 .55rem;font-size:1rem;line-height:1.6}
+.takeaways li::marker{font-weight:700;color:var(--fill)}
+
 .foot{color:var(--muted);font-size:.8rem;margin:1.6rem 0 0;text-align:center}
 @media (max-width:640px){
 .wrap{padding:1.5rem .9rem 3rem}.cols{grid-template-columns:1fr}
@@ -159,7 +197,9 @@ h2,h3{break-after:avoid;page-break-after:avoid}
 .hero{break-inside:avoid;page-break-inside:avoid}
 .cols>div{break-inside:avoid;page-break-inside:avoid}
 .moment,.pri,.hint,.dim{break-inside:avoid;page-break-inside:avoid}
-.transcript>summary{display:none}.transcript__body{display:block!important;padding:10pt 12pt}
+.transcript__body{display:block!important;padding:0}
+.cf,.ann,.takeaways li{break-inside:avoid;page-break-inside:avoid}
+.sec--lead{border-width:1px}
 .transcript__item,.transcript__event{break-inside:avoid;page-break-inside:avoid}
 h2{font-size:9pt}.foot{margin-top:10pt}
 .hstep--end{background:#104281 !important;color:#fff !important}}
@@ -168,21 +208,21 @@ h2{font-size:9pt}.foot{margin-top:10pt}
 <section class="sec hero">
   <h1>Case Interview 学习报告<span class="badge badge--ok">已完整完成</span></h1>
   <p class="sub">这次学会了什么？哪些已经可以独立完成？</p>
-  <dl class="strip"><div class="kv"><dt>Case 类型</dt><dd>盈利能力</dd></div><div class="kv"><dt>行业</dt><dd>连锁咖啡（虚构：晨屿咖啡）</dd></div><div class="kv"><dt>难度</dt><dd>入门</dd></div><div class="kv"><dt>训练重点</dt><dd>Structuring + 基础 Case Math</dd></div><div class="kv"><dt>起始帮助强度</dt><dd>Guided 大量教学</dd></div><div class="kv"><dt>结束帮助强度</dt><dd>Independent 零辅助</dd></div></dl>
-</section><section class="sec case-prompt"><h2>本次题目</h2><div class="case-prompt__text">晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。</div></section><section class="sec summary"><h2>Session 总结</h2><p class="lede">你已经能够独立完成第一层利润拆解和百分比计算，并从第 3 轮开始不再需要提示；目前的薄弱点是第二层结构，能够列出分支，但还不会主动说明应该先看哪一项。</p></section><section class="sec "><h2>能力评估</h2><div class="dim">
+  <dl class="strip"><div class="kv"><dt>题目类型</dt><dd>盈利能力</dd></div><div class="kv"><dt>行业</dt><dd>连锁咖啡（虚构：晨屿咖啡）</dd></div><div class="kv"><dt>难度</dt><dd>入门</dd></div><div class="kv"><dt>训练重点</dt><dd>搭结构 + 基础计算</dd></div><div class="kv"><dt>起始帮助强度</dt><dd>先教后练</dd></div><div class="kv"><dt>结束帮助强度</dt><dd>完全独立完成</dd></div></dl>
+</section><section class="sec case-prompt"><h2>本次题目</h2><div class="case-prompt__text">晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要的利润驱动因素，再决定是否调整价格、排班或菜单。这次我们先练搭结构，随后再练相关计算。所有公司名称与数据均为虚构。</div></section><section class="sec summary"><h2>本次总结</h2><p class="lede">你已经能独立完成利润的第一层拆解和单店收入计算，并且从第三轮开始不再需要提示；还没有稳定下来的是：拆完分支之后不会说先看哪一个，以及为什么。</p></section><section class="sec sec--lead"><h2>本次最重要的三件事</h2><p class="sec__lead">如果只看一段，看这一段。</p><div class="cfwrap"><article class="cf cf--good"><div class="cf__kind">做得最好的一点</div><h3 class="cf__head">你会先确定答案的单位，再动手算</h3><p class="cf__detail">第一次算单店收入时你算出了 480,000 却不确定它的含义。被提醒之后，你先写下「元每家门店每月」，再倒推需要哪些输入项，最终答案和单位都正确。这个习惯以后能帮你避开大部分计算失误。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T06">查看 T06</a> <a class="evidence__link" href="#T08">查看 T08</a></p></article><article class="cf cf--work"><div class="cf__kind">最需要提升的一点</div><h3 class="cf__head">分支拆得出来，但没有说先看哪一个</h3><p class="cf__detail">四轮结构练习里有三轮，你都停在「列出分支」这一步。结构的作用是决定下一步查什么，一个不能排出先后顺序的结构，在真实案例里没法推动分析往前走。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T02">查看 T02</a> <a class="evidence__link" href="#T04">查看 T04</a></p></article><article class="cf cf--next"><div class="cf__kind">下一步最该练什么</div><h3 class="cf__head">每次给出结构后，立刻说出第一个要查的分支和理由</h3><p class="cf__detail">下次做 5 道结构专项题，规则是：分支列完之后必须补一句「我会先看 X，因为 Y」。说不出理由的分支就删掉——说不出理由，通常说明这条分支本来就不该在结构里。</p></article></div></section><section class="sec sec--compact"><h2>能力概览</h2><p class="sec__lead">分数只是一个大致区间，不是精确测量。真正有意义的是旁边那句话。</p><div class="dim">
   <div class="dim__head"><span class="dim__name">问题结构化</span>
     <span class="dim__val"><b>6</b> <span class="dim__of">/ 10</span>
       <span class="dim__band">发展中</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:60.0%"></div></div></div>
-  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Assisted 先做后评</b></span></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>先自己做，卡住时给提示</b></span></div>
   <p class="dim__ev">第一层利润拆解已经稳定；第二层仍容易退回到通用框架。</p>
 <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T02">查看 T02</a> <a class="evidence__link" href="#T04">查看 T04</a> <a class="evidence__link" href="#T10">查看 T10</a></p>
 </div><div class="dim">
-  <div class="dim__head"><span class="dim__name">定量分析</span>
+  <div class="dim__head"><span class="dim__name">量化分析</span>
     <span class="dim__val"><b>8</b> <span class="dim__of">/ 10</span>
       <span class="dim__band">达标</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:80.0%"></div></div></div>
-  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg seg--on" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Independent 零辅助</b></span></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg seg--on" style="--s:3"></i></span><span class="indep__label">独立程度: <b>完全独立完成</b></span></div>
   <p class="dim__ev">三道计算均独立完成，并在计算前先说明公式和单位。</p>
 <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T06">查看 T06</a> <a class="evidence__link" href="#T07">查看 T07</a> <a class="evidence__link" href="#T08">查看 T08</a></p>
 </div><div class="dim">
@@ -190,45 +230,29 @@ h2{font-size:9pt}.foot{margin-top:10pt}
     <span class="dim__val"><b>5</b> <span class="dim__of">/ 10</span>
       <span class="dim__band">发展中</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:50.0%"></div></div></div>
-  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Guided 大量教学</b></span></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg" style="--s:1"></i><i class="seg" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>先教后练</b></span></div>
   <p class="dim__ev">每次都需要提示，才会继续追问一个发现对客户意味着什么。</p>
 
 </div><div class="dim dim--untested">
-  <div class="dim__head"><span class="dim__name">Exhibit 解读</span>
+  <div class="dim__head"><span class="dim__name">图表解读</span>
     <span class="dim__na">未测试</span></div>
   <div class="meter meter--empty"><div class="meter__track"></div></div>
-  <p class="dim__ev">本次 Session 未练习。</p>
+  <p class="dim__ev">本次没有练到这一项。</p>
 
 </div><div class="dim">
-  <div class="dim__head"><span class="dim__name">沟通</span>
+  <div class="dim__head"><span class="dim__name">沟通表达</span>
     <span class="dim__val"><b>6.5</b> <span class="dim__of">/ 10</span>
       <span class="dim__band">发展中</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:65.0%"></div></div></div>
-  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>Light 少量方向提示</b></span></div>
+  <div class="indep"><span class="indep__steps" aria-hidden="true"><i class="seg seg--on" style="--s:0"></i><i class="seg seg--on" style="--s:1"></i><i class="seg seg--on" style="--s:2"></i><i class="seg" style="--s:3"></i></span><span class="indep__label">独立程度: <b>偶尔点一下方向</b></span></div>
   <p class="dim__ev">表达清楚，但偶尔会先解释方法，再给出答案。</p>
 
 </div><div class="dim dim--untested">
-  <div class="dim__head"><span class="dim__name">Synthesis / Recommendation</span>
+  <div class="dim__head"><span class="dim__name">总结与建议</span>
     <span class="dim__na">未测试</span></div>
   <div class="meter meter--empty"><div class="meter__track"></div></div>
-  <p class="dim__ev">本次 Session 未练习。</p>
+  <p class="dim__ev">本次没有练到这一项。</p>
 
-</div></section><section class="sec "><h2>提示依赖</h2><div class="hint">
-  <div class="hint__topic">Structuring</div>
-  <div class="hint__seq"><span class="hstep">Level 3</span><span class="harrow" aria-hidden="true">→</span><span class="hstep">Level 2</span><span class="harrow" aria-hidden="true">→</span><span class="hstep">Level 1</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Independent</span></div>
-  <p class="hint__note">四轮练习中提示强度持续下降，第 4 轮完全不需要提示，说明方法已经开始内化。</p>
-</div><div class="hint">
-  <div class="hint__topic">Case Math</div>
-  <div class="hint__seq"><span class="hstep">Level 1</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Independent</span></div>
-  <p class="hint__note">第一次只提醒先写公式，后续没有再次需要提示。</p>
-</div><div class="hint">
-  <div class="hint__topic">Observation 到 Insight</div>
-  <div class="hint__seq"><span class="hstep">Level 3</span><span class="harrow" aria-hidden="true">→</span><span class="hstep hstep--end">Level 3</span></div>
-  <p class="hint__note">两次都需要给出部分答案，这是下一阶段最明确的训练重点。</p>
-</div></section><section class="sec "><h2>教学阶段与独立阶段</h2><p class="marker">独立阶段: Structuring 第 3 轮练习 — 从这里开始，你要求不再获得提示。</p><div class="cols"><div class="phase"><h3>教学 / 提示阶段</h3><dl><dt>Covered / 完成内容</dt><dd><p>第一层 profit tree、price × volume、百分比变化和单位追踪。</p></dd><dt>Hints / 使用的提示</dt><dd><p>Structuring 先使用 Level 3，再降到 Level 2；Case Math 使用过一次 Level 1。</p></dd><dt>Corrected / 教学后修正</dt><dd><p>第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。</p></dd></dl><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T02">查看 T02</a> <a class="evidence__link" href="#T03">查看 T03</a> <a class="evidence__link" href="#T04">查看 T04</a> <a class="evidence__link" href="#T06">查看 T06</a> <a class="evidence__link" href="#T07">查看 T07</a> <a class="evidence__link" href="#T08">查看 T08</a></p></div><div class="phase"><h3>独立阶段</h3><dl><dt>Covered / 完成内容</dt><dd><p>Structuring 第 3、4 轮，以及两道 Case Math 题。</p></dd><dt>Performance / 独立表现</dt><dd><p>第 4 轮独立列出了客流、转化率、客单价和座位利用率等咖啡店特有的驱动因素，没有再套用通用框架。</p></dd><dt>Mastered / 真正掌握</dt><dd><p>Revenue = price × volume；百分比变化；计算前检查单位一致性。</p></dd><dt>Still recurring / 仍存在的问题</dt><dd><p>列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。</p></dd></dl><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#E02">查看 E02</a> <a class="evidence__link" href="#T09">查看 T09</a> <a class="evidence__link" href="#T10">查看 T10</a></p></div></div></section><section class="sec "><h2>关键学习节点</h2><article class="moment">
-  <h3>第一次 Structuring 尝试</h3><blockquote class="quote">我会看市场、客户和竞争。</blockquote><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>直接调用了一个熟悉的通用框架。</p></dd></div><div class="mrow"><dt>Hint / 教学介入</dt><dd><p>没有直接给出分支，而是问了两个问题：客户真正想解决什么，以及利润是如何计算的？</p></dd></div><div class="mrow"><dt>Retry / 第二次尝试</dt><dd><p>你改为从 profit = revenue - cost 出发，并将销量拆成客流 × 转化率。</p></dd></div><div class="mrow"><dt>Learning / 学习结果</dt><dd><p>结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。</p></dd></div></dl>
-  <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T02">查看 T02</a> <a class="evidence__link" href="#T03">查看 T03</a> <a class="evidence__link" href="#T04">查看 T04</a></p></article><article class="moment">
-  <h3>第二道计算</h3><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>立即开始计算，并在中途失去了对单位的追踪。</p></dd></div><div class="mrow"><dt>Hint / 教学介入</dt><dd><p>Level 1 提示：先写出最终答案应该使用的单位。</p></dd></div><div class="mrow"><dt>Retry / 第二次尝试</dt><dd><p>你从“每家门店每月利润”重新开始，反向确定所需输入。</p></dd></div><div class="mrow"><dt>Learning / 学习结果</dt><dd><p>先确定答案的单位，通常就能看清正确的计算路径。</p></dd></div></dl>
-  <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T06">查看 T06</a> <a class="evidence__link" href="#T07">查看 T07</a> <a class="evidence__link" href="#T08">查看 T08</a></p></article></section><section class="sec "><h2>反复出现的问题</h2><ul class="blist"><li><span class="blist__h"><b>列出分支但没有优先级</b><span class="tag tag--new">new</span></span><p>四轮 Structuring 中出现三次。分支质量在提高，但始终没有回答应该从哪里开始。</p></li><li><span class="blist__h"><b>读出数据后没有追问含义</b><span class="tag tag--new">new</span></span><p>两次 Observation-to-Insight 练习都停在描述层面。</p></li></ul></section><section class="sec "><h2>掌握程度盘点</h2><div class="cols"><div><h3>本次已经能够独立完成</h3><ul class="blist"><li>Profit = revenue - cost 的第一层拆解</li><li>Revenue = price × volume</li><li>百分比变化与增长率</li><li>计算前先说明单位</li></ul></div><div><h3>仍需要帮助</h3><ul class="blist"><li>针对行业特点构建第二层结构</li><li>说明优先检查哪个分支以及理由</li><li>从 Observation 推导商业含义</li></ul></div></div></section><section class="sec "><h2>本次最重要的方法论</h2><ul class="blist"><li>从客户目标和业务算式构建结构，而不是套用已经背过的框架。</li><li>看到任何数据后，至少回答一次“所以呢？”。</li><li>先确定答案单位，计算路径通常会自然显现。</li></ul></section><section class="sec "><h2>下一阶段建议</h2><div class="pri"><h3>分支优先级</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够列出合理分支，但不会主动说明从哪里开始。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>展示任何结构后，都能在不被追问的情况下说出“我会先看 X，因为 Y”。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Structuring 练习。规则：没有明确第一个检查分支及理由，结构就不算完成；无法说明理由的分支应删除。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两轮使用 Light assistance，后三轮切换为 Independent。</p></dd></div></dl></div><div class="pri"><h3>从 Observation 到 Insight</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够稳定找到趋势，但还不能独立说明商业含义。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>独立完成 Observation → Why → Implication → Next step。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Exhibit 练习，每轮都必须完成上述四步。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两轮使用 Light assistance，后三轮使用 Independent。</p></dd></div></dl></div></section><details class="sec transcript" open><summary><span>完整对话记录</span><small>展开完整原始记录</small></summary><div class="transcript__body"><p class="privacy-note">本记录包含此次训练 Session 中全部用户可见的自然语言对话；公开分享 HTML 前，请先检查其中是否有不希望公开的内容。</p><article class="transcript__item transcript__item--tutor" id="T01"><header><span class="transcript__id">T01</span><b>Tutor</b><span class="transcript__stage">opening</span><span class="tag">Case Prompt</span></header><div class="transcript__content">晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。</div></article><article class="transcript__item transcript__item--candidate" id="T02"><header><span class="transcript__id">T02</span><b>Candidate</b><span class="transcript__stage">structure</span><span class="tag">Structure</span></header><div class="transcript__content">我会看市场、客户和竞争。</div></article><article class="transcript__item transcript__item--tutor" id="T03"><header><span class="transcript__id">T03</span><b>Tutor</b><span class="transcript__stage">structure</span><span class="tag">Hint</span></header><div class="transcript__content">客户真正想解决什么？利润又是如何计算的？请用这两个问题重新搭建第一层结构。</div></article><article class="transcript__item transcript__item--candidate" id="T04"><header><span class="transcript__id">T04</span><b>Candidate</b><span class="transcript__stage">structure</span><span class="tag">Retry</span><span class="tag">Critical Moment</span></header><div class="transcript__content">客户想恢复利润，所以我从 profit = revenue - cost 开始。Revenue 可以拆成 price 和 volume，volume 再拆成客流和转化率。</div></article><div class="transcript__event" id="E01"><span class="transcript__id">E01</span><span class="transcript__stage">assistance_change</span><span class="tag">Assisted 先做后评</span><span>第一次 retry 成功后，帮助强度从 Guided 调整为 Assisted。</span></div><article class="transcript__item transcript__item--tutor" id="T05"><header><span class="transcript__id">T05</span><b>Tutor</b><span class="transcript__stage">quant</span></header><div class="transcript__content">一家门店每月有 15,000 笔交易，平均客单价为 32 元。请计算单店月收入。</div></article><article class="transcript__item transcript__item--candidate" id="T06"><header><span class="transcript__id">T06</span><b>Candidate</b><span class="transcript__stage">quant</span></header><div class="transcript__content">我会用 15,000 乘以 32，得到 480,000，但我不确定这是单店还是全公司的收入。</div></article><article class="transcript__item transcript__item--tutor" id="T07"><header><span class="transcript__id">T07</span><b>Tutor</b><span class="transcript__stage">quant</span><span class="tag">Hint</span></header><div class="transcript__content">先写出最终答案应该使用的单位，再重新确认计算。</div></article><article class="transcript__item transcript__item--candidate" id="T08"><header><span class="transcript__id">T08</span><b>Candidate</b><span class="transcript__stage">quant</span><span class="tag">Retry</span><span class="tag">Quant</span></header><div class="transcript__content">目标单位是元每家门店每月。每店每月交易数乘以元每笔，所以答案是每家门店每月 48 万元。</div></article><div class="transcript__event" id="E02"><span class="transcript__id">E02</span><span class="transcript__stage">assistance_change</span><span class="tag">Independent 零辅助</span><span>Candidate 要求不再获得提示，Independent 练习阶段开始。</span></div><article class="transcript__item transcript__item--tutor" id="T09"><header><span class="transcript__id">T09</span><b>Tutor</b><span class="transcript__stage">structure</span></header><div class="transcript__content">现在不提供提示，请拆解咖啡门店的销量端，并说明你会先检查哪一项。</div></article><article class="transcript__item transcript__item--candidate" id="T10"><header><span class="transcript__id">T10</span><b>Candidate</b><span class="transcript__stage">structure</span><span class="tag">Independent</span></header><div class="transcript__content">我会拆成客流、转化率、购买频次和座位利用率。我会先看客流，以区分外部需求问题和门店内执行问题。</div></article></div></details>
+</div></section><section class="sec transcript"><h2>逐轮复盘</h2><p class="sec__lead">完整对话按原样保留；值得回看的几轮旁边附有点评。</p><div class="transcript__body"><p class="privacy-note">以下是本次训练中全部你可见的对话原文。公开分享这份报告前，请先确认其中没有你不希望外传的内容。</p><article class="transcript__item transcript__item--tutor" id="T01"><header><span class="transcript__id">T01</span><b>教练</b><span class="transcript__stage">开场</span><span class="tag">题目</span></header><div class="transcript__content">晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要的利润驱动因素，再决定是否调整价格、排班或菜单。这次我们先练搭结构，随后再练相关计算。所有公司名称与数据均为虚构。</div></article><article class="transcript__item transcript__item--candidate transcript__item--noted" id="T02"><header><span class="transcript__id">T02</span><b>你</b><span class="transcript__stage">结构</span><span class="tag">结构</span></header><div class="transcript__content">我会看市场、客户和竞争。</div><aside class="ann ann--critical"><div class="ann__meta"><span class="ann__badge">关键错误</span><span class="ann__cat">结构</span><span class="ann__src">复盘点评</span></div><p class="ann__head">这是一个通用框架，不是针对这道题的结构</p><p class="ann__body">市场、客户、竞争这三项没有一项能回答「利润为什么下降」。客户问的是利润，而利润有明确算式，结构应该从这个算式出发。</p><p class="ann__imp">看到任何问题，先问「客户要的那个指标是怎么算出来的」，再从算式往下拆。</p></aside></article><article class="transcript__item transcript__item--tutor transcript__item--noted" id="T03"><header><span class="transcript__id">T03</span><b>教练</b><span class="transcript__stage">结构</span><span class="tag">提示</span></header><div class="transcript__content">客户真正想解决什么？利润又是怎么算出来的？请用这两个问题重新搭第一层结构。</div><aside class="ann ann--hint_given"><div class="ann__meta"><span class="ann__badge">提示介入</span><span class="ann__cat">教学介入</span><span class="ann__src">复盘点评</span></div><p class="ann__body">这里没有直接给你分支，而是给了两个问题让你自己重搭。这样做的原因是：结构的能力必须自己长出来，给答案没有用。</p></aside></article><article class="transcript__item transcript__item--candidate transcript__item--noted" id="T04"><header><span class="transcript__id">T04</span><b>你</b><span class="transcript__stage">结构</span><span class="tag">第二次尝试</span><span class="tag">关键节点</span></header><div class="transcript__content">客户想恢复利润，所以我从利润 = 收入 − 成本开始。收入可以拆成价格和销量，销量再拆成客流和转化率。</div><aside class="ann ann--needs_improvement"><div class="ann__meta"><span class="ann__badge">需要提升</span><span class="ann__cat">优先级</span><span class="ann__src">复盘点评</span></div><p class="ann__body">分支列完了，但没有说先看哪一条。同店收入涨 5%、利润却降 10%，这两个数字放在一起已经指向成本或结构性变化，你可以据此直接选定起点。</p></aside><aside class="ann ann--improved"><div class="ann__meta"><span class="ann__badge">改进后</span><span class="ann__cat">结构</span><span class="ann__src">复盘点评</span></div><p class="ann__head">改用了利润算式，方向对了</p><p class="ann__body">从「利润 = 收入 − 成本」出发，再把收入拆成价格和销量，这一层是对的，而且你在第二次尝试时就自己完成了。</p><p class="ann__imp">但成本这一侧还是空的。单店利润下降 10% 而收入还在涨，问题很可能就在成本侧，这条分支反而应该优先展开。</p></aside></article><div class="transcript__event" id="E01"><span class="transcript__id">E01</span><span class="transcript__stage">帮助强度变化</span><span class="tag">先自己做，卡住时给提示</span><span>第一次重做成功后，帮助强度从「先教后练」调整为「先自己做，卡住时给提示」。</span></div><article class="transcript__item transcript__item--tutor" id="T05"><header><span class="transcript__id">T05</span><b>教练</b><span class="transcript__stage">计算</span></header><div class="transcript__content">一家门店每月有 15,000 笔交易，平均客单价为 32 元。请计算单店月收入。</div></article><article class="transcript__item transcript__item--candidate transcript__item--noted" id="T06"><header><span class="transcript__id">T06</span><b>你</b><span class="transcript__stage">计算</span><span class="tag">计算</span></header><div class="transcript__content">我会用 15,000 乘以 32，得到 480,000，但我不确定这是单店还是全公司的收入。</div><aside class="ann ann--needs_improvement"><div class="ann__meta"><span class="ann__badge">需要提升</span><span class="ann__cat">计算</span><span class="ann__src">复盘点评</span></div><p class="ann__body">算式和乘法都没错，但你先算完才去想这个数字代表什么，所以算完之后自己也不确定它是单店还是全公司。</p></aside></article><article class="transcript__item transcript__item--tutor" id="T07"><header><span class="transcript__id">T07</span><b>教练</b><span class="transcript__stage">计算</span><span class="tag">提示</span></header><div class="transcript__content">先写出最终答案应该使用的单位，再重新确认计算。</div></article><article class="transcript__item transcript__item--candidate transcript__item--noted" id="T08"><header><span class="transcript__id">T08</span><b>你</b><span class="transcript__stage">计算</span><span class="tag">第二次尝试</span><span class="tag">计算</span></header><div class="transcript__content">目标单位是元每家门店每月。每店每月交易数乘以元每笔，所以答案是每家门店每月 48 万元。</div><aside class="ann ann--strength"><div class="ann__meta"><span class="ann__badge">做得好</span><span class="ann__cat">计算</span><span class="ann__src">复盘点评</span></div><p class="ann__head">先定单位，再倒推输入项</p><p class="ann__body">你写出「元每家门店每月」之后，需要哪些输入项就自动清楚了，答案和单位一次就对。这是这次最值得保留的习惯。</p></aside></article><div class="transcript__event" id="E02"><span class="transcript__id">E02</span><span class="transcript__stage">帮助强度变化</span><span class="tag">完全独立完成</span><span>学员要求不再获得提示，从这里开始进入完全独立练习。</span></div><article class="transcript__item transcript__item--tutor" id="T09"><header><span class="transcript__id">T09</span><b>教练</b><span class="transcript__stage">结构</span></header><div class="transcript__content">现在不提供提示，请拆解咖啡门店的销量端，并说明你会先检查哪一项。</div></article><article class="transcript__item transcript__item--candidate transcript__item--noted" id="T10"><header><span class="transcript__id">T10</span><b>你</b><span class="transcript__stage">结构</span><span class="tag">独立完成</span></header><div class="transcript__content">我会拆成客流、转化率、购买频次和座位利用率。我会先看客流，以区分外部需求问题和门店内执行问题。</div><aside class="ann ann--strength"><div class="ann__meta"><span class="ann__badge">做得好</span><span class="ann__cat">结构</span><span class="ann__src">复盘点评</span></div><p class="ann__head">在没有提示的情况下拆出了门店特有的分支</p><p class="ann__body">客流、转化率、购买频次、座位利用率——这四项是咖啡门店真实的销量驱动因素，不是通用模板。而且你这次主动说明了会先看客流以及理由。</p><p class="ann__imp">注意：这一轮是在教练已经把范围限定到「销量端」之后完成的。从零开始独立搭完整结构，还需要再练。</p></aside></article></div></section><section class="sec "><h2>掌握程度盘点</h2><p class="sec__lead">这次真正确认下来的能力，和还没确认的分开列。</p><div class="cols"><div><h3>本次已经能够独立完成</h3><ul class="blist"><li>利润 = 收入 − 成本 的第一层拆解</li><li>收入 = 价格 × 销量</li><li>百分比变化与增长率计算</li><li>计算前先确定答案单位</li></ul></div><div><h3>仍需要帮助</h3><ul class="blist"><li>行业特有的第二层结构（需要先限定范围）</li><li><span class="blist__h"><b>列出分支但不排优先级</b><span class="tag tag--new">本次新出现</span></span><p>四轮结构练习出现三次。分支质量在提高，但「先看哪一个」始终没有回答。</p></li><li><span class="blist__h"><b>读完数据不追问含义</b><span class="tag tag--new">本次新出现</span></span><p>两次让你解释数据含义的练习，都停在描述数字本身。</p></li></ul></div></div></section><section class="sec "><h2>下一阶段建议</h2><div class="pri"><h3>给结构排优先级</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能列出合理分支，但不会主动说明从哪里开始。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>展示任何结构后，不用追问就能说出「我会先看 X，因为 Y」。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>5 道结构专项题。规则：分支列完必须补一句优先级和理由，说不出理由的分支删掉。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两题可以卡住时提示，后三题完全独立完成。</p></dd></div></dl></div><div class="pri"><h3>从数据到含义</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能准确读出数字，但很少说出它对客户意味着什么。</p></dd></div><div class="mrow"><dt>下一阶段目标</dt><dd><p>每看到一个数据，独立完成「观察 → 为什么 → 对客户的影响 → 下一步查什么」。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>5 道图表题，每题都要走完这四步。</p></dd></div><div class="mrow"><dt>建议帮助强度</dt><dd><p>前两题可以卡住时提示，之后完全独立完成。</p></dd></div></dl></div></section><section class="sec sec--takeaway"><h2>如果你只记住三件事</h2><ol class="takeaways"><li>结构从客户要的那个指标的算式出发，不从背过的框架出发。</li><li>分支列完必须排出先后——排不出优先级的结构，推动不了分析。</li><li>先写下答案的单位，计算路径通常就自己出现了。</li></ol></section>
 <p class="foot">生成于 2026-08-21 · example-tutorial-zh-001</p>
 </main></body></html>

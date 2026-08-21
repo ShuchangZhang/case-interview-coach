@@ -1,19 +1,119 @@
 {
   "language": "zh",
-  "case_prompt": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。",
+  "case_prompt": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要的利润驱动因素，再决定是否调整价格、排班或菜单。这次我们先练搭结构，随后再练相关计算。所有公司名称与数据均为虚构。",
   "transcript": [
-    {"id": "T01", "type": "message", "role": "tutor", "stage": "opening", "tags": ["Case Prompt"], "content": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。"},
-    {"id": "T02", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Structure"], "content": "我会看市场、客户和竞争。"},
-    {"id": "T03", "type": "message", "role": "tutor", "stage": "structure", "tags": ["Hint"], "assistance_level": "guided", "content": "客户真正想解决什么？利润又是如何计算的？请用这两个问题重新搭建第一层结构。"},
-    {"id": "T04", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Retry", "Critical Moment"], "content": "客户想恢复利润，所以我从 profit = revenue - cost 开始。Revenue 可以拆成 price 和 volume，volume 再拆成客流和转化率。"},
-    {"id": "E01", "type": "event", "stage": "assistance_change", "assistance_level": "assisted", "content": "第一次 retry 成功后，帮助强度从 Guided 调整为 Assisted。"},
-    {"id": "T05", "type": "message", "role": "tutor", "stage": "quant", "content": "一家门店每月有 15,000 笔交易，平均客单价为 32 元。请计算单店月收入。"},
-    {"id": "T06", "type": "message", "role": "candidate", "stage": "quant", "content": "我会用 15,000 乘以 32，得到 480,000，但我不确定这是单店还是全公司的收入。"},
-    {"id": "T07", "type": "message", "role": "tutor", "stage": "quant", "tags": ["Hint"], "assistance_level": "light", "content": "先写出最终答案应该使用的单位，再重新确认计算。"},
-    {"id": "T08", "type": "message", "role": "candidate", "stage": "quant", "tags": ["Retry", "Quant"], "content": "目标单位是元每家门店每月。每店每月交易数乘以元每笔，所以答案是每家门店每月 48 万元。"},
-    {"id": "E02", "type": "event", "stage": "assistance_change", "assistance_level": "independent", "content": "Candidate 要求不再获得提示，Independent 练习阶段开始。"},
-    {"id": "T09", "type": "message", "role": "tutor", "stage": "structure", "content": "现在不提供提示，请拆解咖啡门店的销量端，并说明你会先检查哪一项。"},
-    {"id": "T10", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Independent"], "content": "我会拆成客流、转化率、购买频次和座位利用率。我会先看客流，以区分外部需求问题和门店内执行问题。"}
+    {
+      "id": "T01",
+      "type": "message",
+      "role": "tutor",
+      "stage": "开场",
+      "tags": [
+        "题目"
+      ],
+      "content": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要的利润驱动因素，再决定是否调整价格、排班或菜单。这次我们先练搭结构，随后再练相关计算。所有公司名称与数据均为虚构。"
+    },
+    {
+      "id": "T02",
+      "type": "message",
+      "role": "candidate",
+      "stage": "结构",
+      "tags": [
+        "结构"
+      ],
+      "content": "我会看市场、客户和竞争。"
+    },
+    {
+      "id": "T03",
+      "type": "message",
+      "role": "tutor",
+      "stage": "结构",
+      "tags": [
+        "提示"
+      ],
+      "assistance_level": "guided",
+      "content": "客户真正想解决什么？利润又是怎么算出来的？请用这两个问题重新搭第一层结构。"
+    },
+    {
+      "id": "T04",
+      "type": "message",
+      "role": "candidate",
+      "stage": "结构",
+      "tags": [
+        "第二次尝试",
+        "关键节点"
+      ],
+      "content": "客户想恢复利润，所以我从利润 = 收入 − 成本开始。收入可以拆成价格和销量，销量再拆成客流和转化率。"
+    },
+    {
+      "id": "E01",
+      "type": "event",
+      "stage": "帮助强度变化",
+      "assistance_level": "assisted",
+      "content": "第一次重做成功后，帮助强度从「先教后练」调整为「先自己做，卡住时给提示」。"
+    },
+    {
+      "id": "T05",
+      "type": "message",
+      "role": "tutor",
+      "stage": "计算",
+      "content": "一家门店每月有 15,000 笔交易，平均客单价为 32 元。请计算单店月收入。"
+    },
+    {
+      "id": "T06",
+      "type": "message",
+      "role": "candidate",
+      "stage": "计算",
+      "content": "我会用 15,000 乘以 32，得到 480,000，但我不确定这是单店还是全公司的收入。",
+      "tags": [
+        "计算"
+      ]
+    },
+    {
+      "id": "T07",
+      "type": "message",
+      "role": "tutor",
+      "stage": "计算",
+      "tags": [
+        "提示"
+      ],
+      "assistance_level": "light",
+      "content": "先写出最终答案应该使用的单位，再重新确认计算。"
+    },
+    {
+      "id": "T08",
+      "type": "message",
+      "role": "candidate",
+      "stage": "计算",
+      "tags": [
+        "第二次尝试",
+        "计算"
+      ],
+      "content": "目标单位是元每家门店每月。每店每月交易数乘以元每笔，所以答案是每家门店每月 48 万元。"
+    },
+    {
+      "id": "E02",
+      "type": "event",
+      "stage": "帮助强度变化",
+      "assistance_level": "independent",
+      "content": "学员要求不再获得提示，从这里开始进入完全独立练习。"
+    },
+    {
+      "id": "T09",
+      "type": "message",
+      "role": "tutor",
+      "stage": "结构",
+      "content": "现在不提供提示，请拆解咖啡门店的销量端，并说明你会先检查哪一项。"
+    },
+    {
+      "id": "T10",
+      "type": "message",
+      "role": "candidate",
+      "stage": "结构",
+      "tags": [
+        "独立完成"
+      ],
+      "content": "我会拆成客流、转化率、购买频次和座位利用率。我会先看客流，以区分外部需求问题和门店内执行问题。"
+    }
   ],
   "session": {
     "id": "example-tutorial-zh-001",
@@ -22,7 +122,7 @@
     "case_type": "盈利能力",
     "industry": "连锁咖啡（虚构：晨屿咖啡）",
     "difficulty": "入门",
-    "training_focus": "Structuring + 基础 Case Math",
+    "training_focus": "搭结构 + 基础计算",
     "completion": "complete",
     "assistance_start": "guided",
     "assistance_end": "independent",
@@ -32,7 +132,7 @@
     }
   },
   "headline": {
-    "learning_summary": "你已经能够独立完成第一层利润拆解和百分比计算，并从第 3 轮开始不再需要提示；目前的薄弱点是第二层结构，能够列出分支，但还不会主动说明应该先看哪一项。"
+    "learning_summary": "你已经能独立完成利润的第一层拆解和单店收入计算，并且从第三轮开始不再需要提示；还没有稳定下来的是：拆完分支之后不会说先看哪一个，以及为什么。"
   },
   "dimensions": [
     {
@@ -41,15 +141,23 @@
       "tested": true,
       "independence": "assisted",
       "evidence": "第一层利润拆解已经稳定；第二层仍容易退回到通用框架。",
-      "turn_refs": ["T02", "T04", "T10"]
+      "turn_refs": [
+        "T02",
+        "T04",
+        "T10"
+      ]
     },
     {
-      "name": "定量分析",
+      "name": "量化分析",
       "score": 8,
       "tested": true,
       "independence": "independent",
       "evidence": "三道计算均独立完成，并在计算前先说明公式和单位。",
-      "turn_refs": ["T06", "T07", "T08"]
+      "turn_refs": [
+        "T06",
+        "T07",
+        "T08"
+      ]
     },
     {
       "name": "商业判断与洞察",
@@ -59,13 +167,13 @@
       "evidence": "每次都需要提示，才会继续追问一个发现对客户意味着什么。"
     },
     {
-      "name": "Exhibit 解读",
+      "name": "图表解读",
       "tested": false,
       "score": null,
-      "evidence": "本次 Session 未练习。"
+      "evidence": "本次没有练到这一项。"
     },
     {
-      "name": "沟通",
+      "name": "沟通表达",
       "score": 6.5,
       "tested": true,
       "independence": "light",
@@ -75,106 +183,124 @@
       "name": "Synthesis / Recommendation",
       "tested": false,
       "score": null,
-      "evidence": "本次 Session 未练习。"
-    }
-  ],
-  "hints": {
-    "by_topic": [
-      {
-        "topic": "Structuring",
-        "sequence": ["Level 3", "Level 2", "Level 1", "Independent"],
-        "note": "四轮练习中提示强度持续下降，第 4 轮完全不需要提示，说明方法已经开始内化。"
-      },
-      {
-        "topic": "Case Math",
-        "sequence": ["Level 1", "Independent"],
-        "note": "第一次只提醒先写公式，后续没有再次需要提示。"
-      },
-      {
-        "topic": "Observation 到 Insight",
-        "sequence": ["Level 3", "Level 3"],
-        "note": "两次都需要给出部分答案，这是下一阶段最明确的训练重点。"
-      }
-    ]
-  },
-  "phases": {
-    "assisted": {
-      "covered": "第一层 profit tree、price × volume、百分比变化和单位追踪。",
-      "hints": "Structuring 先使用 Level 3，再降到 Level 2；Case Math 使用过一次 Level 1。",
-      "corrected": "第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。",
-      "turn_refs": ["T02", "T03", "T04", "T06", "T07", "T08"]
-    },
-    "independent": {
-      "covered": "Structuring 第 3、4 轮，以及两道 Case Math 题。",
-      "performance": "第 4 轮独立列出了客流、转化率、客单价和座位利用率等咖啡店特有的驱动因素，没有再套用通用框架。",
-      "mastered": "Revenue = price × volume；百分比变化；计算前检查单位一致性。",
-      "still_recurring": "列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。",
-      "turn_refs": ["E02", "T09", "T10"]
-    }
-  },
-  "key_moments": [
-    {
-      "stage": "第一次 Structuring 尝试",
-      "quote": "我会看市场、客户和竞争。",
-      "what_you_did": "直接调用了一个熟悉的通用框架。",
-      "intervention": "没有直接给出分支，而是问了两个问题：客户真正想解决什么，以及利润是如何计算的？",
-      "retry": "你改为从 profit = revenue - cost 出发，并将销量拆成客流 × 转化率。",
-      "learning": "结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。",
-      "turn_refs": ["T02", "T03", "T04"]
-    },
-    {
-      "stage": "第二道计算",
-      "what_you_did": "立即开始计算，并在中途失去了对单位的追踪。",
-      "intervention": "Level 1 提示：先写出最终答案应该使用的单位。",
-      "retry": "你从“每家门店每月利润”重新开始，反向确定所需输入。",
-      "learning": "先确定答案的单位，通常就能看清正确的计算路径。",
-      "turn_refs": ["T06", "T07", "T08"]
+      "evidence": "本次没有练到这一项。"
     }
   ],
   "recurring_mistakes": [
     {
-      "label": "列出分支但没有优先级",
+      "label": "列出分支但不排优先级",
       "status": "new",
-      "note": "四轮 Structuring 中出现三次。分支质量在提高，但始终没有回答应该从哪里开始。"
+      "note": "四轮结构练习出现三次。分支质量在提高，但「先看哪一个」始终没有回答。"
     },
     {
-      "label": "读出数据后没有追问含义",
+      "label": "读完数据不追问含义",
       "status": "new",
-      "note": "两次 Observation-to-Insight 练习都停在描述层面。"
+      "note": "两次让你解释数据含义的练习，都停在描述数字本身。"
     }
   ],
   "mastery": {
     "independent": [
-      "Profit = revenue - cost 的第一层拆解",
-      "Revenue = price × volume",
-      "百分比变化与增长率",
-      "计算前先说明单位"
+      "利润 = 收入 − 成本 的第一层拆解",
+      "收入 = 价格 × 销量",
+      "百分比变化与增长率计算",
+      "计算前先确定答案单位"
     ],
     "needs_help": [
-      "针对行业特点构建第二层结构",
-      "说明优先检查哪个分支以及理由",
-      "从 Observation 推导商业含义"
+      "行业特有的第二层结构（需要先限定范围）"
     ]
   },
-  "transferable_lessons": [
-    "从客户目标和业务算式构建结构，而不是套用已经背过的框架。",
-    "看到任何数据后，至少回答一次“所以呢？”。",
-    "先确定答案单位，计算路径通常会自然显现。"
-  ],
   "next_priorities": [
     {
-      "title": "分支优先级",
-      "current": "能够列出合理分支，但不会主动说明从哪里开始。",
-      "target": "展示任何结构后，都能在不被追问的情况下说出“我会先看 X，因为 Y”。",
-      "drill": "完成五轮 Structuring 练习。规则：没有明确第一个检查分支及理由，结构就不算完成；无法说明理由的分支应删除。",
-      "assistance": "前两轮使用 Light assistance，后三轮切换为 Independent。"
+      "title": "给结构排优先级",
+      "current": "能列出合理分支，但不会主动说明从哪里开始。",
+      "target": "展示任何结构后，不用追问就能说出「我会先看 X，因为 Y」。",
+      "drill": "5 道结构专项题。规则：分支列完必须补一句优先级和理由，说不出理由的分支删掉。",
+      "assistance": "前两题可以卡住时提示，后三题完全独立完成。"
     },
     {
-      "title": "从 Observation 到 Insight",
-      "current": "能够稳定找到趋势，但还不能独立说明商业含义。",
-      "target": "独立完成 Observation → Why → Implication → Next step。",
-      "drill": "完成五轮 Exhibit 练习，每轮都必须完成上述四步。",
-      "assistance": "前两轮使用 Light assistance，后三轮使用 Independent。"
+      "title": "从数据到含义",
+      "current": "能准确读出数字，但很少说出它对客户意味着什么。",
+      "target": "每看到一个数据，独立完成「观察 → 为什么 → 对客户的影响 → 下一步查什么」。",
+      "drill": "5 道图表题，每题都要走完这四步。",
+      "assistance": "前两题可以卡住时提示，之后完全独立完成。"
     }
+  ],
+  "core_feedback": {
+    "strength": {
+      "headline": "你会先确定答案的单位，再动手算",
+      "detail": "第一次算单店收入时你算出了 480,000 却不确定它的含义。被提醒之后，你先写下「元每家门店每月」，再倒推需要哪些输入项，最终答案和单位都正确。这个习惯以后能帮你避开大部分计算失误。",
+      "turn_refs": [
+        "T06",
+        "T08"
+      ]
+    },
+    "priority": {
+      "headline": "分支拆得出来，但没有说先看哪一个",
+      "detail": "四轮结构练习里有三轮，你都停在「列出分支」这一步。结构的作用是决定下一步查什么，一个不能排出先后顺序的结构，在真实案例里没法推动分析往前走。",
+      "turn_refs": [
+        "T02",
+        "T04"
+      ]
+    },
+    "next_step": {
+      "headline": "每次给出结构后，立刻说出第一个要查的分支和理由",
+      "detail": "下次做 5 道结构专项题，规则是：分支列完之后必须补一句「我会先看 X，因为 Y」。说不出理由的分支就删掉——说不出理由，通常说明这条分支本来就不该在结构里。"
+    }
+  },
+  "annotations": [
+    {
+      "turn_id": "T02",
+      "type": "critical",
+      "category": "结构",
+      "headline": "这是一个通用框架，不是针对这道题的结构",
+      "comment": "市场、客户、竞争这三项没有一项能回答「利润为什么下降」。客户问的是利润，而利润有明确算式，结构应该从这个算式出发。",
+      "improvement": "看到任何问题，先问「客户要的那个指标是怎么算出来的」，再从算式往下拆。"
+    },
+    {
+      "turn_id": "T03",
+      "type": "hint_given",
+      "category": "教学介入",
+      "comment": "这里没有直接给你分支，而是给了两个问题让你自己重搭。这样做的原因是：结构的能力必须自己长出来，给答案没有用。"
+    },
+    {
+      "turn_id": "T04",
+      "type": "improved",
+      "category": "结构",
+      "headline": "改用了利润算式，方向对了",
+      "comment": "从「利润 = 收入 − 成本」出发，再把收入拆成价格和销量，这一层是对的，而且你在第二次尝试时就自己完成了。",
+      "improvement": "但成本这一侧还是空的。单店利润下降 10% 而收入还在涨，问题很可能就在成本侧，这条分支反而应该优先展开。"
+    },
+    {
+      "turn_id": "T04",
+      "type": "needs_improvement",
+      "category": "优先级",
+      "comment": "分支列完了，但没有说先看哪一条。同店收入涨 5%、利润却降 10%，这两个数字放在一起已经指向成本或结构性变化，你可以据此直接选定起点。"
+    },
+    {
+      "turn_id": "T06",
+      "type": "needs_improvement",
+      "category": "计算",
+      "comment": "算式和乘法都没错，但你先算完才去想这个数字代表什么，所以算完之后自己也不确定它是单店还是全公司。"
+    },
+    {
+      "turn_id": "T08",
+      "type": "strength",
+      "category": "计算",
+      "headline": "先定单位，再倒推输入项",
+      "comment": "你写出「元每家门店每月」之后，需要哪些输入项就自动清楚了，答案和单位一次就对。这是这次最值得保留的习惯。"
+    },
+    {
+      "turn_id": "T10",
+      "type": "strength",
+      "category": "结构",
+      "headline": "在没有提示的情况下拆出了门店特有的分支",
+      "comment": "客流、转化率、购买频次、座位利用率——这四项是咖啡门店真实的销量驱动因素，不是通用模板。而且你这次主动说明了会先看客流以及理由。",
+      "improvement": "注意：这一轮是在教练已经把范围限定到「销量端」之后完成的。从零开始独立搭完整结构，还需要再练。"
+    }
+  ],
+  "takeaways": [
+    "结构从客户要的那个指标的算式出发，不从背过的框架出发。",
+    "分支列完必须排出先后——排不出优先级的结构，推动不了分析。",
+    "先写下答案的单位，计算路径通常就自己出现了。"
   ]
 }

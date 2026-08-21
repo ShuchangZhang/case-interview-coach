@@ -143,7 +143,7 @@
     "verdict": "Hire",
     "verdict_available": true,
     "overall_score": 7.2,
-    "one_line_diagnosis": "Strong structuring, placing you in the 88th percentile of candidates we have seen."
+    "one_line_diagnosis": "The structure was built from grocery economics rather than a memorised template and the math was clean and narrated, but the exhibit work stopped at description, so the central insight and the final recommendation both arrived with thinner evidence than the case actually supported."
   },
   "dimensions": [
     {
@@ -305,6 +305,10 @@
     "next_step": {
       "headline": "After every exhibit, state one implication that cites your own number",
       "detail": "Five exhibit reps. For each, give one observation and one implication, and the implication must quote a figure you computed from the chart yourself rather than one that was read off it."
+    },
+    "bonus": {
+      "headline": "x",
+      "detail": "y"
     }
   },
   "annotations": [

@@ -143,7 +143,7 @@
     "verdict": "Hire",
     "verdict_available": true,
     "overall_score": 7.2,
-    "one_line_diagnosis": "Strong structuring, placing you in the 88th percentile of candidates we have seen."
+    "one_line_diagnosis": "The structure was built from grocery economics rather than a memorised template and the math was clean and narrated, but the exhibit work stopped at description, so the central insight and the final recommendation both arrived with thinner evidence than the case actually supported."
   },
   "dimensions": [
     {
@@ -375,5 +375,11 @@
     "Two exhibits in the same case are usually meant to be read against each other.",
     "An exhibit is not finished until you have quantified the gap and said what it does to the client's number.",
     "The recommendation answers the question that was asked, in its first sentence."
+  ],
+  "key_moments": [
+    {
+      "stage": "Structure",
+      "what_you_did": "x"
+    }
   ]
 }

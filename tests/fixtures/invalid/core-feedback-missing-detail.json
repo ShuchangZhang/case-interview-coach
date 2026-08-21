@@ -143,7 +143,7 @@
     "verdict": "Hire",
     "verdict_available": true,
     "overall_score": 7.2,
-    "one_line_diagnosis": "Strong structuring, placing you in the 88th percentile of candidates we have seen."
+    "one_line_diagnosis": "The structure was built from grocery economics rather than a memorised template and the math was clean and narrated, but the exhibit work stopped at description, so the central insight and the final recommendation both arrived with thinner evidence than the case actually supported."
   },
   "dimensions": [
     {
@@ -287,7 +287,7 @@
   "core_feedback": {
     "strength": {
       "headline": "The structure came from grocery economics, not a template",
-      "detail": "You split volume into footfall, conversion and basket size and pulled shrink out as its own branch. Shrink is the real margin lever in this format; a recited framework would not have surfaced it.",
+      "detail": "",
       "turn_refs": [
         "T04"
       ]

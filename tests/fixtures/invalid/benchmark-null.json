@@ -1,11 +1,119 @@
 {
   "language": "en",
-  "case_prompt": "A fictional candidate-facing case prompt.",
+  "case_prompt": "Meridian Coffee is a fictional 60-store coffee chain in the UK. Same-store revenue grew 4% last year, but store-level profit fell 12%. Management wants to understand the main profit drivers before deciding whether to change prices, staffing, or the menu. In this Tutorial session, first build a structure for the problem; we will then practise the supporting case math. All company names and figures are fictional.",
   "transcript": [
-    {"id": "T01", "type": "message", "role": "candidate", "content": "A user-visible answer."}
+    {
+      "id": "T01",
+      "type": "message",
+      "role": "tutor",
+      "stage": "opening",
+      "tags": [
+        "Case Prompt"
+      ],
+      "content": "Meridian Coffee is a fictional 60-store coffee chain in the UK. Same-store revenue grew 4% last year, but store-level profit fell 12%. Management wants to understand the main profit drivers before deciding whether to change prices, staffing, or the menu. In this Tutorial session, first build a structure for the problem; we will then practise the supporting case math. All company names and figures are fictional."
+    },
+    {
+      "id": "T02",
+      "type": "message",
+      "role": "candidate",
+      "stage": "structure",
+      "tags": [
+        "Structure"
+      ],
+      "content": "I'd look at market, customer and competition."
+    },
+    {
+      "id": "T03",
+      "type": "message",
+      "role": "tutor",
+      "stage": "structure",
+      "tags": [
+        "Hint"
+      ],
+      "assistance_level": "guided",
+      "content": "What is the client actually trying to fix, and what is profit computed from? Use those two questions to rebuild the first level."
+    },
+    {
+      "id": "T04",
+      "type": "message",
+      "role": "candidate",
+      "stage": "structure",
+      "tags": [
+        "Retry",
+        "Critical Moment"
+      ],
+      "content": "The client wants to restore profit, so I would start with profit equals revenue minus cost. I would split revenue into price and volume, then split volume into footfall and conversion."
+    },
+    {
+      "id": "E01",
+      "type": "event",
+      "stage": "assistance_change",
+      "assistance_level": "assisted",
+      "content": "Assistance changed from Guided to Assisted after the first successful retry."
+    },
+    {
+      "id": "T05",
+      "type": "message",
+      "role": "tutor",
+      "stage": "quant",
+      "content": "A store serves 18,000 transactions per month at an average ticket of £6.50. What is monthly revenue?"
+    },
+    {
+      "id": "T06",
+      "type": "message",
+      "role": "candidate",
+      "stage": "quant",
+      "content": "I will multiply 18,000 by 6.5. That is 117,000—I'm not sure whether I should express that per store or for the whole chain."
+    },
+    {
+      "id": "T07",
+      "type": "message",
+      "role": "tutor",
+      "stage": "quant",
+      "tags": [
+        "Hint"
+      ],
+      "assistance_level": "light",
+      "content": "Write down the unit of the answer you are trying to produce before you calculate again."
+    },
+    {
+      "id": "T08",
+      "type": "message",
+      "role": "candidate",
+      "stage": "quant",
+      "tags": [
+        "Retry",
+        "Quant"
+      ],
+      "content": "The target is revenue per store per month. Transactions per store per month multiplied by pounds per transaction gives £117,000 per store per month."
+    },
+    {
+      "id": "E02",
+      "type": "event",
+      "stage": "assistance_change",
+      "assistance_level": "independent",
+      "content": "The candidate requested no further hints; Independent practice began."
+    },
+    {
+      "id": "T09",
+      "type": "message",
+      "role": "tutor",
+      "stage": "structure",
+      "content": "Without hints, structure the volume side for a coffee store and tell me where you would start."
+    },
+    {
+      "id": "T10",
+      "type": "message",
+      "role": "candidate",
+      "stage": "structure",
+      "tags": [
+        "Independent"
+      ],
+      "content": "I would split volume into footfall, conversion, purchase frequency and seat productivity. I would start with footfall because I want to separate a demand problem from an in-store execution problem."
+    }
   ],
   "session": {
-    "id": "fx-benchmark-null",
+    "id": "example-tutorial-001",
     "date": "2026-08-21",
     "mode": "tutorial",
     "case_type": "Profitability",
@@ -21,7 +129,7 @@
     }
   },
   "headline": {
-    "learning_summary": "You can now do the first-level profit breakdown and the percentage work without help, and you stopped needing hints from the third rep onward; the weak spot is second-level structure, where you produce branches but never say which one to look at first.",
+    "learning_summary": "You can now do the first-level profit breakdown and the per-store revenue calculation unaided, and you stopped needing hints from the third rep onward. What has not settled yet: after listing branches you do not say which one you would look at first, or why.",
     "benchmark_requested": null
   },
   "dimensions": [
@@ -30,14 +138,24 @@
       "score": 6,
       "tested": true,
       "independence": "assisted",
-      "evidence": "First-level breakdown is now reliable; second-level branches still default to generic buckets."
+      "evidence": "First-level breakdown is now reliable; second-level branches still default to generic buckets.",
+      "turn_refs": [
+        "T02",
+        "T04",
+        "T10"
+      ]
     },
     {
       "name": "Quantitative Skills",
       "score": 8,
       "tested": true,
       "independence": "independent",
-      "evidence": "All three calculations completed unaided, with units stated before computing."
+      "evidence": "All three calculations completed unaided, with units stated before computing.",
+      "turn_refs": [
+        "T06",
+        "T07",
+        "T08"
+      ]
     },
     {
       "name": "Business Judgment & Insight",
@@ -66,110 +184,121 @@
       "evidence": "Not practised this session."
     }
   ],
-  "hints": {
-    "by_topic": [
-      {
-        "topic": "Structuring",
-        "sequence": [
-          "Level 3",
-          "Level 2",
-          "Level 1",
-          "Independent"
-        ],
-        "note": "Hint strength fell across four reps and the fourth needed nothing. This is learning, not luck."
-      },
-      {
-        "topic": "Case math",
-        "sequence": [
-          "Level 1",
-          "Independent"
-        ],
-        "note": "One reminder to write the equation first; not needed again."
-      },
-      {
-        "topic": "Observation to insight",
-        "sequence": [
-          "Level 3",
-          "Level 3"
-        ],
-        "note": "Both attempts needed a partial answer. This is the clearest thing to train next."
-      }
-    ]
-  },
-  "phases": {
-    "assisted": {
-      "covered": "First-level profit tree, price times volume, percentage change, unit tracking.",
-      "hints": "Structuring Level 3 then Level 2; one Level 1 hint on math.",
-      "corrected": "The first attempt reached for market/customer/competition. After being asked what the client actually wanted and how profit is computed, you rebuilt from profit drivers and carried the new method into the second attempt without being told to."
-    },
-    "independent": {
-      "covered": "Structuring reps 3 and 4; two case-math questions.",
-      "performance": "Rep 4 produced branches specific to a coffee shop — footfall, conversion, ticket size, seat productivity — with no generic framework in sight.",
-      "mastered": "Revenue = price x volume; percentage change; checking unit consistency before computing.",
-      "still_recurring": "After listing branches you still do not say which one you would examine first, or why."
-    }
-  },
-  "key_moments": [
-    {
-      "stage": "First structuring attempt",
-      "quote": "I'd look at market, customer and competition.",
-      "what_you_did": "Reached for a memorised general framework.",
-      "intervention": "Rather than supplying branches, I asked two questions: what is the client actually trying to fix, and what is profit computed from?",
-      "retry": "You rebuilt from profit = revenue - cost and split volume into footfall x conversion.",
-      "learning": "A structure comes from the client's objective and the arithmetic of the business, not from whichever framework is most familiar."
-    },
-    {
-      "stage": "Second calculation",
-      "what_you_did": "Started computing immediately and lost track of units midway.",
-      "intervention": "Level 1 hint: write down the unit of the answer you are trying to produce.",
-      "retry": "You restarted from 'profit per store per month' and worked backwards to the inputs you needed.",
-      "learning": "Fixing the unit of the answer first usually makes the calculation path obvious."
-    }
-  ],
   "recurring_mistakes": [
     {
       "label": "Branches listed without a priority",
       "status": "new",
-      "note": "Three of four structuring reps. The branches keep improving; the question of where to start is never answered."
+      "note": "Three of four structuring reps. The branches keep improving; “where do I start” is never answered."
     },
     {
-      "label": "Data read without asking what it means",
+      "label": "Numbers read without asking what they mean",
       "status": "new",
-      "note": "Both observation-to-insight attempts stopped at description."
+      "note": "Both attempts to interpret a figure stopped at describing it."
     }
   ],
   "mastery": {
     "independent": [
-      "First-level breakdown of profit = revenue - cost",
-      "Revenue = price x volume",
+      "First-level breakdown of profit = revenue − cost",
+      "Revenue = price × volume",
       "Percentage change and growth rate",
-      "Stating the unit before computing"
+      "Fixing the unit of the answer before calculating"
     ],
     "needs_help": [
-      "Industry-specific second-level structure",
-      "Choosing which branch to investigate first, with a reason",
-      "Deriving a business implication from an observation"
+      "Industry-specific second-level structure (needs the scope narrowed first)"
     ]
   },
-  "transferable_lessons": [
-    "Build the structure from the client's objective and the arithmetic of the business, not from a framework you already know.",
-    "After every piece of data, answer the question 'so what?' once.",
-    "Fix the unit of the answer first and the calculation path usually appears on its own."
-  ],
   "next_priorities": [
     {
-      "title": "Branch prioritisation",
-      "current": "Sensible branches, never a stated starting point.",
-      "target": "After presenting any structure, say 'I would start with X, because Y' without being asked.",
-      "drill": "Five structuring reps. Rule: a structure is not complete until you have named the first branch to investigate and justified it. A branch you cannot justify gets deleted.",
-      "assistance": "Start at Light assistance; switch to Independent for the last three."
+      "title": "Ordering the structure",
+      "current": "Produces sensible branches, never states a starting point.",
+      "target": "After any structure, say “I would start with X, because Y” unprompted.",
+      "drill": "Five structuring reps. Rule: branches are not finished until one is chosen and justified; delete any branch you cannot justify.",
+      "assistance": "Hints if you stall for the first two; fully unaided for the last three."
     },
     {
-      "title": "Observation to insight",
-      "current": "Trends are found reliably; the business meaning is not.",
-      "target": "Complete Observation to Why to Implication to Next step unaided.",
-      "drill": "Five exhibit reps, each requiring all four steps.",
-      "assistance": "Light assistance for the first two, Independent thereafter."
+      "title": "From a number to its meaning",
+      "current": "Reads figures accurately, rarely says what they imply for the client.",
+      "target": "Complete observation → why → implication → what to check next, unaided.",
+      "drill": "Five exhibit reps, all four steps each time.",
+      "assistance": "Hints if you stall for the first two, unaided thereafter."
     }
+  ],
+  "core_feedback": {
+    "strength": {
+      "headline": "You fix the unit of the answer before you calculate",
+      "detail": "On the first attempt you produced 117,000 and could not say what it meant. Once prompted, you wrote down “pounds per store per month”, worked backwards to the inputs, and got both the number and the unit right. That habit will prevent most calculation errors you would otherwise make.",
+      "turn_refs": [
+        "T06",
+        "T08"
+      ]
+    },
+    "priority": {
+      "headline": "You can produce branches, but never say which one comes first",
+      "detail": "In three of four structuring reps you stopped at listing branches. A structure exists to decide what to investigate next; one that cannot be ordered cannot move a real case forward.",
+      "turn_refs": [
+        "T02",
+        "T04"
+      ]
+    },
+    "next_step": {
+      "headline": "Name the first branch and the reason, every time",
+      "detail": "Next session, five structuring reps under one rule: after the branches, add “I would start with X, because Y”. Delete any branch you cannot justify — if you cannot justify it, it usually did not belong there."
+    }
+  },
+  "annotations": [
+    {
+      "turn_id": "T02",
+      "type": "critical",
+      "category": "Structure",
+      "headline": "This is a general framework, not a structure for this case",
+      "comment": "None of market, customer or competition answers “why did profit fall”. The client asked about profit, and profit has an explicit formula — that formula is where the structure should start.",
+      "improvement": "For any problem, first ask how the metric the client cares about is computed, then break down that formula."
+    },
+    {
+      "turn_id": "T03",
+      "type": "hint_given",
+      "category": "Teaching",
+      "comment": "You were not handed branches here, only two questions to rebuild from. Structuring has to be built rather than received, so a worked answer would have taught nothing."
+    },
+    {
+      "turn_id": "T04",
+      "type": "improved",
+      "category": "Structure",
+      "headline": "Rebuilt from the profit formula — the right move",
+      "comment": "Starting from profit = revenue − cost and splitting revenue into price and volume is correct, and you did it on the second attempt without further help.",
+      "improvement": "The cost side is still empty though. Store profit fell 12% while revenue rose, which points at cost — that branch deserved priority."
+    },
+    {
+      "turn_id": "T04",
+      "type": "needs_improvement",
+      "category": "Prioritisation",
+      "comment": "The branches are listed but not ordered. Revenue up 4% with profit down 12% already points at cost or mix, which is enough to choose a starting point out loud."
+    },
+    {
+      "turn_id": "T06",
+      "type": "needs_improvement",
+      "category": "Calculation",
+      "comment": "The arithmetic is right, but you calculated before deciding what the number would represent, so afterwards you could not say whether it was one store or the chain."
+    },
+    {
+      "turn_id": "T08",
+      "type": "strength",
+      "category": "Calculation",
+      "headline": "Unit first, inputs second",
+      "comment": "Once you wrote “pounds per store per month” the required inputs became obvious and the answer was right first time. This is the habit most worth keeping from this session."
+    },
+    {
+      "turn_id": "T10",
+      "type": "strength",
+      "category": "Structure",
+      "headline": "Branches specific to a coffee store, with no hint",
+      "comment": "Footfall, conversion, purchase frequency and seat productivity are the real volume drivers for this format, not a generic template — and you gave a starting point with a reason unprompted.",
+      "improvement": "Note the scope: the coach had already narrowed this to the volume side. Building a full structure from nothing is still untested."
+    }
+  ],
+  "takeaways": [
+    "Build the structure from the formula behind the metric the client asked about, not from a framework you memorised.",
+    "A structure is not finished until the branches are ordered — an unordered structure cannot move the analysis.",
+    "Write down the unit of the answer first and the calculation path usually appears."
   ]
 }

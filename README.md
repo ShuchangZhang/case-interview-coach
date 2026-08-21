@@ -23,10 +23,13 @@ case system either for independent assessment or guided learning.
 
 ## Report preview
 
-Every completed session can produce a self-contained HTML report with the original Case Prompt,
-capability diagnosis, critical moments, missed insights, a complete natural-language transcript,
-links from analysis back to the relevant turns, and next training priorities. Reports work
-offline and contain no external scripts or tracking.
+Every completed session produces a self-contained HTML report. It opens with the three things that
+matter most — what you did best, the biggest gap, and what to train next — then a compact
+capability overview, then the full conversation with coach comments written beside the turns worth
+revisiting. Reports work offline and contain no external scripts or tracking.
+
+The screenshots below show the top of each report: everything a reader needs in the first two
+minutes.
 
 ### Interview report
 
@@ -193,9 +196,11 @@ reproduced. The complete URLs, access dates and source-to-method mapping are in
 
 ## 报告预览
 
-每次完成 Session 后都可以生成一份自包含 HTML 报告，包括原始 Case Prompt、能力诊断、关键节点、
-遗漏洞察、完整自然语言 Transcript、从分析跳回原始回答的 evidence link，以及下一步训练重点。报告
-可以离线打开，不包含外部脚本或追踪代码。
+每次完成的 Session 都会生成一份自包含的 HTML 报告。报告开头就是最重要的三件事——做得最好的一点、
+最需要提升的一点、下一步该练什么——接着是简洁的能力概览，然后是完整对话，值得回看的几轮旁边直接
+附有点评。报告可离线打开，不含任何外部脚本或追踪代码。
+
+下面的截图是两种报告的开头部分：读者在最初两分钟内需要的全部信息。
 
 ### Interview 报告
 
