@@ -476,13 +476,13 @@ def score_bar(t, dim):
     pct = max(0.0, min(100.0, score * 10.0))
     band = dim.get("band") or t["band"][band_for(score)]
     indep = dim.get("independence")
-    indep_html = independence_chip(t, indep) if indep else ""
+    indep_html = f"  {independence_chip(t, indep)}" if indep else ""
     return f"""<div class="dim">
   <div class="dim__head"><span class="dim__name">{name}</span>
     <span class="dim__val"><b>{score:g}</b> <span class="dim__of">{t['of10']}</span>
       <span class="dim__band">{esc(band)}</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:{pct:.1f}%"></div></div></div>
-  {indep_html}
+{indep_html}
   {f'<p class="dim__ev">{esc(dim.get("evidence"))}</p>' if dim.get("evidence") else ''}
 </div>"""
 
