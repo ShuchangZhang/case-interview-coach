@@ -85,6 +85,8 @@ whose claims no longer match the session.
 |---|---|
 | `session.mode` | `interview` or `tutorial` |
 | `session.completion` | `complete`, `aborted` or `partial` |
+| `session.session_kind` | when present: `full_case`, `focused_drill` or `beginner_curriculum` |
+| `session.interview_format` | when applicable: `interviewee_led` or `interviewer_led` |
 | `session.assistance_start` / `_end` | `guided`, `assisted`, `light` or `independent` |
 | `dimensions[].score` | a finite number in 0–10 — not a string, not `NaN`, not out of range |
 | `dimensions[].independence` | one of the four assistance levels |
@@ -118,11 +120,15 @@ whose claims no longer match the session.
   | Scope | Interview-only | Tutorial-only |
   |---|---|---|
   | document root | `missed_insights`, `assistance`, `stronger_path`, `recommendation_compare` | `hints`, `phases`, `recurring_mistakes`, `mastery`, `transferable_lessons` |
-  | `session` | `interview_format` | `training_focus`, `assistance_start`, `assistance_end`, `independence_marker` |
+  | `session` | — | `training_focus`, `assistance_start`, `assistance_end`, `independence_marker` |
   | `headline` | — | `benchmark_requested` |
 
-  Everything else in `session` is shared (`SHARED_SESSION_FIELDS`). Adding a field means adding
-  one line to that registry, not another branch in the validator.
+  Everything else in `session` is shared (`SHARED_SESSION_FIELDS`). In particular,
+  `interview_format` is shared by full cases in either mode because it describes who controls
+  progression, not whether teaching is allowed. A Tutorial report may carry it only with
+  `session_kind: full_case`; focused drills and beginner curriculum omit it. Any report that
+  explicitly declares `session_kind: full_case` must carry one of the two formats. Adding a field means adding one
+  line to the registry, not another mode-isolation branch.
 - **`headline.benchmark_requested` must be a JSON boolean.** `true` or `false` only — a string,
   number or `null` is rejected rather than coerced. This matters more than it looks: `"false"` is
   a truthy string in Python, so coercion would silently unlock the hiring verdict a tutorial
@@ -174,12 +180,13 @@ shared. Omit anything you have no real data for.
     "id": "S-2026-08-20-A",
     "date": "2026-08-20",
     "mode": "interview" | "tutorial",
+    "session_kind": "full_case" | "focused_drill" | "beginner_curriculum",
     "case_type": "Profitability + Pricing",
     "industry": "...", "geography": "...", "difficulty": "Advanced",
     "case_source": "original" | "user_provided",
     "completion": "complete" | "aborted" | "partial",
     "aborted_at_stage": "structure",              // when aborted
-    "interview_format": "interviewee_led",        // [I]
+    "interview_format": "interviewee_led",        // full case, either mode; omit otherwise
     "training_focus": "structuring + case math",  // [T]
     "assistance_start": "guided",                 // [T]
     "assistance_end": "independent",              // [T]
@@ -352,7 +359,8 @@ nothing else was sampled").
 **Never** a hiring band by default. This report is about progress, not selection.
 
 1. **Session strip** — topic/focus, case type, difficulty, assistance at start and at end,
-   whether an independent phase happened, completion.
+   whether an independent phase happened, completion, and the progression format when this was a
+   full case. Omit format entirely for drills and beginner fundamentals; never print `N/A`.
 2. **Learning summary** — one specific sentence about the most important progress.
    - Bad: "You learned a lot today."
    - Good: "You can now do the first-level profit breakdown and the percentage work unaided, and

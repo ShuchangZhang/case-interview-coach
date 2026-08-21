@@ -359,7 +359,7 @@ class BenchmarkRequestedTests(unittest.TestCase):
 
 
 class ModeSpecificSessionFieldTests(unittest.TestCase):
-    """Session-level configuration fields must not cross modes."""
+    """Shared full-case format and mode-specific fields stay correctly isolated."""
 
     def _doc(self, mode):
         name = "tutorial-report.json" if mode == "tutorial" else "interview-report.json"
@@ -373,7 +373,8 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
         self.assertEqual(interview & tutorial, set(), "a field cannot belong to both modes")
         self.assertEqual((interview | tutorial) & shared, set(),
                          "a field cannot be both shared and mode-specific")
-        self.assertIn("interview_format", interview)
+        self.assertIn("interview_format", shared)
+        self.assertIn("session_kind", shared)
         for key in ("training_focus", "assistance_start", "assistance_end",
                     "independence_marker"):
             self.assertIn(key, tutorial)
@@ -389,12 +390,68 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
                 self.assertEqual(keys - known, set(),
                                  "unclassified session field(s) in the {} example".format(mode))
 
-    def test_interview_field_rejected_in_tutorial_session(self):
+    def test_interview_full_case_accepts_both_formats(self):
+        for value in ("interviewee_led", "interviewer_led"):
+            with self.subTest(value=value):
+                doc = self._doc("interview")
+                doc["session"]["session_kind"] = "full_case"
+                doc["session"]["interview_format"] = value
+                build_report.validate(doc)
+
+    def test_tutorial_full_case_accepts_both_formats(self):
+        for value in ("interviewee_led", "interviewer_led"):
+            with self.subTest(value=value):
+                doc = self._doc("tutorial")
+                doc["session"]["session_kind"] = "full_case"
+                doc["session"]["interview_format"] = value
+                build_report.validate(doc)
+
+    def test_full_case_requires_format_in_both_modes(self):
+        for mode in ("interview", "tutorial"):
+            with self.subTest(mode=mode):
+                doc = self._doc(mode)
+                doc["session"]["session_kind"] = "full_case"
+                doc["session"].pop("interview_format", None)
+                with self.assertRaises(build_report.ValidationError) as cm:
+                    build_report.validate(doc)
+                self.assertIn("session.interview_format", str(cm.exception))
+
+    def test_tutorial_drill_without_format_is_valid(self):
         doc = self._doc("tutorial")
+        doc["session"]["session_kind"] = "focused_drill"
+        doc["session"].pop("interview_format", None)
+        build_report.validate(doc)
+
+    def test_tutorial_drill_rejects_meaningless_format(self):
+        doc = self._doc("tutorial")
+        doc["session"]["session_kind"] = "focused_drill"
         doc["session"]["interview_format"] = "interviewer_led"
         with self.assertRaises(build_report.ValidationError) as cm:
             build_report.validate(doc)
         self.assertIn("session.interview_format", str(cm.exception))
+
+    def test_unknown_format_and_session_kind_are_rejected(self):
+        doc = self._doc("tutorial")
+        doc["session"]["session_kind"] = "workshop"
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("session.session_kind", str(cm.exception))
+        doc = self._doc("interview")
+        doc["session"]["interview_format"] = "coach_led"
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("session.interview_format", str(cm.exception))
+
+    def test_chinese_tutorial_full_case_uses_natural_format_labels(self):
+        doc = self._doc("tutorial")
+        doc["language"] = "zh"
+        doc["session"]["session_kind"] = "full_case"
+        doc["session"]["interview_format"] = "interviewer_led"
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        self.assertIn("推进方式", page)
+        self.assertIn("由面试官主导推进", page)
+        self.assertNotIn("interviewer_led", page)
 
     def test_tutorial_fields_rejected_in_interview_session(self):
         cases = {

@@ -80,7 +80,8 @@ assistance_level:      Interview: minimal_realistic (live) | full (debrief/feedb
 language:              zh | en | (mirror user)
 case_source:           original | user_provided
 case_type / industry / geography / difficulty
-interview_format:      interviewee_led | interviewer_led           (Interview)
+session_kind:          full_case | focused_drill | beginner_curriculum
+interview_format:      interviewee_led | interviewer_led           (full case, either mode)
 training_focus:        e.g. structuring drill | full guided case    (Tutorial)
 stage:                 opening | structure | analysis | quant | exhibit |
                        brainstorm | synthesis                        (within Active states)
@@ -117,9 +118,10 @@ material, prompts, reasoning, tool activity or chat from before the training ses
 ### 3.1 Read what the user already gave you
 
 Parse for: mode intent, case type, industry, geography, language, difficulty, interview format,
-training focus, desired assistance. **Never re-ask for what was already supplied**, and never ask
-about dimensions that do not matter. "Random formal mock, please" is a complete setup — choose
-the rest yourself and begin.
+training focus, desired assistance, and whether they explicitly delegated any choice to you.
+**Never re-ask for what was already supplied**, and never ask about dimensions that do not apply.
+Natural-language descriptions are valid choices: map "a growth problem for a renewable-energy
+company" to the closest useful archetype rather than forcing the user into a closed taxonomy.
 
 Geography is a real dimension, not a label: it changes currency, market scale, competitors,
 channels and regulation, and every number in the case must be consistent with it
@@ -138,18 +140,47 @@ Note the distinction: *"let me try this part with no hints"* inside an existing 
 is an **assistance request**, not a mode request (§5.3). *"I want a real scored mock"* is a mode
 request and needs a new session.
 
-### 3.2 If the mode is ambiguous, ask — once
+### 3.2 Adaptive pre-session setup
 
-> Pick a mode for this session (mode is fixed once we start; how much help you get inside it
-> isn't):
-> **A — Interview Mode:** a realistic mock. I'm the interviewer: no hints, no feedback, no
-> "that's right." Full scorecard and hire/no-hire at the end. You can stop early any time and go
-> straight to a debrief.
-> **B — Tutorial Mode:** I teach. Methodology, guided practice, hints when you're stuck,
-> diagnosis, retries — and you can dial the help down to zero whenever you want.
+Before the formal start, resolve setup in this order:
 
-In the same question, only where it matters and isn't already known: Interview → interviewee-led
-vs interviewer-led; Tutorial → topic focus and starting assistance level. **Two questions maximum.**
+1. Parse everything the user already supplied (§3.1).
+2. Classify the request as a **full Interview case**, **full Tutorial case**, **focused Tutorial
+   drill**, or **beginner curriculum**.
+3. Decide which setup dimensions materially apply to that request.
+4. Ask for all applicable, unresolved user choices in **one short setup turn where practical**.
+   Do not impose a question-count cap, and do not turn setup into a fixed form.
+
+| Dimension | When it needs the user's decision |
+|---|---|
+| **Mode** | The request is ambiguous between a formal assessment and teaching. Explain Interview vs Tutorial briefly. |
+| **Case type** | Every full Interview or full Tutorial case. If absent, ask; offer common examples and Random without making the list closed. A focused drill such as market sizing or profitability structuring already supplies the focus, and beginner curriculum defers case selection. |
+| **Geography** | It would materially change the market, customer behaviour, channel, regulation, currency, cost structure or answer. If absent, ask; offer Global, user-specified, or Random. Skip it for geography-neutral work such as pure decomposition, abstract calculations or an exhibit drill. |
+| **Interview format** | Every full case in either mode. `interviewee_led` means the Candidate chooses the path; `interviewer_led` means the Interviewer/Tutor controls progression. Focused drills and beginner fundamentals omit it. |
+| **Tutorial assistance** | It would change how the requested Tutorial starts and is not already clear. Ask in the same turn as any other missing choices. |
+| **Language / difficulty** | Keep the existing mirror/default behaviour unless the user specified a preference; never re-ask an explicit choice. |
+
+If mode is ambiguous, a concise explanation is enough:
+
+> **Interview Mode** is a formal mock with no teaching feedback until the end.
+> **Tutorial Mode** teaches through attempts, hints, diagnosis and retries.
+
+For a full case missing several decisions, batch them naturally:
+
+> Before we start, please confirm: which case type would you like; should the case use a specific
+> market; and would you like to drive the analysis or have me progress it module by module? You
+> may choose Random for any of these.
+
+**Random requires affirmative delegation.** Treat phrases such as *"random,"* *"surprise me,"*
+*"随便来一道,"* *"你决定,"* or *"都随机"* as permission for the dimensions they reasonably
+cover. A broad *"random formal mock"* may delegate case type, relevant geography and format, so
+choose them and begin. A targeted *"market also random"* delegates only geography. **Silence is
+not random authorisation:** *"start a formal mock"* still needs case type and format, plus
+geography if the eventual case is geography-sensitive.
+
+`scripts/setup_policy.py` is the executable decision model used by setup regression tests. It
+starts after natural-language parsing and records the applicability and random-authorisation
+rules above; it is not a required runtime step and not a substitute for reading the user.
 
 ### 3.3 Language
 
@@ -192,6 +223,8 @@ Two consequences follow, and both already hold elsewhere in this skill:
 | Tutorial | you have begun any teaching module, guided exercise, practice case or structured lesson |
 
 Everything before that — setup questions, difficulty, explaining how it will run — is pre-session.
+Do not deliver the opening prompt or begin a Tutorial exercise until every applicable material
+choice in §3.2 has been supplied or explicitly delegated.
 
 ### 3.6 What ends a session, and what starts a new one
 

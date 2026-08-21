@@ -128,6 +128,7 @@
     "id": "example-interview-zh-001",
     "date": "2026-08-21",
     "mode": "interview",
+    "session_kind": "full_case",
     "case_type": "盈利能力 + 定价",
     "industry": "区域连锁超市（虚构：北辰生鲜）",
     "geography": "中国华东",

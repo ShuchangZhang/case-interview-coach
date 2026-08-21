@@ -63,7 +63,8 @@ L = {
         "interview_q": "How would this have gone in a real consulting case interview?",
         "tutorial_q": "What was learned, and what can now be done unaided?",
         "case_type": "Case type", "industry": "Industry", "geography": "Geography",
-        "difficulty": "Difficulty", "format": "Interview format", "focus": "Training focus",
+        "difficulty": "Difficulty", "format": "Interview format",
+        "tutorial_format": "Case progression", "focus": "Training focus",
         "case_prompt": "Case Prompt", "session_summary": "Session Summary",
         "transcript": "Turn-by-turn review", "transcript_open": "Open full evidence record",
         "transcript_privacy": "This transcript contains the complete user-visible conversation from this training session. Review it before sharing the HTML publicly.",
@@ -134,7 +135,8 @@ L = {
         "interview_q": "如果这是一次真实的咨询 Case Interview，这次表现如何？",
         "tutorial_q": "这次学会了什么？哪些已经可以独立完成？",
         "case_type": "题目类型", "industry": "行业", "geography": "地区",
-        "difficulty": "难度", "format": "面试形式", "focus": "训练重点",
+        "difficulty": "难度", "format": "面试形式",
+        "tutorial_format": "推进方式", "focus": "训练重点",
         "case_prompt": "本次题目", "session_summary": "本次总结",
         "transcript": "逐轮复盘", "transcript_open": "展开完整原始记录",
         "transcript_privacy": "以下是本次训练中全部你可见的对话原文。公开分享这份报告前，请先确认其中没有你不希望外传的内容。",
@@ -192,6 +194,8 @@ L = {
 # ---------------------------------------------------------------- schema ---
 MODES = ("interview", "tutorial")
 COMPLETIONS = ("complete", "aborted", "partial")
+SESSION_KINDS = ("full_case", "focused_drill", "beginner_curriculum")
+INTERVIEW_FORMATS = ("interviewee_led", "interviewer_led")
 INDEPENDENCE = ("guided", "assisted", "light", "independent")
 ASSIST_LEVELS = ("none", "light", "moderate", "substantial")
 HIRING_VERDICTS = ("strong hire", "hire", "borderline", "no hire")
@@ -342,7 +346,7 @@ MODE_FIELDS = {
     "interview": {
         "top": ("missed_insights", "assistance", "stronger_path",
                 "recommendation_compare"),
-        "session": ("interview_format",),
+        "session": (),
         "headline": (),
     },
     "tutorial": {
@@ -358,7 +362,7 @@ MODE_FIELDS = {
 # a glance: anything here is shared, anything in MODE_FIELDS is exclusive.
 SHARED_SESSION_FIELDS = ("id", "date", "mode", "case_type", "industry",
                          "geography", "difficulty", "case_source", "completion",
-                         "aborted_at_stage")
+                         "aborted_at_stage", "session_kind", "interview_format")
 
 JSON_TYPE_NAMES = {str: "string", bool: "boolean", int: "number", float: "number",
                    list: "array", dict: "object", type(None): "null"}
@@ -495,6 +499,32 @@ def validate(d):
     completion = session.get("completion", "complete")
     _check_enum(completion, COMPLETIONS, "session.completion", optional=False)
     completion = completion.strip().lower()
+
+    session_kind = session.get("session_kind")
+    _check_enum(session_kind, SESSION_KINDS, "session.session_kind")
+    if isinstance(session_kind, str):
+        session_kind = session_kind.strip().lower()
+
+    interview_format = session.get("interview_format")
+    _check_enum(interview_format, INTERVIEW_FORMATS, "session.interview_format")
+    if isinstance(interview_format, str):
+        interview_format = interview_format.strip().lower()
+
+    # Interview format is a full-case concept shared by both modes. It describes
+    # who drives progression, not whether teaching is allowed. Tutorial drills and
+    # beginner fundamentals omit it because it has no meaningful job there.
+    if session_kind in ("focused_drill", "beginner_curriculum") and interview_format:
+        _err("session.interview_format", interview_format,
+             "absent unless session.session_kind is full_case")
+    if not tutorial and session_kind in ("focused_drill", "beginner_curriculum"):
+        _err("session.session_kind", session_kind,
+             "full_case for an interview report")
+    if tutorial and interview_format and session_kind != "full_case":
+        _err("session.interview_format", interview_format,
+             "absent unless the tutorial session is explicitly full_case")
+    if session_kind == "full_case" and not interview_format:
+        _err("session.interview_format", interview_format,
+             "interviewee_led or interviewer_led for a full case")
 
     for key in ("assistance_start", "assistance_end"):
         _check_enum(session.get(key), INDEPENDENCE, "session." + key)
@@ -1258,15 +1288,17 @@ def build(d):
 
     pairs = [(t["case_type"], s.get("case_type")), (t["industry"], s.get("industry")),
              (t["geography"], s.get("geography")), (t["difficulty"], humanise("difficulty", s.get("difficulty"), lang))]
+    fmt = s.get("interview_format")
+    if fmt:
+        fmt = t["fmt_" + str(fmt)] if ("fmt_" + str(fmt)) in t else fmt
+        format_label = t["tutorial_format"] if tutorial else t["format"]
+        pairs += [(format_label, fmt)]
     if tutorial:
         pairs += [(t["focus"], s.get("training_focus")),
                   (t["assist_start"], humanise("assist", s.get("assistance_start"), lang)),
                   (t["assist_end"], humanise("assist", s.get("assistance_end"), lang))]
     else:
-        fmt = s.get("interview_format")
-        fmt = t["fmt_" + str(fmt)] if ("fmt_" + str(fmt)) in t else fmt
-        pairs += [(t["format"], fmt),
-                  (t["assistance"], t["assist_lv"].get(
+        pairs += [(t["assistance"], t["assist_lv"].get(
                       str((d.get("assistance") or {}).get("level")).lower(),
                       (d.get("assistance") or {}).get("level")))]
 

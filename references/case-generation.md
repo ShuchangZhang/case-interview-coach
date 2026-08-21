@@ -228,8 +228,10 @@ The point is to test the same capability without testing recall of a known answe
 
 ## 10. Geography and localisation
 
-Geography is a real setup dimension, not decoration. Ask for it only when it isn't obvious and
-would change the case; otherwise pick one that fits the archetype and say so in the prompt.
+Geography is a real setup dimension, not decoration. If it would materially change the case and
+the user has not supplied it, ask before building the blueprint. Choose it yourself only when the
+user explicitly delegates that choice (for example, "market also random" or a broad "surprise
+me"). If geography does not affect the training or answer, omit it rather than asking for a label.
 
 Options: **Global · China · US · Europe · Southeast Asia · India · Middle East · user-specified.**
 
@@ -254,8 +256,14 @@ Market sizing modules are where geography bites hardest: the population, income 
 assumptions must be right for the stated market, and a sanity check against the local GDP or
 comparable category is expected.
 
-Default when unspecified: choose the geography where the case's economics are most natural, name
-it explicitly in the opening prompt, and keep every number consistent with it.
+Typical geography-sensitive work includes market sizing, market entry, growth, pricing,
+competitive strategy, consumer/retail, healthcare, channel-heavy cases and regulated industries.
+Pure profitability decomposition, abstract case math, standalone exhibit work and generic
+operations calculations may be geography-neutral.
+
+When the user authorises a random geography, choose the market where the case economics are most
+natural, name it explicitly in the opening prompt, and keep every number and market assumption
+consistent with it. **No stated preference is not permission to randomise.**
 
 ---
 

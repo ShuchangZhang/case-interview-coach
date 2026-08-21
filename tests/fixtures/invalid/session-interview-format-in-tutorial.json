@@ -116,6 +116,7 @@
     "id": "example-tutorial-001",
     "date": "2026-08-21",
     "mode": "tutorial",
+    "session_kind": "focused_drill",
     "case_type": "Profitability",
     "industry": "Coffee chain (fictional: Meridian Coffee)",
     "difficulty": "Beginner",

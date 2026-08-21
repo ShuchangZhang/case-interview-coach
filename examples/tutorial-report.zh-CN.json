@@ -119,6 +119,7 @@
     "id": "example-tutorial-zh-001",
     "date": "2026-08-21",
     "mode": "tutorial",
+    "session_kind": "focused_drill",
     "case_type": "盈利能力",
     "industry": "连锁咖啡（虚构：晨屿咖啡）",
     "difficulty": "入门",

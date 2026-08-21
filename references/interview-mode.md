@@ -18,9 +18,11 @@ teaching states and the restrictions lift there.
 
 ## 1. Before the first prompt
 
-1. Confirm format if not already known: **interviewee-led** (you drive) or **interviewer-led**
-   (I drive). If the user has no preference, default to interviewee-led — it exposes more of the
-   candidate — unless they mentioned McKinsey, in which case use interviewer-led.
+1. Complete the adaptive setup in `SKILL.md` §3.2. Format must already be resolved:
+   **interviewee-led** (the Candidate drives) or **interviewer-led** (the Interviewer drives).
+   If the user did not choose and did not explicitly delegate the choice, ask; do not silently
+   default based on company name or absence of a preference. A broad "random / surprise me"
+   authorisation may delegate the format along with the other setup dimensions.
 2. Build or load the case. Original → `case-generation.md`. User-supplied → `case-generation.md` §7.
    **The full blueprint must exist before the first word of the prompt is spoken.**
 3. Run the consistency check (`case-generation.md` §6). Do not open a case that fails it.

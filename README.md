@@ -76,6 +76,9 @@ These are two ways to use the same case-interview system:
 | During the case | No teaching feedback; minimal realistic interviewer help | Explanations, hints, diagnosis and retries as needed |
 | Review | Independent performance and interview-readiness diagnosis | Mastery, independence, hint dependence and next training plan |
 
+Full cases in either mode can be candidate-led or interviewer/tutor-led. Focused Tutorial drills
+skip this choice when progression format has no practical meaning.
+
 The mode remains fixed for a session so assisted and unassisted performance are not presented as
 equivalent. Detailed boundaries and session behaviour live in
 [`SKILL.md`](SKILL.md), [Interview Mode](references/interview-mode.md), and
@@ -243,6 +246,9 @@ HTML 源码；下载后在本地浏览器打开即可查看完整报告。
 | 目的 | 高真实度正式 Mock | 引导学习或专项训练 |
 | Case 过程中 | 不给教学反馈，只提供最低限度的真实 interviewer 帮助 | 按需要提供讲解、提示、诊断和重试 |
 | 复盘重点 | 独立表现和面试准备度诊断 | 掌握程度、独立程度、提示依赖和下一阶段计划 |
+
+两种 Mode 的完整 Case 都可以由 Candidate 主导或由 Interviewer／Tutor 主导；如果推进方式对 Tutorial
+专项训练没有实际意义，则跳过这项设置。
 
 Mode 在一次 Session 中保持固定，避免把有辅助和无辅助的表现解释成同一件事。详细边界和 Session
 行为请查看 [`SKILL.md`](SKILL.md)、[Interview Mode](references/interview-mode.md) 和

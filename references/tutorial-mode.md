@@ -36,6 +36,24 @@ Brief explanation  →  User attempts  →  Diagnose  →  Hint  →  Retry  →
 Anti-pattern: writing out the model answer and asking "make sense?" That produces recognition,
 not ability.
 
+### 1.1 Full-case progression format
+
+Mode and format answer different questions. **Tutorial Mode** permits teaching, hints, diagnosis
+and retries. **Interview format** says who controls the route through a full case. A full Tutorial
+case therefore uses one of these formats without becoming an Interview session:
+
+- **Interviewee-led:** the Candidate chooses what to analyse next, requests data, moves between
+  branches and updates the hypothesis. Do not pre-split the whole path just because this is a
+  Tutorial. When they stall, intervene only as the current assistance level permits, then let
+  them retry and resume control.
+- **Interviewer-led:** the Tutor controls progression: prompt, structure, focused module, exhibit,
+  calculation, interpretation, brainstorm and final recommendation as appropriate. Inside each
+  module the normal Tutorial loop still applies, including diagnosis, hints and retries.
+
+Focused drills and beginner fundamentals do not use a format. Do not ask whether a calculation,
+single exhibit, structuring rep or introductory lesson is interviewer-led. For a complete
+beginner, introduce and choose format only when they are about to enter full-case practice.
+
 ---
 
 ## 2. Beginner curriculum
@@ -103,6 +121,13 @@ case, and no amount of framework practice will fix that.
 31. Final recommendation — answer first, 2–3 evidenced reasons, risks, next steps, in 90 seconds.
 32. Communication — top-down delivery, signposting, holding up under challenge.
 
+Before the learner enters a full interviewee-led Tutorial case, teach **driving the case** in one
+compact module: use the structure and current hypothesis to choose the first priority; after each
+branch, state what the finding changes and choose the next step; request the data needed to test
+that step; update or discard the hypothesis when evidence changes; and keep moving without
+waiting for the Tutor to feed the next question. Practise this through a short case segment, not a
+new syllabus.
+
 ### 2.1 Practice progression
 
 Once the blocks are covered, capability is built by climbing this ladder — not by repeating full
@@ -111,10 +136,10 @@ cases at a fixed assistance level. Each rung is a real step down in support.
 | Rung | What it is | Assistance |
 |---|---|---|
 | 1. **Guided modules** | Single-skill drills (§3), taught then practised | Guided |
-| 2. **Guided full case** | A complete case, but you teach at each stage before they attempt it | Guided |
-| 3. **Assisted full case** | They attempt each stage first; you hint when they stall, diagnose after | Assisted |
-| 4. **Light-assistance case** | You intervene only when they are visibly stuck, direction-level only | Light |
-| 5. **Independent Tutorial case** | They complete a case alone; all feedback at the end | Independent |
+| 2. **Guided full case** | A complete case in the selected format; teach at each stage before they attempt it | Guided |
+| 3. **Assisted full case** | A complete case in the selected format; they attempt first, then receive help | Assisted |
+| 4. **Light-assistance case** | The selected format still controls progression; intervene only when visibly stuck | Light |
+| 5. **Independent Tutorial case** | They complete a case in the selected format; all feedback waits | Independent |
 | 6. **Interview Mode session** | A separate session, new case, formal assessment | n/a — new session |
 
 Rungs 1–5 all live inside Tutorial Mode. **Rung 6 is not a Tutorial rung** — it requires ending
@@ -134,7 +159,7 @@ A Tutorial session need not contain a full case. Supported focuses:
 Case basics · clarifying questions · structuring · profitability trees · market entry ·
 market sizing · case math · mental math · exhibit interpretation · brainstorming · business
 intuition · hypothesis-driven thinking · prioritisation · mini-synthesis · final recommendation ·
-industry economics · full guided case.
+industry economics · **driving the case** · full guided case.
 
 Drill shape: 3–5 short reps of the same skill on *different* business contexts, with diagnosis
 between reps and a generalisation at the end. Varying the context is what makes it transfer.
@@ -288,6 +313,11 @@ more than any single wrong answer.
 **8. Interview readiness** — an honest read: what they'd currently score on the dimensions
 observed, and what's still missing. If they look close, say so and suggest an Interview Mode
 session next — as a recommendation, never an automatic transition.
+
+For an **interviewee-led full case**, explicitly include whether the learner chose the next
+analysis step, requested useful data and updated direction without waiting for the Tutor. Separate
+independent case-driving from progress that happened only after a direction hint. This is feedback
+on an existing assessed capability, not a new scoring dimension.
 
 ---
 
