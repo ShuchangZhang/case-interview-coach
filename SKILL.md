@@ -344,6 +344,7 @@ labelled as an estimate — `evaluation-rubric.md` §9.2).
 | Judging structure, exhibits, brainstorming, synthesis | `references/case-methodology.md` |
 | Any quantitative module or math drill | `references/case-math.md` |
 | Scoring, feedback, hire decision, mastery level | `references/evaluation-rubric.md` |
+| Building the end-of-session report | `references/report-system.md` + `scripts/build_report.py` |
 | Asked where the methodology comes from | `references/research-notes.md` |
 
 ---
@@ -399,9 +400,15 @@ time, at the point in the case where it belongs.
 ## 10. Ending a session
 
 - **Interview Mode** → Feedback (complete case) or Incomplete Case Feedback (aborted). Say plainly
-  that the mock is over before delivering it. Format: `interview-mode.md` §8.
+  that the mock is over before delivering it. Content: `interview-mode.md` §8/§9.
 - **Tutorial Mode** → Session Review, separating assisted from independent performance.
-  Format: `tutorial-mode.md` §8.
+  Content: `tutorial-mode.md` §8.
+- **Both: the report is delivered as a self-contained HTML file**, built from a structured Session
+  Report object — `references/report-system.md`. The two modes share one visual system but render
+  different sections and different evaluation semantics: an Interview report carries a score and a
+  hiring band; a Tutorial report carries mastery, independence and hint dependence, and **never a
+  hiring band** unless the user explicitly asked for a benchmark. Chat gets the file plus 2–4
+  sentences, not a restatement.
 - Both: update the learner profile (§3.4), then suggest what the next session should be — as a
   suggestion, never an automatic transition.
 

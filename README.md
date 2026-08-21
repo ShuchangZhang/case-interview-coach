@@ -8,6 +8,8 @@ on one shared methodology base.
 - **Tutorial Mode** — teaching. Methodology, guided practice, a Socratic hint ladder, error-type
   diagnosis, retries, and assistance that can be dialled from Guided down to fully independent.
 
+Every session ends in a **self-contained HTML report** — one visual system, two report types.
+
 Bilingual at runtime (中文 / English); the instruction files are English.
 
 ## The core design rule
@@ -33,6 +35,24 @@ Tutorial Mode's zero-assistance state is **still Tutorial Mode**. It never produ
 verdict, and the session review reports assisted and independent performance separately rather
 than averaging them into one misleading number.
 
+## The report system
+
+Both modes end in an HTML file built from one structured Session Report object, rendered by
+`scripts/build_report.py`. Shared design language, different content logic:
+
+| | Interview report | Tutorial report |
+|---|---|---|
+| Answers | "If this had been real, how did I do?" | "What did I learn, what can I do unaided?" |
+| Headline | overall score + hiring band | one-line learning summary, **no hiring band** |
+| Focus | what cost you the result, the stronger path | assisted vs independent, hint dependence, mastery |
+
+Three rules are enforced in code rather than prose: a Tutorial report cannot emit a hiring band
+without an explicit benchmark request, untested dimensions cannot receive a number, and
+fabricated benchmarks (percentiles, offer probabilities, industry averages) raise a warning.
+
+Single file, inline CSS, no JS required, no fonts, no CDN, no network. Opens offline by
+double-click; prints to A4/Letter without splitting cards.
+
 ## Layout
 
 | File | What's in it |
@@ -45,21 +65,15 @@ than averaging them into one misleading number.
 | `references/interview-mode.md` | Interviewer protocol, prohibitions, information release, allowed moves, tone, both format spines, feedback and debrief reports |
 | `references/tutorial-mode.md` | Teaching loop, six-block beginner curriculum, progression ladder, drills, hint ladder L0–L4, error diagnosis, session review, learner profile |
 | `references/evaluation-rubric.md` | Six dimensions × behavioural anchors at 1–2/3–4/5–6/7–8/9–10, non-averaging hire bands, incomplete-case rules, mastery levels |
+| `references/report-system.md` | Session Report schema, per-mode report specs, guard rails, visual system, anti-fabrication rules |
+| `scripts/build_report.py` | Session Report JSON → self-contained HTML |
 | `references/research-notes.md` | Source tiers, and which principles are official vs convergent vs this skill's own design abstraction |
-| `docs/design-and-validation-notes.md` | Architecture rationale, scenario validation table, risk checks, audit history |
+| `docs/design-and-validation-notes.md` | Architecture rationale, scenario validation tables, risk checks, audit history |
 
 ## Install
 
-Clone into your skills directory:
-
 ```bash
 git clone <this-repo> ~/.claude/skills/case-interview-coach
-```
-
-Or package it as a `.skill` bundle:
-
-```bash
-python -m scripts.package_skill /path/to/case-interview-coach
 ```
 
 ## Usage

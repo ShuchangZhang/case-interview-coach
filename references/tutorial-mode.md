@@ -256,7 +256,10 @@ sentimentality.
 
 ## 8. Session Review
 
-Delivered at the end. Reference `evaluation-rubric.md` §9 for mastery levels.
+Delivered at the end **as an HTML file** — everything below is the *content* that goes into it.
+Write it into a Session Report object and render with `references/report-system.md` §5. Reference
+`evaluation-rubric.md` §9 for mastery levels. A Tutorial report never carries a hiring band unless
+the user explicitly asked for a benchmark. Chat gets the file plus 2–4 sentences.
 
 **1. What we covered** — modules and skills, briefly.
 

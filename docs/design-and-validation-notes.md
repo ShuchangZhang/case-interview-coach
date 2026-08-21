@@ -136,3 +136,79 @@ re-checked against the files on disk.
 - `skill-creator/scripts/package_skill.py` validation: passes.
 
 Final size: 2,638 lines across SKILL.md + 8 reference files.
+
+---
+
+# Iteration 3 — HTML Report System
+
+**Scope check.** The six methodology files (`case-methodology`, `case-math`, `case-taxonomy`,
+`case-generation`, `evaluation-rubric`, `research-notes`) are byte-identical to the previous
+revision — verified by diff, 0 changed lines. `interview-mode.md` and `tutorial-mode.md` each
+gained a delivery-step pointer only (3 lines / 4 lines); no in-session rule, teaching rule or
+scoring anchor was touched. `SKILL.md` gained one file-table row and one bullet in §10.
+
+**Note on framing.** The request described this as upgrading "the existing Interview-Mode-only
+HTML requirement". There was no HTML requirement in the skill before this iteration — session
+deliverables were text. This is a new subsystem, not a widening of an old one.
+
+## Added
+
+- `references/report-system.md` — the spec: workflow, guard rails, Session Report JSON schema
+  (shared / [I] / [T] field marks), per-mode section requirements, visual system, anti-fabrication
+  rules, chat delivery.
+- `scripts/build_report.py` — JSON → single self-contained HTML. Two templates, one design system.
+
+## Why a renderer instead of prose instructions
+
+Three requirements are only enforceable in code: Tutorial reports must never carry a hiring band,
+untested dimensions must never get a number, and no fabricated benchmarks. Prose rules degrade
+under generation pressure; a script that strips an illegal verdict and prints a warning does not.
+The script is also what keeps the two report types visually one system while structurally
+different.
+
+## Design decisions
+
+- **Score = magnitude, so length encodes it and text carries the band.** No traffic-light colour
+  on scores — that is what makes a report read as a game page rather than an analyst document.
+- **Independence is a 4-segment ordinal block plus its label**, legible in greyscale and print.
+- **Palette validated, not eyeballed.** Ordinal blue ramps run through the data-viz validator:
+  light `#86b6ef → #104281` and dark `#184f95 → #9ec5f4`, ALL CHECKS PASS in both modes.
+- **No hover-only content.** Every value is directly labelled, so the print/PDF requirement and
+  the no-JS requirement fall out for free rather than needing a fallback.
+- **Print pagination**: `break-inside: avoid` on inner blocks (`.dim`, `.moment`, `.hint`, `.pri`,
+  `.hero`) rather than on whole sections — sections were being pushed wholesale to the next page,
+  wasting ~1 page in 6. Headings carry `break-after: avoid` so none are orphaned.
+
+## Scenario coverage
+
+| # | Scenario | Fixture | Result |
+|---|---|---|---|
+| 1 | Interview, complete, strong | `iv_strong` (zh) | 7.4 / Hire, six dimensions, full sections |
+| 2 | Interview, complete, weak | `iv_weak` (en) | 3.8 / No Hire |
+| 3 | Untested dimensions | `iv_untested` | dashed empty track, "not tested", no number |
+| 4 | Heavy interviewer assistance | `iv_weak` | 4 logged prompts, level = substantial |
+| 5 | User aborts mid-case | `iv_abort` | red incomplete badge + stage |
+| 6 | Too thin for a verdict | `iv_abort` | "insufficient information" + reason, no band |
+| 7–9 | Beginner / guided / assisted tutorial | `tu_mix` | guided→independent, no hiring band |
+| 10 | Switches to zero-assistance mid-session | `tu_mix` | marker rendered, phases split |
+| 11 | Fully independent tutorial | `tu_solo` (en) | independent-only phase card |
+| 12 | Recurring errors | `tu_mix` | recurring list, all `new` (no history to claim) |
+| 13 | Hint → independent progression | `tu_mix` | `L3 → L2 → L1 → Independent` track |
+| 14 | Single-module session | `tu_solo` | 2 dimensions only, rest absent |
+| 15–16 | zh / en | both | full label sets |
+| 17–18 | Mobile 390px / desktop 1100px | rendered | columns collapse, grids stack |
+| 19 | Offline | grep | zero external refs — no URL, CDN, font, script |
+| 20 | Print / PDF | Chromium | A4, 5 and 4 pages, no split cards, colour retained |
+
+**Guard-rail tests (must fail loudly):**
+
+| Test | Fixture | Result |
+|---|---|---|
+| Tutorial with a hiring verdict, no benchmark flag | `tu_bad` | verdict stripped, warning printed, 0 occurrences of "Hire" in output |
+| Fabricated benchmark in diagnosis text | `iv_fab` | 2 warnings raised (`超过 N%`, `录取概率`) |
+
+## Known limits
+
+- The fabrication detector is a regex list — it catches the named patterns, not every possible
+  invented statistic. It is a backstop for §7, not a substitute for it.
+- Dark mode is implemented but print always forces light, per the "no large dark areas" rule.

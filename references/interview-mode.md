@@ -170,6 +170,10 @@ Only after the final recommendation. Announce the boundary first, plainly:
 
 > **Mock interview complete.** Here's the assessment.
 
+**The report is delivered as an HTML file.** Everything specified below is the *content* that goes
+into it — write it into a Session Report object and render it with `references/report-system.md`
+§4. Chat gets the file plus 2–4 sentences of headline conclusions, never the full text.
+
 Then, using `evaluation-rubric.md`:
 
 **1. Overall result** — overall score /10 and one of **Strong Hire / Hire / Borderline / No Hire**,
@@ -206,7 +210,8 @@ Length: thorough but not padded. This is the deliverable of the session.
 ## 9. Incomplete case feedback (aborted interview)
 
 When the candidate stops early (`SKILL.md` §4.1), the report changes shape. First the **debrief**
-(teaching — now permitted and expected), then the **incomplete assessment**.
+(teaching — now permitted and expected), then the **incomplete assessment**. Both go into the same
+HTML report, badged incomplete — see `report-system.md` §4, "Aborted sessions".
 
 ### 9.1 Debrief content
 
