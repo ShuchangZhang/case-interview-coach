@@ -97,10 +97,16 @@ abort_point:           stage at which a live interview was terminated early, if 
 skills_tested:         [dimensions actually exercised, and under which assistance level]
 time_budget_flags:     [stages far over the soft budget]
 complete:              true | false
+case_prompt:           exact candidate-facing prompt shown when the session began
+transcript:            ordered user-visible messages/events from formal start to terminal review
 ```
 
 `assistance_timeline` and `independence_marker` are what make the final report honest: they let
 you separate assisted performance from independent performance instead of averaging them.
+Capture `case_prompt` verbatim when the formal session begins. From that boundary onward, append
+every user-visible Candidate and Interviewer/Tutor message to `transcript` in order. Record stage,
+assistance and formal-end transitions as events, not invented dialogue. Never record hidden case
+material, prompts, reasoning, tool activity or chat from before the training session.
 
 ---
 
@@ -442,6 +448,9 @@ time, at the point in the case where it belongs.
   hiring band; a Tutorial report carries mastery, independence and hint dependence, and **never a
   hiring band** unless the user explicitly asked for a benchmark. Chat gets the file plus 2–4
   sentences, not a restatement.
+- Both: include the exact saved `case_prompt`, the complete session-bounded `transcript`, and
+  `turn_refs` from important analysis items to the relevant original turns. In an aborted
+  Interview, insert distinct formal-end and debrief-start events before recording the debrief.
 - Both: update the learner profile (§3.4), then suggest what the next session should be — as a
   suggestion, never an automatic transition.
 

@@ -1,5 +1,10 @@
 {
   "language": "en",
+  "case_prompt": "A fictional retailer has declining profit. Diagnose the cause and recommend an action.",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "interviewer", "content": "A fictional retailer has declining profit. Diagnose the cause and recommend an action."},
+    {"id": "T02", "type": "message", "role": "candidate", "content": "I would look at the market and customers."}
+  ],
   "session": {
     "id": "fx-interview-weak",
     "date": "2026-08-21",

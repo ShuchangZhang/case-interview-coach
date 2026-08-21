@@ -1,5 +1,22 @@
 {
   "language": "zh",
+  "case_prompt": "你的客户是北辰生鲜，一家完全虚构、在中国华东经营 36 家门店的区域连锁超市。过去三年，公司年收入基本维持在 80 亿元，但营业利润从 4.8 亿元下降到 2.9 亿元。管理层希望了解利润下降的原因，并确定未来 12 个月应优先采取什么行动。门店数量和会计口径在此期间没有重大变化。你可以先提出澄清问题，再开始搭建分析结构。",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "interviewer", "stage": "opening", "tags": ["Case Prompt"], "content": "你的客户是北辰生鲜，一家完全虚构、在中国华东经营 36 家门店的区域连锁超市。过去三年，公司年收入基本维持在 80 亿元，但营业利润从 4.8 亿元下降到 2.9 亿元。管理层希望了解利润下降的原因，并确定未来 12 个月应优先采取什么行动。门店数量和会计口径在此期间没有重大变化。你可以先提出澄清问题，再开始搭建分析结构。"},
+    {"id": "T02", "type": "message", "role": "candidate", "stage": "clarifying", "content": "利润下降是否集中在某个城市或门店类型？管理层有没有发现明显的单项成本上涨？"},
+    {"id": "T03", "type": "message", "role": "interviewer", "stage": "clarifying", "content": "各城市和门店类型都出现了下降，目前没有发现单一的大额成本变化。"},
+    {"id": "T04", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Structure", "Critical Moment"], "content": "我会看客流、转化率和客单价，并单独检查生鲜损耗。我会先从生鲜开始，因为损耗会同时影响实际收入和毛利。"},
+    {"id": "T05", "type": "message", "role": "interviewer", "stage": "quant", "content": "一套补货系统每年固定成本为 4000 万元，每个受影响购物篮预计可减少 4 元损耗。请计算 breakeven 所需的购物篮数量。"},
+    {"id": "T06", "type": "message", "role": "candidate", "stage": "quant", "tags": ["Quant"], "content": "我用固定成本除以每个购物篮节省的损耗，也就是 4000 万元除以 4 元每篮，得到每年 1000 万个购物篮。单位是元每年除以元每篮，所以结果是篮每年。"},
+    {"id": "T07", "type": "message", "role": "interviewer", "stage": "exhibit", "content": "Exhibit 1 显示三年品类销售占比：生鲜稳定在 30%，冷冻从 22% 降到 15%，干货从 33% 升到 40%，其他保持 15%。"},
+    {"id": "T08", "type": "message", "role": "candidate", "stage": "exhibit", "content": "冷冻下降 7 个百分点，干货正好上升 7 个百分点，变化主要发生在这两个品类之间。"},
+    {"id": "T09", "type": "message", "role": "interviewer", "stage": "exhibit", "content": "Exhibit 2 显示各品类毛利率：生鲜 31%，冷冻 34%，干货 28%，其他 29%。"},
+    {"id": "T10", "type": "message", "role": "candidate", "stage": "exhibit", "tags": ["Exhibit", "Critical Moment"], "content": "冷冻品类毛利率最高，为 34%；然后是生鲜 31%、其他 29% 和干货 28%。冷冻品类的份额正在下降。"},
+    {"id": "T11", "type": "message", "role": "interviewer", "stage": "exhibit", "tags": ["Hint"], "content": "有没有哪个品类的表现与其他品类不同？"},
+    {"id": "T12", "type": "message", "role": "candidate", "stage": "insight", "tags": ["Insight"], "content": "最高毛利的冷冻品类正在失去份额，而毛利低 6 个百分点的干货在替代它。这更像 mix shift，而不是整体客流不足。"},
+    {"id": "T13", "type": "message", "role": "interviewer", "stage": "synthesis", "content": "请给出你的最终建议。"},
+    {"id": "T14", "type": "message", "role": "candidate", "stage": "synthesis", "tags": ["Recommendation"], "content": "我建议客户通过促销恢复客流，同时降低生鲜损耗。品类结构可能也有问题，应该进一步调查冷冻品类的补货和陈列。"}
+  ],
   "session": {
     "id": "example-interview-zh-001",
     "date": "2026-08-21",
@@ -19,10 +36,10 @@
     "one_line_diagnosis": "结构从零售业务的真实驱动因素出发，计算过程也清晰可靠；但 Exhibit 分析停留在描述层面，导致核心洞察和最终建议都没有充分利用 Case 已提供的证据。"
   },
   "dimensions": [
-    {"name": "问题结构化", "score": 8, "tested": true, "evidence": "从客流、转化率、客单价和损耗率展开，而不是机械套用通用框架。"},
-    {"name": "定量分析", "score": 8.5, "tested": true, "evidence": "计算前先说明公式与单位，并主动完成数量级 sanity check。"},
+    {"name": "问题结构化", "score": 8, "tested": true, "evidence": "从客流、转化率、客单价和损耗率展开，而不是机械套用通用框架。", "turn_refs": ["T04"]},
+    {"name": "定量分析", "score": 8.5, "tested": true, "evidence": "计算前先说明公式与单位，并主动完成数量级 sanity check。", "turn_refs": ["T06"]},
     {"name": "商业判断与洞察", "score": 7, "tested": true, "evidence": "识别出损耗具有结构性，但没有继续追问其上游运营驱动因素。"},
-    {"name": "Exhibit 解读", "score": 5.5, "tested": true, "evidence": "准确读出各品类毛利率，却没有量化差距或连接到客户目标。"},
+    {"name": "Exhibit 解读", "score": 5.5, "tested": true, "evidence": "准确读出各品类毛利率，却没有量化差距或连接到客户目标。", "turn_refs": ["T10"]},
     {"name": "沟通", "score": 7.5, "tested": true, "evidence": "各阶段都有 signposting；两次回答偏长，结论被过程性描述掩盖。"},
     {"name": "Synthesis / Recommendation", "tested": false, "score": null, "evidence": "本次面试未完整测试第二次 synthesis。"}
   ],
@@ -30,16 +47,16 @@
     "level": "light",
     "summary": "整场 Case 只使用了一次方向性提示，其余分析转场均由候选人主动推动。",
     "events": [
-      {"stage": "Exhibit 2", "prompt": "“有没有哪个品类的表现与其他品类不同？”", "effect": "候选人随后独立定位到冷冻品类的异常。"}
+      {"stage": "Exhibit 2", "prompt": "“有没有哪个品类的表现与其他品类不同？”", "effect": "候选人随后独立定位到冷冻品类的异常。", "turn_refs": ["T11", "T12"]}
     ]
   },
   "strengths": [
-    {"title": "结构是针对业务构建的，而不是背出来的", "detail": "将销量拆成客流 × 转化率 × 客单价，并单独列出损耗率，直接对应连锁超市的利润驱动因素。"},
-    {"title": "先声明计算路径，再进行运算", "detail": "在 breakeven 计算前先说明固定成本 ÷ 单位贡献毛利，并确认输入，使推导过程可以被检查。"}
+    {"title": "结构是针对业务构建的，而不是背出来的", "detail": "将销量拆成客流 × 转化率 × 客单价，并单独列出损耗率，直接对应连锁超市的利润驱动因素。", "turn_refs": ["T04"]},
+    {"title": "先声明计算路径，再进行运算", "detail": "在 breakeven 计算前先说明固定成本 ÷ 单位贡献毛利，并确认输入，使推导过程可以被检查。", "turn_refs": ["T06"]}
   ],
   "weaknesses": [
-    {"title": "Exhibit 分析停在描述层面", "detail": "只说出冷冻品类份额下降，随后便进入下一个话题。", "impact": "该 Exhibit 是整道 Case 的转折点；没有继续量化，使最终建议失去了最有力的证据。"},
-    {"title": "支持理由缺少数字", "detail": "Recommendation 提到了品类结构问题，但没有量化其利润影响。", "impact": "这会让分析与结论之间显得脱节，也是本次表现未达到 Strong Hire 的主要原因。"}
+    {"title": "Exhibit 分析停在描述层面", "detail": "只说出冷冻品类份额下降，随后便进入下一个话题。", "impact": "该 Exhibit 是整道 Case 的转折点；没有继续量化，使最终建议失去了最有力的证据。", "turn_refs": ["T09", "T10"]},
+    {"title": "支持理由缺少数字", "detail": "Recommendation 提到了品类结构问题，但没有量化其利润影响。", "impact": "这会让分析与结论之间显得脱节，也是本次表现未达到 Strong Hire 的主要原因。", "turn_refs": ["T14"]}
   ],
   "key_moments": [
     {
@@ -49,14 +66,16 @@
       "worked": "分支对应真实业务驱动因素，而且给出了有理由支持的优先级。",
       "problem": "没有说明预期会发现什么，尚未形成待验证的 hypothesis。",
       "consequence": "后续分析变成逐项检查，而不是围绕 hypothesis 验证或排除。",
-      "stronger": "可以补充：我预计主要问题在生鲜，因为它同时具有高毛利和高损耗风险。"
+      "stronger": "可以补充：我预计主要问题在生鲜，因为它同时具有高毛利和高损耗风险。",
+      "turn_refs": ["T04"]
     },
     {
       "stage": "Exhibit 2——分品类毛利率",
       "what_you_did": "依次读出了四个品类的毛利率。",
       "problem": "没有量化差距，也没有追问 so what。",
       "consequence": "错过了高毛利冷冻品类正在失去份额这一关键矛盾。",
-      "stronger": "先计算冷冻品类毛利率比整体高约 6 个百分点，再结合其份额下降，优先调查陈列和补货。"
+      "stronger": "先计算冷冻品类毛利率比整体高约 6 个百分点，再结合其份额下降，优先调查陈列和补货。",
+      "turn_refs": ["T09", "T10", "T12"]
     }
   ],
   "missed_insights": [
@@ -65,7 +84,8 @@
       "evidence_available": "Exhibit 2 的品类毛利率，以及 Exhibit 1 的三年份额变化。",
       "where_you_stopped": "两个 Exhibit 都读对了，但被当作互不相关的事实。",
       "should_have_concluded": "高毛利冷冻品类失去份额，同时低毛利干货份额上升；这是 mix shift，而不是客流下降。",
-      "why_it_matters": "证据更支持先改善冷冻品类的陈列和补货，而不是增加会进一步压缩毛利的促销。"
+      "why_it_matters": "证据更支持先改善冷冻品类的陈列和补货，而不是增加会进一步压缩毛利的促销。",
+      "turn_refs": ["T07", "T09", "T10", "T12"]
     }
   ],
   "stronger_path": {
@@ -81,6 +101,7 @@
   },
   "recommendation_compare": {
     "yours": "我建议客户通过促销恢复客流，同时降低生鲜损耗。",
+    "turn_refs": ["T14"],
     "issues": [
       {"criterion": "是否回答客户问题", "note": "客户问的是利润为什么下降；这个回答直接给行动，却跳过了诊断。"},
       {"criterion": "证据密度", "note": "三个支持理由中只有一个带数字。"},

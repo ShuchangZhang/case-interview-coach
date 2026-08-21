@@ -102,14 +102,15 @@ genuine unassisted assessment requires an Interview Mode session on a case you h
 One self-contained HTML file. Both report types share a visual system but differ in content and in
 what their numbers mean:
 
-- **Interview report** — case details, overall score and hiring band, a one-line causal diagnosis,
+- **Interview report** — the complete original Case Prompt, case details, overall score and hiring band, a one-line causal diagnosis,
   six capability meters, strengths and the detractors that actually cost you the result, key
   moments, insights you did not reach, the interviewer assistance you needed, a stronger line of
-  analysis, your recommendation against a stronger one, and what to train next.
-- **Tutorial report** — session focus, a one-line learning summary, capability *with independence
+  analysis, your recommendation against a stronger one, what to train next, and a full session
+  transcript linked from the important evidence.
+- **Tutorial report** — the complete original Case Prompt, session focus, a one-line learning summary, capability *with independence
   level* for each dimension, hint dependence per topic across reps, assisted and independent
   phases evaluated separately, learning moments, recurring mistakes, a mastery check, and a next
-  training plan.
+  training plan, and the full attempt → hint → retry transcript.
 
 Three rules are enforced in the renderer rather than left to prose:
 
@@ -243,9 +244,10 @@ answers you have already seen cannot produce a valid assessment.
 Everything runs locally. The renderer is a local Python script; it makes no network requests, and
 the HTML it produces contains no external references, no scripts and no tracking.
 
-**Generated reports may contain excerpts of your case-interview answers, capability assessments,
-your mistakes and your learning progress.** Review a report before uploading it anywhere public or
-sharing it with anyone.
+**Generated reports contain the complete natural-language conversation from the training session,
+including anything you typed yourself, as well as assessments, mistakes and learning progress.**
+Review the HTML before uploading it anywhere public or sharing it with anyone. The local renderer
+does not upload this content or make network requests.
 
 Your conversation with Claude is of course governed by the host application's own data handling —
 that is outside this repository's control.
@@ -415,12 +417,12 @@ Interview Mode 里你可以在任何时候中止 case 并要求复盘。**那是
 
 一个自包含的 HTML 文件。两种报告共享同一套视觉语言，但内容和数字的含义不同：
 
-- **面试表现报告**——Case 信息、总分与招聘档位、一句话因果诊断、六个能力条、优势与真正导致失分
+- **面试表现报告**——完整原始题目、Case 信息、总分与招聘档位、一句话因果诊断、六个能力条、优势与真正导致失分
   的问题、关键节点、你没抓到的洞察、你用掉的 interviewer 帮助、更强的分析路径、你的建议与更强
-  版本的对比、下一次训练重点。
-- **学习诊断报告**——本次训练重点、一句话学习总结、每个能力的**表现 + 独立程度**、各主题的提示
+  版本的对比、下一次训练重点，以及可以从重要证据直接跳转的完整 Session Transcript。
+- **学习诊断报告**——完整原始题目、本次训练重点、一句话学习总结、每个能力的**表现 + 独立程度**、各主题的提示
   依赖随练习次数的变化、教学阶段与独立阶段分开评价、关键学习节点、反复出现的问题、掌握程度盘点、
-  下一阶段训练计划。
+  下一阶段训练计划，以及完整的“第一次尝试 → Hint → Retry”对话记录。
 
 有三条规则写在渲染器代码里，而不是留给文字约定：
 
@@ -543,8 +545,9 @@ Tutorial mode,只练 market sizing,五道。
 全部在本地运行。渲染器是一个本地 Python 脚本，不发任何网络请求；它生成的 HTML 不含外部引用、不含
 脚本、不含追踪代码。
 
-**生成的报告可能包含你的 Case 回答片段、能力评价、你犯的错误和学习进度。** 在上传到任何公开位置
-或分享给他人之前，请先看一遍内容。
+**生成的报告会包含本次训练 Session 的完整自然语言对话，包括你自行输入的内容，以及能力评价、错误
+和学习进度。** 在上传到任何公开位置或分享给他人之前，请先检查 HTML。renderer 在本地运行，不会
+主动上传这些内容，也不会发起网络请求。
 
 你与 Claude 的对话本身当然受宿主应用自己的数据处理策略约束——那不在本仓库的控制范围内。
 

@@ -1,5 +1,10 @@
 {
   "language": "en",
+  "case_prompt": "<script>alert(1)</script><img src=x onerror=alert(2)><svg onload=alert(3)> Candidate-facing prompt",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "interviewer", "content": "Safe interviewer message"},
+    {"id": "T02", "type": "message", "role": "candidate", "content": "<script>alert(1)</script><img src=x onerror=alert(2)><svg onload=alert(3)> 5 < 7 & \"q\""}
+  ],
   "session": {
     "id": "fx-html-injection",
     "date": "2026-08-21",

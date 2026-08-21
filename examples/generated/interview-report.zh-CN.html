@@ -47,6 +47,11 @@ border-top:1px solid var(--rule);padding-top:1.1rem;margin-top:.2rem}
 border-left:3px solid var(--axis);padding-left:.7rem}
 .lede{font-size:1.06rem;line-height:1.6;margin:1.1rem 0 0;padding-top:1rem;
 border-top:1px solid var(--rule)}
+.case-prompt__text{white-space:pre-wrap;font-size:.96rem;line-height:1.65;margin:0}
+.evidence{font-size:.78rem;color:var(--muted);margin:.4rem 0 0}
+.evidence__link{display:inline-block;color:var(--fill);font-weight:650;text-decoration:none;
+border-bottom:1px solid currentColor;margin-right:.35rem}
+.evidence__link:focus,.evidence__link:hover{outline:2px solid var(--track);outline-offset:2px}
 .dim{padding:.7rem 0;border-bottom:1px solid var(--rule)}
 .dim:last-child{border-bottom:0}
 .dim__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:0 0 .38rem}
@@ -115,6 +120,28 @@ border:1px dashed var(--axis);border-radius:6px}
 .pri{border-top:1px solid var(--rule);padding:.95rem 0 .2rem}
 .pri:first-of-type{border-top:0;padding-top:0}
 .pri h3{margin:0 0 .5rem}
+.transcript{padding:0;overflow:hidden}
+.transcript summary{cursor:pointer;list-style:none;padding:1.25rem 1.5rem;display:flex;
+justify-content:space-between;align-items:baseline;gap:1rem}
+.transcript summary::-webkit-details-marker{display:none}
+.transcript summary span{font-size:1.05rem;letter-spacing:.01em;text-transform:uppercase;
+color:var(--ink2);font-weight:650}
+.transcript summary small{font-size:.78rem;color:var(--muted);font-weight:500}
+.transcript[open] summary{border-bottom:1px solid var(--rule)}
+.transcript__body{padding:1.2rem 1.5rem 1.5rem}
+.privacy-note{font-size:.82rem;color:var(--ink2);border-left:3px solid var(--axis);
+padding-left:.7rem;margin:0 0 1rem}
+.transcript__item{border:1px solid var(--ring);border-radius:7px;padding:.75rem .9rem;
+margin:0 0 .65rem;background:var(--page);scroll-margin-top:1rem}
+.transcript__item--candidate{border-left:3px solid var(--o3)}
+.transcript__item header{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin:0 0 .35rem;
+font-size:.8rem;color:var(--ink2)}
+.transcript__id{font-variant-numeric:tabular-nums;font-weight:700;color:var(--fill)}
+.transcript__stage{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.transcript__content{white-space:pre-wrap;font-size:.93rem;line-height:1.6}
+.transcript__event{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin:.9rem 0;
+padding:.55rem .75rem;border:1px dashed var(--axis);border-radius:6px;color:var(--ink2);font-size:.84rem;
+scroll-margin-top:1rem}
 .foot{color:var(--muted);font-size:.8rem;margin:1.6rem 0 0;text-align:center}
 @media (max-width:640px){
 .wrap{padding:1.5rem .9rem 3rem}.cols{grid-template-columns:1fr}
@@ -132,6 +159,8 @@ h2,h3{break-after:avoid;page-break-after:avoid}
 .hero{break-inside:avoid;page-break-inside:avoid}
 .cols>div{break-inside:avoid;page-break-inside:avoid}
 .moment,.pri,.hint,.dim{break-inside:avoid;page-break-inside:avoid}
+.transcript>summary{display:none}.transcript__body{display:block!important;padding:10pt 12pt}
+.transcript__item,.transcript__event{break-inside:avoid;page-break-inside:avoid}
 h2{font-size:9pt}.foot{margin-top:10pt}
 .hstep--end{background:#104281 !important;color:#fff !important}}
 </style></head>
@@ -139,14 +168,15 @@ h2{font-size:9pt}.foot{margin-top:10pt}
 <section class="sec hero">
   <h1>Case Interview 表现报告<span class="badge badge--ok">已完整完成</span></h1>
   <p class="sub">如果这是一次真实的咨询 Case Interview，这次表现如何？</p>
-  <dl class="strip"><div class="kv"><dt>Case 类型</dt><dd>盈利能力 + 定价</dd></div><div class="kv"><dt>行业</dt><dd>区域连锁超市（虚构：北辰生鲜）</dd></div><div class="kv"><dt>地区</dt><dd>中国华东</dd></div><div class="kv"><dt>难度</dt><dd>Advanced</dd></div><div class="kv"><dt>面试形式</dt><dd>Interviewee-led</dd></div><div class="kv"><dt>Interviewer 帮助</dt><dd>轻微提示</dd></div></dl><div class="result"><span class="result__score">7.2</span><span class="result__of">/ 10</span><span class="result__verdict">Hire</span></div><p class="lede">结构从零售业务的真实驱动因素出发，计算过程也清晰可靠；但 Exhibit 分析停留在描述层面，导致核心洞察和最终建议都没有充分利用 Case 已提供的证据。</p>
-</section><section class="sec "><h2>能力评估</h2><div class="dim">
+  <dl class="strip"><div class="kv"><dt>Case 类型</dt><dd>盈利能力 + 定价</dd></div><div class="kv"><dt>行业</dt><dd>区域连锁超市（虚构：北辰生鲜）</dd></div><div class="kv"><dt>地区</dt><dd>中国华东</dd></div><div class="kv"><dt>难度</dt><dd>Advanced</dd></div><div class="kv"><dt>面试形式</dt><dd>Interviewee-led</dd></div><div class="kv"><dt>Interviewer 帮助</dt><dd>轻微提示</dd></div></dl>
+</section><section class="sec case-prompt"><h2>本次题目</h2><div class="case-prompt__text">你的客户是北辰生鲜，一家完全虚构、在中国华东经营 36 家门店的区域连锁超市。过去三年，公司年收入基本维持在 80 亿元，但营业利润从 4.8 亿元下降到 2.9 亿元。管理层希望了解利润下降的原因，并确定未来 12 个月应优先采取什么行动。门店数量和会计口径在此期间没有重大变化。你可以先提出澄清问题，再开始搭建分析结构。</div></section><section class="sec summary"><h2>Session 总结</h2><div class="result"><span class="result__score">7.2</span><span class="result__of">/ 10</span><span class="result__verdict">Hire</span></div><p class="lede">结构从零售业务的真实驱动因素出发，计算过程也清晰可靠；但 Exhibit 分析停留在描述层面，导致核心洞察和最终建议都没有充分利用 Case 已提供的证据。</p></section><section class="sec "><h2>能力评估</h2><div class="dim">
   <div class="dim__head"><span class="dim__name">问题结构化</span>
     <span class="dim__val"><b>8</b> <span class="dim__of">/ 10</span>
       <span class="dim__band">达标</span></span></div>
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:80.0%"></div></div></div>
 
   <p class="dim__ev">从客流、转化率、客单价和损耗率展开，而不是机械套用通用框架。</p>
+<p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T04">查看 T04</a></p>
 </div><div class="dim">
   <div class="dim__head"><span class="dim__name">定量分析</span>
     <span class="dim__val"><b>8.5</b> <span class="dim__of">/ 10</span>
@@ -154,6 +184,7 @@ h2{font-size:9pt}.foot{margin-top:10pt}
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:85.0%"></div></div></div>
 
   <p class="dim__ev">计算前先说明公式与单位，并主动完成数量级 sanity check。</p>
+<p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T06">查看 T06</a></p>
 </div><div class="dim">
   <div class="dim__head"><span class="dim__name">商业判断与洞察</span>
     <span class="dim__val"><b>7</b> <span class="dim__of">/ 10</span>
@@ -161,6 +192,7 @@ h2{font-size:9pt}.foot{margin-top:10pt}
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:70.0%"></div></div></div>
 
   <p class="dim__ev">识别出损耗具有结构性，但没有继续追问其上游运营驱动因素。</p>
+
 </div><div class="dim">
   <div class="dim__head"><span class="dim__name">Exhibit 解读</span>
     <span class="dim__val"><b>5.5</b> <span class="dim__of">/ 10</span>
@@ -168,6 +200,7 @@ h2{font-size:9pt}.foot{margin-top:10pt}
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:55.0%"></div></div></div>
 
   <p class="dim__ev">准确读出各品类毛利率，却没有量化差距或连接到客户目标。</p>
+<p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T10">查看 T10</a></p>
 </div><div class="dim">
   <div class="dim__head"><span class="dim__name">沟通</span>
     <span class="dim__val"><b>7.5</b> <span class="dim__of">/ 10</span>
@@ -175,13 +208,17 @@ h2{font-size:9pt}.foot{margin-top:10pt}
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:75.0%"></div></div></div>
 
   <p class="dim__ev">各阶段都有 signposting；两次回答偏长，结论被过程性描述掩盖。</p>
+
 </div><div class="dim dim--untested">
   <div class="dim__head"><span class="dim__name">Synthesis / Recommendation</span>
     <span class="dim__na">未测试</span></div>
   <div class="meter meter--empty"><div class="meter__track"></div></div>
   <p class="dim__ev">本次面试未完整测试第二次 synthesis。</p>
-</div></section><section class="sec "><h2>优势与主要失分点</h2><div class="cols"><div><h3>做得好的地方</h3><ul class="blist"><li><span class="blist__h"><b>结构是针对业务构建的，而不是背出来的</b></span><p>将销量拆成客流 × 转化率 × 客单价，并单独列出损耗率，直接对应连锁超市的利润驱动因素。</p></li><li><span class="blist__h"><b>先声明计算路径，再进行运算</b></span><p>在 breakeven 计算前先说明固定成本 ÷ 单位贡献毛利，并确认输入，使推导过程可以被检查。</p></li></ul></div><div><h3>最影响结果的问题</h3><ul class="blist"><li><span class="blist__h"><b>Exhibit 分析停在描述层面</b></span><p>只说出冷冻品类份额下降，随后便进入下一个话题。</p></li><li><span class="blist__h"><b>支持理由缺少数字</b></span><p>Recommendation 提到了品类结构问题，但没有量化其利润影响。</p></li></ul></div></div></section><section class="sec "><h2>关键面试节点</h2><article class="moment">
-  <h3>初始结构</h3><blockquote class="quote">我会看客流、转化率和客单价，并单独检查生鲜损耗。</blockquote><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>思考约 90 秒后给出四个分支，并说明先从生鲜损耗开始。</p></dd></div><div class="mrow"><dt>做得好的地方</dt><dd><p>分支对应真实业务驱动因素，而且给出了有理由支持的优先级。</p></dd></div><div class="mrow"><dt>问题在哪里</dt><dd><p>没有说明预期会发现什么，尚未形成待验证的 hypothesis。</p></dd></div><div class="mrow"><dt>对后续的影响</dt><dd><p>后续分析变成逐项检查，而不是围绕 hypothesis 验证或排除。</p></dd></div><div class="mrow"><dt>更强的处理方式</dt><dd><p>可以补充：我预计主要问题在生鲜，因为它同时具有高毛利和高损耗风险。</p></dd></div></dl></article><article class="moment">
-  <h3>Exhibit 2——分品类毛利率</h3><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>依次读出了四个品类的毛利率。</p></dd></div><div class="mrow"><dt>问题在哪里</dt><dd><p>没有量化差距，也没有追问 so what。</p></dd></div><div class="mrow"><dt>对后续的影响</dt><dd><p>错过了高毛利冷冻品类正在失去份额这一关键矛盾。</p></dd></div><div class="mrow"><dt>更强的处理方式</dt><dd><p>先计算冷冻品类毛利率比整体高约 6 个百分点，再结合其份额下降，优先调查陈列和补货。</p></dd></div></dl></article></section><section class="sec "><h2>你没有抓到的关键洞察</h2><article class="moment"><h3>最高毛利品类份额下降，说明问题并非总需求不足</h3><dl class="mgrid"><div class="mrow"><dt>当时有哪些证据</dt><dd><p>Exhibit 2 的品类毛利率，以及 Exhibit 1 的三年份额变化。</p></dd></div><div class="mrow"><dt>你停在哪一步</dt><dd><p>两个 Exhibit 都读对了，但被当作互不相关的事实。</p></dd></div><div class="mrow"><dt>应该进一步推出什么</dt><dd><p>高毛利冷冻品类失去份额，同时低毛利干货份额上升；这是 mix shift，而不是客流下降。</p></dd></div><div class="mrow"><dt>为什么这对客户决策重要</dt><dd><p>证据更支持先改善冷冻品类的陈列和补货，而不是增加会进一步压缩毛利的促销。</p></dd></div></dl></article></section><section class="sec "><h2>Interviewer 帮助记录</h2><p><b>轻微提示</b></p><p>整场 Case 只使用了一次方向性提示，其余分析转场均由候选人主动推动。</p><ul class="blist"><li><b>Exhibit 2</b><p>“有没有哪个品类的表现与其他品类不同？”</p><p>候选人随后独立定位到冷冻品类的异常。</p></li></ul></section><section class="sec "><h2>更优的分析路径</h2><p>更紧凑的路径是先做品类层面的利润拆解，一次回答需求是否下降和 mix 是否变化。</p><ul class="tree tree--d0"><li><span class="tnode__l">利润下降</span><span class="tnode__d">先判断损失来自毛利率还是销量</span><ul class="tree tree--d1"><li><span class="tnode__l">按品类拆分毛利率与销量</span><span class="tnode__d">用一次拆解直接暴露 mix effect</span><ul class="tree tree--d2"><li><span class="tnode__l">高毛利品类失去份额 → mix shift</span></li><li><span class="tnode__l">各品类毛利率稳定 → 排除成本侧变化</span></li></ul></li></ul></li></ul></section><section class="sec "><h2>最终建议对比</h2><div class="rec"><h3>你的最终建议</h3><p>我建议客户通过促销恢复客流，同时降低生鲜损耗。</p></div><div class="rec"><h3>存在的问题</h3><div class="issue"><dt>是否回答客户问题</dt><dd>客户问的是利润为什么下降；这个回答直接给行动，却跳过了诊断。</dd></div><div class="issue"><dt>证据密度</dt><dd>三个支持理由中只有一个带数字。</dd></div><div class="issue"><dt>风险</dt><dd>没有指出促销可能进一步压缩毛利。</dd></div><div class="issue"><dt>下一步</dt><dd>降低损耗是目标，不是可执行的 next step。</dd></div></div><div class="rec rec--strong"><h3>更强的版本</h3><p>利润下降的主因是品类结构变化，而不是客流：冷冻品类销售占比从 22% 降至 15%，其位置被毛利率低 6 个百分点的干货替代，这解释了约三分之二的利润缺口。因此应先审查冷冻品类的陈列与补货，并提取过去 12 个月的缺货率和货架面积数据。</p></div></section><section class="sec "><h2>下一次训练重点</h2><div class="pri"><h3>把 Exhibit 从描述推进到商业含义</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够准确读图，但经常停留在 Observation。</p></dd></div><div class="mrow"><dt>为什么重要</dt><dd><p>停在描述会丢掉 Case 中最强的证据。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Exhibit 练习，每轮给出一个 Observation 和一个引用数字的 Insight。</p></dd></div></dl></div><div class="pri"><h3>提高 Recommendation 的证据密度</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>Answer-first 已经稳定，但支持理由缺少量化。</p></dd></div><div class="mrow"><dt>为什么重要</dt><dd><p>没有数字的理由更像断言。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成三轮 90 秒 synthesis，每个支持理由都必须包含 Case 中出现过的数字。</p></dd></div></dl></div></section>
+
+</div></section><section class="sec "><h2>优势与主要失分点</h2><div class="cols"><div><h3>做得好的地方</h3><ul class="blist"><li><span class="blist__h"><b>结构是针对业务构建的，而不是背出来的</b></span><p>将销量拆成客流 × 转化率 × 客单价，并单独列出损耗率，直接对应连锁超市的利润驱动因素。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T04">查看 T04</a></p></li><li><span class="blist__h"><b>先声明计算路径，再进行运算</b></span><p>在 breakeven 计算前先说明固定成本 ÷ 单位贡献毛利，并确认输入，使推导过程可以被检查。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T06">查看 T06</a></p></li></ul></div><div><h3>最影响结果的问题</h3><ul class="blist"><li><span class="blist__h"><b>Exhibit 分析停在描述层面</b></span><p>只说出冷冻品类份额下降，随后便进入下一个话题。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T09">查看 T09</a> <a class="evidence__link" href="#T10">查看 T10</a></p></li><li><span class="blist__h"><b>支持理由缺少数字</b></span><p>Recommendation 提到了品类结构问题，但没有量化其利润影响。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T14">查看 T14</a></p></li></ul></div></div></section><section class="sec "><h2>关键面试节点</h2><article class="moment">
+  <h3>初始结构</h3><blockquote class="quote">我会看客流、转化率和客单价，并单独检查生鲜损耗。</blockquote><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>思考约 90 秒后给出四个分支，并说明先从生鲜损耗开始。</p></dd></div><div class="mrow"><dt>做得好的地方</dt><dd><p>分支对应真实业务驱动因素，而且给出了有理由支持的优先级。</p></dd></div><div class="mrow"><dt>问题在哪里</dt><dd><p>没有说明预期会发现什么，尚未形成待验证的 hypothesis。</p></dd></div><div class="mrow"><dt>对后续的影响</dt><dd><p>后续分析变成逐项检查，而不是围绕 hypothesis 验证或排除。</p></dd></div><div class="mrow"><dt>更强的处理方式</dt><dd><p>可以补充：我预计主要问题在生鲜，因为它同时具有高毛利和高损耗风险。</p></dd></div></dl>
+  <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T04">查看 T04</a></p></article><article class="moment">
+  <h3>Exhibit 2——分品类毛利率</h3><dl class="mgrid"><div class="mrow"><dt>你当时怎么做</dt><dd><p>依次读出了四个品类的毛利率。</p></dd></div><div class="mrow"><dt>问题在哪里</dt><dd><p>没有量化差距，也没有追问 so what。</p></dd></div><div class="mrow"><dt>对后续的影响</dt><dd><p>错过了高毛利冷冻品类正在失去份额这一关键矛盾。</p></dd></div><div class="mrow"><dt>更强的处理方式</dt><dd><p>先计算冷冻品类毛利率比整体高约 6 个百分点，再结合其份额下降，优先调查陈列和补货。</p></dd></div></dl>
+  <p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T09">查看 T09</a> <a class="evidence__link" href="#T10">查看 T10</a> <a class="evidence__link" href="#T12">查看 T12</a></p></article></section><section class="sec "><h2>你没有抓到的关键洞察</h2><article class="moment"><h3>最高毛利品类份额下降，说明问题并非总需求不足</h3><dl class="mgrid"><div class="mrow"><dt>当时有哪些证据</dt><dd><p>Exhibit 2 的品类毛利率，以及 Exhibit 1 的三年份额变化。</p></dd></div><div class="mrow"><dt>你停在哪一步</dt><dd><p>两个 Exhibit 都读对了，但被当作互不相关的事实。</p></dd></div><div class="mrow"><dt>应该进一步推出什么</dt><dd><p>高毛利冷冻品类失去份额，同时低毛利干货份额上升；这是 mix shift，而不是客流下降。</p></dd></div><div class="mrow"><dt>为什么这对客户决策重要</dt><dd><p>证据更支持先改善冷冻品类的陈列和补货，而不是增加会进一步压缩毛利的促销。</p></dd></div></dl><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T07">查看 T07</a> <a class="evidence__link" href="#T09">查看 T09</a> <a class="evidence__link" href="#T10">查看 T10</a> <a class="evidence__link" href="#T12">查看 T12</a></p></article></section><section class="sec "><h2>Interviewer 帮助记录</h2><p><b>轻微提示</b></p><p>整场 Case 只使用了一次方向性提示，其余分析转场均由候选人主动推动。</p><ul class="blist"><li><b>Exhibit 2</b><p>“有没有哪个品类的表现与其他品类不同？”</p><p>候选人随后独立定位到冷冻品类的异常。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T11">查看 T11</a> <a class="evidence__link" href="#T12">查看 T12</a></p></li></ul></section><section class="sec "><h2>更优的分析路径</h2><p>更紧凑的路径是先做品类层面的利润拆解，一次回答需求是否下降和 mix 是否变化。</p><ul class="tree tree--d0"><li><span class="tnode__l">利润下降</span><span class="tnode__d">先判断损失来自毛利率还是销量</span><ul class="tree tree--d1"><li><span class="tnode__l">按品类拆分毛利率与销量</span><span class="tnode__d">用一次拆解直接暴露 mix effect</span><ul class="tree tree--d2"><li><span class="tnode__l">高毛利品类失去份额 → mix shift</span></li><li><span class="tnode__l">各品类毛利率稳定 → 排除成本侧变化</span></li></ul></li></ul></li></ul></section><section class="sec "><h2>最终建议对比</h2><div class="rec"><h3>你的最终建议</h3><p>我建议客户通过促销恢复客流，同时降低生鲜损耗。</p><p class="evidence"><span>原始证据:</span> <a class="evidence__link" href="#T14">查看 T14</a></p></div><div class="rec"><h3>存在的问题</h3><div class="issue"><dt>是否回答客户问题</dt><dd>客户问的是利润为什么下降；这个回答直接给行动，却跳过了诊断。</dd></div><div class="issue"><dt>证据密度</dt><dd>三个支持理由中只有一个带数字。</dd></div><div class="issue"><dt>风险</dt><dd>没有指出促销可能进一步压缩毛利。</dd></div><div class="issue"><dt>下一步</dt><dd>降低损耗是目标，不是可执行的 next step。</dd></div></div><div class="rec rec--strong"><h3>更强的版本</h3><p>利润下降的主因是品类结构变化，而不是客流：冷冻品类销售占比从 22% 降至 15%，其位置被毛利率低 6 个百分点的干货替代，这解释了约三分之二的利润缺口。因此应先审查冷冻品类的陈列与补货，并提取过去 12 个月的缺货率和货架面积数据。</p></div></section><section class="sec "><h2>下一次训练重点</h2><div class="pri"><h3>把 Exhibit 从描述推进到商业含义</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>能够准确读图，但经常停留在 Observation。</p></dd></div><div class="mrow"><dt>为什么重要</dt><dd><p>停在描述会丢掉 Case 中最强的证据。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成五轮 Exhibit 练习，每轮给出一个 Observation 和一个引用数字的 Insight。</p></dd></div></dl></div><div class="pri"><h3>提高 Recommendation 的证据密度</h3><dl class="mgrid"><div class="mrow"><dt>当前状态</dt><dd><p>Answer-first 已经稳定，但支持理由缺少量化。</p></dd></div><div class="mrow"><dt>为什么重要</dt><dd><p>没有数字的理由更像断言。</p></dd></div><div class="mrow"><dt>训练方式</dt><dd><p>完成三轮 90 秒 synthesis，每个支持理由都必须包含 Case 中出现过的数字。</p></dd></div></dl></div></section><details class="sec transcript" open><summary><span>完整对话记录</span><small>展开完整原始记录</small></summary><div class="transcript__body"><p class="privacy-note">本记录包含此次训练 Session 中全部用户可见的自然语言对话；公开分享 HTML 前，请先检查其中是否有不希望公开的内容。</p><article class="transcript__item transcript__item--interviewer" id="T01"><header><span class="transcript__id">T01</span><b>Interviewer</b><span class="transcript__stage">opening</span><span class="tag">Case Prompt</span></header><div class="transcript__content">你的客户是北辰生鲜，一家完全虚构、在中国华东经营 36 家门店的区域连锁超市。过去三年，公司年收入基本维持在 80 亿元，但营业利润从 4.8 亿元下降到 2.9 亿元。管理层希望了解利润下降的原因，并确定未来 12 个月应优先采取什么行动。门店数量和会计口径在此期间没有重大变化。你可以先提出澄清问题，再开始搭建分析结构。</div></article><article class="transcript__item transcript__item--candidate" id="T02"><header><span class="transcript__id">T02</span><b>Candidate</b><span class="transcript__stage">clarifying</span></header><div class="transcript__content">利润下降是否集中在某个城市或门店类型？管理层有没有发现明显的单项成本上涨？</div></article><article class="transcript__item transcript__item--interviewer" id="T03"><header><span class="transcript__id">T03</span><b>Interviewer</b><span class="transcript__stage">clarifying</span></header><div class="transcript__content">各城市和门店类型都出现了下降，目前没有发现单一的大额成本变化。</div></article><article class="transcript__item transcript__item--candidate" id="T04"><header><span class="transcript__id">T04</span><b>Candidate</b><span class="transcript__stage">structure</span><span class="tag">Structure</span><span class="tag">Critical Moment</span></header><div class="transcript__content">我会看客流、转化率和客单价，并单独检查生鲜损耗。我会先从生鲜开始，因为损耗会同时影响实际收入和毛利。</div></article><article class="transcript__item transcript__item--interviewer" id="T05"><header><span class="transcript__id">T05</span><b>Interviewer</b><span class="transcript__stage">quant</span></header><div class="transcript__content">一套补货系统每年固定成本为 4000 万元，每个受影响购物篮预计可减少 4 元损耗。请计算 breakeven 所需的购物篮数量。</div></article><article class="transcript__item transcript__item--candidate" id="T06"><header><span class="transcript__id">T06</span><b>Candidate</b><span class="transcript__stage">quant</span><span class="tag">Quant</span></header><div class="transcript__content">我用固定成本除以每个购物篮节省的损耗，也就是 4000 万元除以 4 元每篮，得到每年 1000 万个购物篮。单位是元每年除以元每篮，所以结果是篮每年。</div></article><article class="transcript__item transcript__item--interviewer" id="T07"><header><span class="transcript__id">T07</span><b>Interviewer</b><span class="transcript__stage">exhibit</span></header><div class="transcript__content">Exhibit 1 显示三年品类销售占比：生鲜稳定在 30%，冷冻从 22% 降到 15%，干货从 33% 升到 40%，其他保持 15%。</div></article><article class="transcript__item transcript__item--candidate" id="T08"><header><span class="transcript__id">T08</span><b>Candidate</b><span class="transcript__stage">exhibit</span></header><div class="transcript__content">冷冻下降 7 个百分点，干货正好上升 7 个百分点，变化主要发生在这两个品类之间。</div></article><article class="transcript__item transcript__item--interviewer" id="T09"><header><span class="transcript__id">T09</span><b>Interviewer</b><span class="transcript__stage">exhibit</span></header><div class="transcript__content">Exhibit 2 显示各品类毛利率：生鲜 31%，冷冻 34%，干货 28%，其他 29%。</div></article><article class="transcript__item transcript__item--candidate" id="T10"><header><span class="transcript__id">T10</span><b>Candidate</b><span class="transcript__stage">exhibit</span><span class="tag">Exhibit</span><span class="tag">Critical Moment</span></header><div class="transcript__content">冷冻品类毛利率最高，为 34%；然后是生鲜 31%、其他 29% 和干货 28%。冷冻品类的份额正在下降。</div></article><article class="transcript__item transcript__item--interviewer" id="T11"><header><span class="transcript__id">T11</span><b>Interviewer</b><span class="transcript__stage">exhibit</span><span class="tag">Hint</span></header><div class="transcript__content">有没有哪个品类的表现与其他品类不同？</div></article><article class="transcript__item transcript__item--candidate" id="T12"><header><span class="transcript__id">T12</span><b>Candidate</b><span class="transcript__stage">insight</span><span class="tag">Insight</span></header><div class="transcript__content">最高毛利的冷冻品类正在失去份额，而毛利低 6 个百分点的干货在替代它。这更像 mix shift，而不是整体客流不足。</div></article><article class="transcript__item transcript__item--interviewer" id="T13"><header><span class="transcript__id">T13</span><b>Interviewer</b><span class="transcript__stage">synthesis</span></header><div class="transcript__content">请给出你的最终建议。</div></article><article class="transcript__item transcript__item--candidate" id="T14"><header><span class="transcript__id">T14</span><b>Candidate</b><span class="transcript__stage">synthesis</span><span class="tag">Recommendation</span></header><div class="transcript__content">我建议客户通过促销恢复客流，同时降低生鲜损耗。品类结构可能也有问题，应该进一步调查冷冻品类的补货和陈列。</div></article></div></details>
 <p class="foot">生成于 2026-08-21 · example-interview-zh-001</p>
 </main></body></html>

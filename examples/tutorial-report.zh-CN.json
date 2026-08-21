@@ -1,5 +1,20 @@
 {
   "language": "zh",
+  "case_prompt": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "tutor", "stage": "opening", "tags": ["Case Prompt"], "content": "晨屿咖啡是一家完全虚构、在中国华南经营 42 家门店的连锁咖啡品牌。去年同店收入增长 5%，但单店营业利润下降 10%。管理层希望先理解主要利润驱动因素，再决定是否调整价格、排班或菜单。本次 Tutorial Session 请先搭建问题结构，随后练习相关 Case Math。所有公司名称与数据均为虚构。"},
+    {"id": "T02", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Structure"], "content": "我会看市场、客户和竞争。"},
+    {"id": "T03", "type": "message", "role": "tutor", "stage": "structure", "tags": ["Hint"], "assistance_level": "guided", "content": "客户真正想解决什么？利润又是如何计算的？请用这两个问题重新搭建第一层结构。"},
+    {"id": "T04", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Retry", "Critical Moment"], "content": "客户想恢复利润，所以我从 profit = revenue - cost 开始。Revenue 可以拆成 price 和 volume，volume 再拆成客流和转化率。"},
+    {"id": "E01", "type": "event", "stage": "assistance_change", "assistance_level": "assisted", "content": "第一次 retry 成功后，帮助强度从 Guided 调整为 Assisted。"},
+    {"id": "T05", "type": "message", "role": "tutor", "stage": "quant", "content": "一家门店每月有 15,000 笔交易，平均客单价为 32 元。请计算单店月收入。"},
+    {"id": "T06", "type": "message", "role": "candidate", "stage": "quant", "content": "我会用 15,000 乘以 32，得到 480,000，但我不确定这是单店还是全公司的收入。"},
+    {"id": "T07", "type": "message", "role": "tutor", "stage": "quant", "tags": ["Hint"], "assistance_level": "light", "content": "先写出最终答案应该使用的单位，再重新确认计算。"},
+    {"id": "T08", "type": "message", "role": "candidate", "stage": "quant", "tags": ["Retry", "Quant"], "content": "目标单位是元每家门店每月。每店每月交易数乘以元每笔，所以答案是每家门店每月 48 万元。"},
+    {"id": "E02", "type": "event", "stage": "assistance_change", "assistance_level": "independent", "content": "Candidate 要求不再获得提示，Independent 练习阶段开始。"},
+    {"id": "T09", "type": "message", "role": "tutor", "stage": "structure", "content": "现在不提供提示，请拆解咖啡门店的销量端，并说明你会先检查哪一项。"},
+    {"id": "T10", "type": "message", "role": "candidate", "stage": "structure", "tags": ["Independent"], "content": "我会拆成客流、转化率、购买频次和座位利用率。我会先看客流，以区分外部需求问题和门店内执行问题。"}
+  ],
   "session": {
     "id": "example-tutorial-zh-001",
     "date": "2026-08-21",
@@ -25,14 +40,16 @@
       "score": 6,
       "tested": true,
       "independence": "assisted",
-      "evidence": "第一层利润拆解已经稳定；第二层仍容易退回到通用框架。"
+      "evidence": "第一层利润拆解已经稳定；第二层仍容易退回到通用框架。",
+      "turn_refs": ["T02", "T04", "T10"]
     },
     {
       "name": "定量分析",
       "score": 8,
       "tested": true,
       "independence": "independent",
-      "evidence": "三道计算均独立完成，并在计算前先说明公式和单位。"
+      "evidence": "三道计算均独立完成，并在计算前先说明公式和单位。",
+      "turn_refs": ["T06", "T07", "T08"]
     },
     {
       "name": "商业判断与洞察",
@@ -84,13 +101,15 @@
     "assisted": {
       "covered": "第一层 profit tree、price × volume、百分比变化和单位追踪。",
       "hints": "Structuring 先使用 Level 3，再降到 Level 2；Case Math 使用过一次 Level 1。",
-      "corrected": "第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。"
+      "corrected": "第一次尝试直接使用 market、customer、competition。被问到客户真正要解决什么、利润如何计算后，你改为从利润驱动因素出发，并在第二次练习中主动复用了这个方法。",
+      "turn_refs": ["T02", "T03", "T04", "T06", "T07", "T08"]
     },
     "independent": {
       "covered": "Structuring 第 3、4 轮，以及两道 Case Math 题。",
       "performance": "第 4 轮独立列出了客流、转化率、客单价和座位利用率等咖啡店特有的驱动因素，没有再套用通用框架。",
       "mastered": "Revenue = price × volume；百分比变化；计算前检查单位一致性。",
-      "still_recurring": "列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。"
+      "still_recurring": "列出分支后，仍不会主动说明应该先检查哪一个分支，以及为什么。",
+      "turn_refs": ["E02", "T09", "T10"]
     }
   },
   "key_moments": [
@@ -100,14 +119,16 @@
       "what_you_did": "直接调用了一个熟悉的通用框架。",
       "intervention": "没有直接给出分支，而是问了两个问题：客户真正想解决什么，以及利润是如何计算的？",
       "retry": "你改为从 profit = revenue - cost 出发，并将销量拆成客流 × 转化率。",
-      "learning": "结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。"
+      "learning": "结构应该来自客户目标和业务算式，而不是来自最熟悉的框架。",
+      "turn_refs": ["T02", "T03", "T04"]
     },
     {
       "stage": "第二道计算",
       "what_you_did": "立即开始计算，并在中途失去了对单位的追踪。",
       "intervention": "Level 1 提示：先写出最终答案应该使用的单位。",
       "retry": "你从“每家门店每月利润”重新开始，反向确定所需输入。",
-      "learning": "先确定答案的单位，通常就能看清正确的计算路径。"
+      "learning": "先确定答案的单位，通常就能看清正确的计算路径。",
+      "turn_refs": ["T06", "T07", "T08"]
     }
   ],
   "recurring_mistakes": [

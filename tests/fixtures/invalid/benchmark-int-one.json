@@ -1,5 +1,9 @@
 {
   "language": "en",
+  "case_prompt": "A fictional candidate-facing case prompt.",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "candidate", "content": "A user-visible answer."}
+  ],
   "session": {
     "id": "fx-benchmark-int-one",
     "date": "2026-08-21",

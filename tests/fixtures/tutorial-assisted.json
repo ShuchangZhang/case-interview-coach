@@ -1,5 +1,10 @@
 {
   "language": "en",
+  "case_prompt": "A fictional coffee chain has declining store profit. Build a driver tree.",
+  "transcript": [
+    {"id": "T01", "type": "message", "role": "tutor", "content": "A fictional coffee chain has declining store profit. Build a driver tree."},
+    {"id": "T02", "type": "message", "role": "candidate", "content": "I need a hint to start the structure."}
+  ],
   "session": {
     "id": "fx-tutorial-assisted",
     "date": "2026-08-21",

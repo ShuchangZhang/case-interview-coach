@@ -52,6 +52,12 @@ L = {
         "tutorial_q": "What was learned, and what can now be done unaided?",
         "case_type": "Case type", "industry": "Industry", "geography": "Geography",
         "difficulty": "Difficulty", "format": "Interview format", "focus": "Training focus",
+        "case_prompt": "Case Prompt", "session_summary": "Session Summary",
+        "transcript": "Full Session Transcript", "transcript_open": "Open full evidence record",
+        "transcript_privacy": "This transcript contains the complete user-visible conversation from this training session. Review it before sharing the HTML publicly.",
+        "evidence": "Evidence", "view_turn": "View",
+        "role_candidate": "Candidate", "role_interviewer": "Interviewer", "role_tutor": "Tutor",
+        "event": "Session event",
         "source": "Case source", "status": "Status", "assistance": "Interviewer assistance",
         "assist_start": "Assistance at start", "assist_end": "Assistance at end",
         "independent_phase": "Independent phase",
@@ -105,6 +111,12 @@ L = {
         "tutorial_q": "这次学会了什么？哪些已经可以独立完成？",
         "case_type": "Case 类型", "industry": "行业", "geography": "地区",
         "difficulty": "难度", "format": "面试形式", "focus": "训练重点",
+        "case_prompt": "本次题目", "session_summary": "Session 总结",
+        "transcript": "完整对话记录", "transcript_open": "展开完整原始记录",
+        "transcript_privacy": "本记录包含此次训练 Session 中全部用户可见的自然语言对话；公开分享 HTML 前，请先检查其中是否有不希望公开的内容。",
+        "evidence": "原始证据", "view_turn": "查看",
+        "role_candidate": "Candidate", "role_interviewer": "Interviewer", "role_tutor": "Tutor",
+        "event": "Session 事件",
         "source": "Case 来源", "status": "完成状态", "assistance": "Interviewer 帮助",
         "assist_start": "起始帮助强度", "assist_end": "结束帮助强度",
         "independent_phase": "独立阶段",
@@ -159,6 +171,10 @@ COMPLETIONS = ("complete", "aborted", "partial")
 INDEPENDENCE = ("guided", "assisted", "light", "independent")
 ASSIST_LEVELS = ("none", "light", "moderate", "substantial")
 HIRING_VERDICTS = ("strong hire", "hire", "borderline", "no hire")
+TRANSCRIPT_TYPES = ("message", "event")
+TRANSCRIPT_ROLES = ("candidate", "interviewer", "tutor")
+TRANSCRIPT_FIELDS = ("id", "type", "role", "content", "stage", "tags",
+                     "timestamp", "assistance_level")
 
 # ---------------------------------------------- mode-specific field registry ---
 # The single place that answers "which fields belong to which mode?".
@@ -315,6 +331,77 @@ def validate(d):
     if lang not in L:
         _err("language", lang, "one of " + ", ".join(sorted(L)))
 
+    # --- original prompt and user-visible session record -----------------
+    case_prompt = d.get("case_prompt")
+    if not isinstance(case_prompt, str) or not case_prompt.strip():
+        _err("case_prompt", case_prompt, "a non-empty string containing the exact candidate-facing prompt")
+
+    transcript = d.get("transcript")
+    if not isinstance(transcript, list) or not transcript:
+        _err("transcript", transcript, "a non-empty array of user-visible messages and session events")
+
+    record_ids = set()
+    for i, record in enumerate(transcript):
+        base = "transcript[{}]".format(i)
+        if not isinstance(record, dict):
+            _err(base, record, "an object")
+        unknown = set(record) - set(TRANSCRIPT_FIELDS)
+        if unknown:
+            _err(base, sorted(unknown), "only user-visible transcript fields: " + ", ".join(TRANSCRIPT_FIELDS))
+        record_id = record.get("id")
+        if not isinstance(record_id, str) or not re.match(r"^[A-Za-z][A-Za-z0-9_-]*$", record_id):
+            _err(base + ".id", record_id, "a stable HTML-safe ID beginning with a letter")
+        if record_id in record_ids:
+            _err(base + ".id", record_id, "a unique transcript ID")
+        record_ids.add(record_id)
+
+        record_type = record.get("type")
+        _check_enum(record_type, TRANSCRIPT_TYPES, base + ".type", optional=False)
+        content = record.get("content")
+        if not isinstance(content, str) or not content.strip():
+            _err(base + ".content", content, "a non-empty string")
+        for key in ("stage", "timestamp"):
+            if key in record and (not isinstance(record[key], str) or not record[key].strip()):
+                _err(base + "." + key, record[key], "a non-empty string")
+        tags = record.get("tags")
+        if tags is not None and (not isinstance(tags, list) or
+                                 any(not isinstance(tag, str) or not tag.strip() for tag in tags)):
+            _err(base + ".tags", tags, "an array of non-empty strings")
+        _check_enum(record.get("assistance_level"), INDEPENDENCE,
+                    base + ".assistance_level")
+
+        role = record.get("role")
+        if record_type == "message":
+            _check_enum(role, TRANSCRIPT_ROLES, base + ".role", optional=False)
+            allowed_roles = ("candidate", "tutor") if tutorial else ("candidate", "interviewer")
+            if role.strip().lower() not in allowed_roles:
+                _err(base + ".role", role,
+                     "one of " + ", ".join(allowed_roles) + " for this mode")
+        elif role is not None:
+            _err(base + ".role", role, "absent for a session event")
+
+    # Any analysis object may cite transcript records with `turn_refs`. Validate
+    # recursively so a new report section cannot create a dead evidence link.
+    def validate_turn_refs(obj, path=""):
+        if isinstance(obj, dict):
+            if "turn_refs" in obj:
+                refs = obj["turn_refs"]
+                field = (path + ".turn_refs").lstrip(".")
+                if not isinstance(refs, list) or not refs or any(
+                        not isinstance(ref, str) or not ref for ref in refs):
+                    _err(field, refs, "a non-empty array of transcript IDs")
+                missing = [ref for ref in refs if ref not in record_ids]
+                if missing:
+                    _err(field, missing, "IDs present in transcript")
+            for key, value in obj.items():
+                if key != "transcript":
+                    validate_turn_refs(value, (path + "." + key).lstrip("."))
+        elif isinstance(obj, list):
+            for i, value in enumerate(obj):
+                validate_turn_refs(value, "{}[{}]".format(path, i))
+
+    validate_turn_refs(d)
+
     # --- dimensions -------------------------------------------------------
     dims = d.get("dimensions")
     if dims is not None and not isinstance(dims, list):
@@ -470,6 +557,7 @@ def score_bar(t, dim):
     <span class="dim__na">{t['not_tested']}</span></div>
   <div class="meter meter--empty"><div class="meter__track"></div></div>
   {f'<p class="dim__ev">{esc(dim.get("evidence"))}</p>' if dim.get("evidence") else ''}
+{evidence_links(t, dim.get('turn_refs'))}
 </div>"""
 
     score = float(dim["score"])
@@ -484,6 +572,7 @@ def score_bar(t, dim):
   <div class="meter"><div class="meter__track"><div class="meter__fill" style="width:{pct:.1f}%"></div></div></div>
 {indep_html}
   {f'<p class="dim__ev">{esc(dim.get("evidence"))}</p>' if dim.get("evidence") else ''}
+{evidence_links(t, dim.get('turn_refs'))}
 </div>"""
 
 
@@ -521,6 +610,16 @@ def section(title, body, cls=""):
     return f'<section class="sec {cls}"><h2>{esc(title)}</h2>{body}</section>'
 
 
+def evidence_links(t, refs):
+    """Stable, printable links from analysis back to the original session record."""
+    if not refs:
+        return ""
+    links = " ".join(
+        f'<a class="evidence__link" href="#{esc(ref)}">{esc(t["view_turn"])} {esc(ref)}</a>'
+        for ref in refs)
+    return f'<p class="evidence"><span>{esc(t["evidence"])}:</span> {links}</p>'
+
+
 def kv_strip(pairs):
     cells = "".join(
         f'<div class="kv"><dt>{esc(k)}</dt><dd>{esc(v)}</dd></div>' for k, v in pairs if v
@@ -528,7 +627,7 @@ def kv_strip(pairs):
     return f'<dl class="strip">{cells}</dl>' if cells else ""
 
 
-def bullets(items, key=None):
+def bullets(t, items, key=None):
     if not items:
         return ""
     out = []
@@ -539,7 +638,7 @@ def bullets(items, key=None):
             tag = it.get("status")
             tag_html = f'<span class="tag tag--{esc(tag)}">{esc(tag)}</span>' if tag else ""
             out.append(f'<li><span class="blist__h"><b>{esc(title)}</b>{tag_html}</span>'
-                       f'{para(detail)}</li>')
+                       f'{para(detail)}{evidence_links(t, it.get("turn_refs"))}</li>')
         else:
             out.append(f"<li>{esc(it)}</li>")
     return f'<ul class="blist">{"".join(out)}</ul>'
@@ -565,7 +664,44 @@ def moment_block(t, m, tutorial=False):
     body = "".join(f'<div class="mrow"><dt>{esc(k)}</dt><dd>{para(v)}</dd></div>'
                    for k, v in rows if v)
     return f"""<article class="moment">
-  <h3>{esc(m.get('stage'))}</h3>{quote}<dl class="mgrid">{body}</dl></article>"""
+  <h3>{esc(m.get('stage'))}</h3>{quote}<dl class="mgrid">{body}</dl>
+  {evidence_links(t, m.get('turn_refs'))}</article>"""
+
+
+def transcript_block(t, records):
+    role_labels = {
+        "candidate": t["role_candidate"],
+        "interviewer": t["role_interviewer"],
+        "tutor": t["role_tutor"],
+    }
+    out = []
+    for record in records:
+        rid = record["id"]
+        tags = "".join(f'<span class="tag">{esc(tag)}</span>'
+                       for tag in (record.get("tags") or []))
+        if record["type"] == "event":
+            stage = (f'<span class="transcript__stage">{esc(record.get("stage"))}</span>'
+                     if record.get("stage") else "")
+            assistance = record.get("assistance_level")
+            assistance_html = (f'<span class="tag">{esc(t["assist"][assistance])}</span>'
+                               if assistance else "")
+            out.append(
+                f'<div class="transcript__event" id="{esc(rid)}">'
+                f'<span class="transcript__id">{esc(rid)}</span>{stage}{assistance_html}'
+                f'<span>{esc(record["content"])}</span></div>')
+            continue
+        role = record["role"].lower()
+        stage = (f'<span class="transcript__stage">{esc(record.get("stage"))}</span>'
+                 if record.get("stage") else "")
+        out.append(
+            f'<article class="transcript__item transcript__item--{esc(role)}" id="{esc(rid)}">'
+            f'<header><span class="transcript__id">{esc(rid)}</span>'
+            f'<b>{esc(role_labels[role])}</b>{stage}{tags}</header>'
+            f'<div class="transcript__content">{esc(record["content"])}</div></article>')
+    return (f'<details class="sec transcript" open><summary><span>{esc(t["transcript"])}</span>'
+            f'<small>{esc(t["transcript_open"])}</small></summary>'
+            f'<div class="transcript__body"><p class="privacy-note">{esc(t["transcript_privacy"])}</p>'
+            f'{"".join(out)}</div></details>')
 
 
 def tree_nodes(nodes, depth=0):
@@ -624,6 +760,11 @@ border-top:1px solid var(--rule);padding-top:1.1rem;margin-top:.2rem}
 border-left:3px solid var(--axis);padding-left:.7rem}
 .lede{font-size:1.06rem;line-height:1.6;margin:1.1rem 0 0;padding-top:1rem;
 border-top:1px solid var(--rule)}
+.case-prompt__text{white-space:pre-wrap;font-size:.96rem;line-height:1.65;margin:0}
+.evidence{font-size:.78rem;color:var(--muted);margin:.4rem 0 0}
+.evidence__link{display:inline-block;color:var(--fill);font-weight:650;text-decoration:none;
+border-bottom:1px solid currentColor;margin-right:.35rem}
+.evidence__link:focus,.evidence__link:hover{outline:2px solid var(--track);outline-offset:2px}
 .dim{padding:.7rem 0;border-bottom:1px solid var(--rule)}
 .dim:last-child{border-bottom:0}
 .dim__head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:0 0 .38rem}
@@ -692,6 +833,28 @@ border:1px dashed var(--axis);border-radius:6px}
 .pri{border-top:1px solid var(--rule);padding:.95rem 0 .2rem}
 .pri:first-of-type{border-top:0;padding-top:0}
 .pri h3{margin:0 0 .5rem}
+.transcript{padding:0;overflow:hidden}
+.transcript summary{cursor:pointer;list-style:none;padding:1.25rem 1.5rem;display:flex;
+justify-content:space-between;align-items:baseline;gap:1rem}
+.transcript summary::-webkit-details-marker{display:none}
+.transcript summary span{font-size:1.05rem;letter-spacing:.01em;text-transform:uppercase;
+color:var(--ink2);font-weight:650}
+.transcript summary small{font-size:.78rem;color:var(--muted);font-weight:500}
+.transcript[open] summary{border-bottom:1px solid var(--rule)}
+.transcript__body{padding:1.2rem 1.5rem 1.5rem}
+.privacy-note{font-size:.82rem;color:var(--ink2);border-left:3px solid var(--axis);
+padding-left:.7rem;margin:0 0 1rem}
+.transcript__item{border:1px solid var(--ring);border-radius:7px;padding:.75rem .9rem;
+margin:0 0 .65rem;background:var(--page);scroll-margin-top:1rem}
+.transcript__item--candidate{border-left:3px solid var(--o3)}
+.transcript__item header{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin:0 0 .35rem;
+font-size:.8rem;color:var(--ink2)}
+.transcript__id{font-variant-numeric:tabular-nums;font-weight:700;color:var(--fill)}
+.transcript__stage{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.transcript__content{white-space:pre-wrap;font-size:.93rem;line-height:1.6}
+.transcript__event{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin:.9rem 0;
+padding:.55rem .75rem;border:1px dashed var(--axis);border-radius:6px;color:var(--ink2);font-size:.84rem;
+scroll-margin-top:1rem}
 .foot{color:var(--muted);font-size:.8rem;margin:1.6rem 0 0;text-align:center}
 @media (max-width:640px){
 .wrap{padding:1.5rem .9rem 3rem}.cols{grid-template-columns:1fr}
@@ -709,6 +872,8 @@ h2,h3{break-after:avoid;page-break-after:avoid}
 .hero{break-inside:avoid;page-break-inside:avoid}
 .cols>div{break-inside:avoid;page-break-inside:avoid}
 .moment,.pri,.hint,.dim{break-inside:avoid;page-break-inside:avoid}
+.transcript>summary{display:none}.transcript__body{display:block!important;padding:10pt 12pt}
+.transcript__item,.transcript__event{break-inside:avoid;page-break-inside:avoid}
 h2{font-size:9pt}.foot{margin-top:10pt}
 .hstep--end{background:#104281 !important;color:#fff !important}}
 """
@@ -777,10 +942,15 @@ def build(d):
     hero = f"""<section class="sec hero">
   <h1>{esc(title)}<span class="badge {badge_cls}">{esc(badge_txt)}</span></h1>
   <p class="sub">{esc(subq)}</p>
-  {kv_strip(pairs)}{result}{lede_html}
+  {kv_strip(pairs)}
 </section>"""
 
-    body = [hero]
+    prompt_html = section(
+        t["case_prompt"],
+        f'<div class="case-prompt__text">{esc(d["case_prompt"])}</div>',
+        "case-prompt")
+    summary_html = section(t["session_summary"], result + lede_html, "summary")
+    body = [hero, prompt_html, summary_html]
 
     # --- dimensions --------------------------------------------------------
     dims = d.get("dimensions") or []
@@ -804,7 +974,8 @@ def build(d):
                 if not obj: return ""
                 rows = "".join(f"<dt>{esc(k)}</dt><dd>{para(obj.get(v))}</dd>"
                                for k, v in keys if obj.get(v))
-                return f'<div class="phase"><h3>{esc(h)}</h3><dl>{rows}</dl></div>'
+                return (f'<div class="phase"><h3>{esc(h)}</h3><dl>{rows}</dl>'
+                        f'{evidence_links(t, obj.get("turn_refs"))}</div>')
             a = phase_card(t["assisted_phase"], ph.get("assisted"),
                            [("Covered / 完成内容", "covered"), ("Hints / 使用的提示", "hints"),
                             ("Corrected / 教学后修正", "corrected")])
@@ -817,8 +988,8 @@ def build(d):
     # --- strengths / weaknesses -------------------------------------------
     st, wk = d.get("strengths") or [], d.get("weaknesses") or []
     if st or wk:
-        left = f'<div><h3>{esc(t["strengths"])}</h3>{bullets(st)}</div>' if st else ""
-        right = f'<div><h3>{esc(t["weaknesses"])}</h3>{bullets(wk)}</div>' if wk else ""
+        left = f'<div><h3>{esc(t["strengths"])}</h3>{bullets(t, st)}</div>' if st else ""
+        right = f'<div><h3>{esc(t["weaknesses"])}</h3>{bullets(t, wk)}</div>' if wk else ""
         head_txt = t["assessment"] if (st and wk) else (t["strengths"] if st else t["weaknesses"])
         body.append(section(head_txt, f'<div class="cols">{left}{right}</div>'))
 
@@ -841,7 +1012,8 @@ def build(d):
                 inner = "".join(f'<div class="mrow"><dt>{esc(k)}</dt><dd>{para(v)}</dd></div>'
                                 for k, v in pairs2 if v)
                 rows.append(f'<article class="moment"><h3>{esc(m.get("title"))}</h3>'
-                            f'<dl class="mgrid">{inner}</dl></article>')
+                            f'<dl class="mgrid">{inner}</dl>'
+                            f'{evidence_links(t, m.get("turn_refs"))}</article>')
             body.append(section(t["missed"], "".join(rows)))
 
         asst = d.get("assistance") or {}
@@ -852,8 +1024,9 @@ def build(d):
                 eff = e.get("effect")
                 eff_html = "<p>{}</p>".format(esc(eff)) if eff else ""
                 ev_items.append(
-                    "<li><b>{}</b><p>{}</p>{}</li>".format(
-                        esc(e.get("stage")), esc(e.get("prompt")), eff_html))
+                    "<li><b>{}</b><p>{}</p>{}{}</li>".format(
+                        esc(e.get("stage")), esc(e.get("prompt")), eff_html,
+                        evidence_links(t, e.get("turn_refs"))))
             ev = "".join(ev_items)
             inner = (f'<p><b>{esc(lvl)}</b></p>' if lvl else "") + para(asst.get("summary"))
             inner += f'<ul class="blist">{ev}</ul>' if ev else ""
@@ -868,7 +1041,8 @@ def build(d):
         if rc.get("yours") or rc.get("stronger"):
             blocks = ""
             if rc.get("yours"):
-                blocks += f'<div class="rec"><h3>{esc(t["your_rec"])}</h3>{para(rc["yours"])}</div>'
+                blocks += (f'<div class="rec"><h3>{esc(t["your_rec"])}</h3>{para(rc["yours"])}'
+                           f'{evidence_links(t, rc.get("turn_refs"))}</div>')
             if rc.get("issues"):
                 iss = "".join(f'<div class="issue"><dt>{esc(i.get("criterion"))}</dt>'
                               f'<dd>{esc(i.get("note"))}</dd></div>' for i in rc["issues"])
@@ -882,17 +1056,17 @@ def build(d):
     if tutorial:
         rm = d.get("recurring_mistakes") or []
         if rm:
-            body.append(section(t["recurring"], bullets(rm)))
+            body.append(section(t["recurring"], bullets(t, rm)))
         mas = d.get("mastery") or {}
         if mas.get("independent") or mas.get("needs_help"):
-            l = (f'<div><h3>{esc(t["mastery_yes"])}</h3>{bullets(mas.get("independent"))}</div>'
+            l = (f'<div><h3>{esc(t["mastery_yes"])}</h3>{bullets(t, mas.get("independent"))}</div>'
                  if mas.get("independent") else "")
-            r = (f'<div><h3>{esc(t["mastery_no"])}</h3>{bullets(mas.get("needs_help"))}</div>'
+            r = (f'<div><h3>{esc(t["mastery_no"])}</h3>{bullets(t, mas.get("needs_help"))}</div>'
                  if mas.get("needs_help") else "")
             body.append(section(t["mastery_h"], f'<div class="cols">{l}{r}</div>'))
         tl = d.get("transferable_lessons") or []
         if tl:
-            body.append(section(t["lessons"], bullets(tl)))
+            body.append(section(t["lessons"], bullets(t, tl)))
 
     # --- next priorities ---------------------------------------------------
     np_ = d.get("next_priorities") or []
@@ -905,8 +1079,12 @@ def build(d):
             inner = "".join(f'<div class="mrow"><dt>{esc(k)}</dt><dd>{para(v)}</dd></div>'
                             for k, v in kk if v)
             rows.append(f'<div class="pri"><h3>{esc(p.get("title"))}</h3>'
-                        f'<dl class="mgrid">{inner}</dl></div>')
+                        f'<dl class="mgrid">{inner}</dl>'
+                        f'{evidence_links(t, p.get("turn_refs"))}</div>')
         body.append(section(t["next_plan"] if tutorial else t["next"], "".join(rows)))
+
+    # --- full evidence record ----------------------------------------------
+    body.append(transcript_block(t, d["transcript"]))
 
     stamp = s.get("date") or datetime.date.today().isoformat()
     sid = s.get("id") or ""

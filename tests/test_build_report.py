@@ -417,6 +417,152 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
         build_report.validate(self._doc("tutorial"))    # has training_focus etc.
 
 
+class PromptTranscriptTests(unittest.TestCase):
+    """The report preserves the candidate-visible evidence record verbatim."""
+
+    def _example(self, name):
+        path = os.path.join(EXAMPLES, name + ".json")
+        with open(path, encoding="utf-8") as f:
+            return path, json.load(f)
+
+    def test_interview_and_tutorial_include_exact_case_prompt(self):
+        import html as html_mod
+        for name in ("interview-report", "tutorial-report"):
+            with self.subTest(example=name):
+                path, doc = self._example(name)
+                proc, page = render(path)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertIn("Case Prompt", page)
+                self.assertIn(html_mod.escape(doc["case_prompt"], quote=True), page)
+
+    def test_full_transcript_content_and_order_are_preserved(self):
+        import html as html_mod
+        for name in ("interview-report", "tutorial-report"):
+            with self.subTest(example=name):
+                path, doc = self._example(name)
+                proc, page = render(path)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                positions = []
+                for record in doc["transcript"]:
+                    self.assertIn(html_mod.escape(record["content"], quote=True), page)
+                    positions.append(page.index('id="{}"'.format(record["id"])))
+                self.assertEqual(positions, sorted(positions))
+                self.assertNotIn("…", "".join(r["content"] for r in doc["transcript"]))
+
+    def test_mode_appropriate_speakers_are_rendered(self):
+        interview, interview_html = render(os.path.join(EXAMPLES, "interview-report.json"))
+        tutorial, tutorial_html = render(os.path.join(EXAMPLES, "tutorial-report.json"))
+        self.assertEqual(interview.returncode, 0, interview.stderr)
+        self.assertEqual(tutorial.returncode, 0, tutorial.stderr)
+        self.assertIn("Interviewer", interview_html)
+        self.assertNotIn("<b>Tutor</b>", interview_html)
+        self.assertIn("<b>Tutor</b>", tutorial_html)
+
+    def test_critical_moment_links_to_existing_turn(self):
+        proc, page = render(os.path.join(EXAMPLES, "interview-report.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn('href="#T04">View T04</a>', page)
+        self.assertIn('id="T04"', page)
+
+    def test_missing_turn_reference_fails_validation(self):
+        _, doc = self._example("interview-report")
+        doc["key_moments"][0]["turn_refs"] = ["T999"]
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("T999", str(cm.exception))
+
+    def test_case_prompt_and_transcript_markup_are_escaped(self):
+        import html as html_mod
+        _, doc = self._example("interview-report")
+        payload = '<script>x()</script><img src=x onerror=y><svg onload=z>'
+        doc["case_prompt"] = payload
+        doc["transcript"][1]["content"] = payload
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        self.assertNotIn(payload, page)
+        self.assertIn(html_mod.escape(payload, quote=True), page)
+        self.assertNotIn("<script>x()</script>", page)
+
+    def test_prompt_and_transcript_are_required(self):
+        _, doc = self._example("interview-report")
+        for field, value in (("case_prompt", ""), ("case_prompt", None),
+                             ("transcript", []), ("transcript", None)):
+            with self.subTest(field=field, value=value):
+                altered = json.loads(json.dumps(doc))
+                altered[field] = value
+                with self.assertRaises(build_report.ValidationError):
+                    build_report.validate(altered)
+
+    def test_transcript_ids_are_unique_and_order_is_the_array_order(self):
+        _, doc = self._example("tutorial-report")
+        doc["transcript"][1]["id"] = doc["transcript"][0]["id"]
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("unique transcript ID", str(cm.exception))
+
+    def test_roles_are_mode_specific(self):
+        _, doc = self._example("interview-report")
+        doc["transcript"][0]["role"] = "tutor"
+        with self.assertRaises(build_report.ValidationError):
+            build_report.validate(doc)
+        _, doc = self._example("tutorial-report")
+        doc["transcript"][0]["role"] = "interviewer"
+        with self.assertRaises(build_report.ValidationError):
+            build_report.validate(doc)
+
+    def test_internal_fields_cannot_enter_transcript(self):
+        _, doc = self._example("interview-report")
+        doc["transcript"][0]["system_prompt"] = "hidden instruction"
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("user-visible transcript fields", str(cm.exception))
+
+    def test_aborted_interview_marks_formal_end_and_debrief(self):
+        proc, page = render(os.path.join(FIXTURES, "interview-aborted.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Formal Interview Ends Here", page)
+        self.assertIn("Post-Interview Debrief Begins", page)
+        self.assertLess(page.index("Formal Interview Ends Here"),
+                        page.index("Post-Interview Debrief Begins"))
+
+    def test_tutorial_assistance_change_is_an_event_not_a_message(self):
+        proc, page = render(os.path.join(EXAMPLES, "tutorial-report.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn('class="transcript__event" id="E02"', page)
+        self.assertIn("Independent practice began", page)
+
+    def test_long_transcript_renders_completely_and_print_css_reveals_it(self):
+        _, doc = self._example("interview-report")
+        doc["transcript"] = [
+            {"id": "T{:02d}".format(i), "type": "message",
+             "role": "candidate" if i % 2 == 0 else "interviewer",
+             "content": "Complete message {} with no truncation.".format(i)}
+            for i in range(1, 81)
+        ]
+        for item in doc.get("dimensions", []) + doc.get("strengths", []) + doc.get("weaknesses", []):
+            item.pop("turn_refs", None)
+        for item in doc.get("key_moments", []) + doc.get("missed_insights", []) + doc.get("next_priorities", []):
+            item.pop("turn_refs", None)
+        for item in (doc.get("assistance") or {}).get("events", []):
+            item.pop("turn_refs", None)
+        (doc.get("recommendation_compare") or {}).pop("turn_refs", None)
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        self.assertIn("Complete message 80 with no truncation.", page)
+        self.assertEqual(page.count('class="transcript__item '), 80)
+        self.assertIn(".transcript__body{display:block!important", page)
+
+    def test_public_examples_are_fictional_and_contain_no_internal_record_fields(self):
+        for name in ("interview-report", "interview-report.zh-CN",
+                     "tutorial-report", "tutorial-report.zh-CN"):
+            with self.subTest(example=name):
+                _, doc = self._example(name)
+                self.assertIn("fictional" if doc["language"] == "en" else "虚构",
+                              doc["case_prompt"])
+                for record in doc["transcript"]:
+                    self.assertEqual(set(record) - set(build_report.TRANSCRIPT_FIELDS), set())
+
+
 
 class PaletteTests(unittest.TestCase):
     """Executable record of the ordinal ramp properties the CSS relies on."""

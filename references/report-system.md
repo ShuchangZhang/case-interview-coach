@@ -25,7 +25,9 @@ how performance is scored.** It governs only what happens after the session ends
 2. Produce the assessment content exactly as `interview-mode.md` §8/§9 or `tutorial-mode.md` §8
    already specify. **The rubric and the content rules are unchanged** — this system changes the
    container, not the judgment.
-3. Write that content into a **Session Report JSON** (§3).
+3. Write that content into a **Session Report JSON** (§3), including the exact candidate-facing
+   prompt captured at session start and the ordered user-visible session transcript. Do not
+   reconstruct either from memory at report time.
 4. Render it. **Invoke the script by its absolute path inside the skill directory** — never as a
    bare relative path, because the working directory is the user's project, not the skill:
 
@@ -63,6 +65,11 @@ e.g. `case_interview_report_2026-08-20_interview_grocery-profitability.html`
 
 Adapt to the environment if a different convention fits better; keep the date and mode in the name.
 
+`case_prompt` is the exact wording the candidate saw at formal start. For a user-provided case,
+copy only the candidate-facing prompt actually used in the session. Never include an interviewer
+guide, answer key, hidden root cause, unrevealed exhibit, later-supplied number or generation
+blueprint. The test is simple: could the candidate see this text at that moment?
+
 ---
 
 ## 2. Validation and guard rails — the build fails, it does not warn
@@ -84,6 +91,12 @@ whose claims no longer match the session.
 | `assistance.level` | `none`, `light`, `moderate` or `substantial` |
 | `headline.verdict` | Strong Hire / Hire / Borderline / No Hire, or null |
 | `headline.benchmark_requested` | a JSON boolean — `true` or `false`, never a string or number |
+| `case_prompt` | a non-empty string: the exact prompt shown to the candidate at formal start |
+| `transcript` | a non-empty ordered array of validated message and event records |
+| `transcript[].id` | unique, stable, HTML-safe identifier |
+| `transcript[].type` | `message` or `event` |
+| message `role` | Interview: `candidate` / `interviewer`; Tutorial: `candidate` / `tutor` |
+| analysis `turn_refs` | non-empty array containing only IDs that exist in `transcript` |
 
 **Semantic rules**
 
@@ -140,6 +153,17 @@ shared. Omit anything you have no real data for.
 {
   "language": "zh" | "en",
 
+  "case_prompt": "Exact candidate-facing wording shown at formal session start",
+  "transcript": [
+    { "id": "T01", "type": "message", "role": "interviewer",
+      "content": "Exact user-visible wording", "stage": "opening",
+      "tags": ["Case Prompt"] },
+    { "id": "T02", "type": "message", "role": "candidate",
+      "content": "Exact candidate response", "stage": "clarifying" },
+    { "id": "E01", "type": "event", "stage": "formal_interview_end",
+      "content": "Formal Interview Ends Here" }
+  ],
+
   "session": {
     "id": "S-2026-08-20-A",
     "date": "2026-08-20",
@@ -183,7 +207,7 @@ shared. Omit anything you have no real data for.
     // [I] shape
     { "stage": "Initial structure", "quote": "…what the candidate actually said…",
       "what_you_did": "...", "worked": "...", "problem": "...",
-      "consequence": "...", "stronger": "..." },
+      "consequence": "...", "stronger": "...", "turn_refs": ["T05"] },
     // [T] shape — error → hint → retry → principle
     { "stage": "First structure attempt", "quote": "...",
       "what_you_did": "...", "intervention": "...", "retry": "...", "learning": "..." }
@@ -244,8 +268,8 @@ shared. Omit anything you have no real data for.
 
 ## 4. Interview report — what each section must contain
 
-**First screen** (case strip + result + one-liner) must let the reader understand the outcome
-without scrolling.
+The opening order is title and metadata, the complete original Case Prompt, then the result and
+one-line summary. This lets the reader recover the problem before interpreting the assessment.
 
 1. **Case strip** — type, industry, geography, difficulty, format, completion badge, assistance
    level.
@@ -261,7 +285,8 @@ without scrolling.
 5. **Strengths / detractors** — 2–4 each. Every item quotes a real behaviour from this session.
    Detractors are ordered **by impact on the result**, not chronologically. The question each one
    answers is: what actually downgraded this case?
-6. **Key moments** — 3–7, only ones with teaching value. Not a transcript.
+6. **Key moments** — 3–7, only ones with teaching value. Include `turn_refs` to the complete
+   source messages; keep the analysis concise because the full transcript is available below.
 7. **Missed insights** — for each: evidence that was available, where they stopped, what follows
    from it, why it matters to the client's decision. Not a printed answer key.
 8. **Interviewer assistance** — the level, and where the decisive prompts landed. This must be
@@ -306,8 +331,8 @@ nothing else was sampled").
    A flat `Level 3 → Level 3` is the most useful thing on the page: it names what to train next.
 5. **Assisted vs independent phases** — if an `independence_marker` exists, state where it was and
    evaluate the two stretches separately. **Never merge them into one score.**
-6. **Key learning moments** — error → intervention → retry → principle. Only moments with real
-   teaching value.
+6. **Key learning moments** — error → intervention → retry → principle. Cite the first attempt,
+   hint and retry with `turn_refs`. Only moments with real teaching value.
 7. **Recurring mistakes** — `status: "repeat"` is permitted **only** when a learner profile
    actually records it. With no history, everything is `new`. Do not invent a trend.
 8. **Mastery check** — two lists: can do unaided / still needs support. This is the section the
@@ -340,6 +365,8 @@ implemented in `scripts/build_report.py`; do not hand-roll a different one.
 - **Print**: A4/Letter, dark backgrounds avoided, cards and moments kept off page breaks, colours
   preserved, headings never orphaned.
 - **Responsive**: two-column blocks collapse below 640px; label/value grids stack.
+- **Evidence layer**: analysis links remain readable as Turn IDs in print. The complete transcript
+  may use native `<details>` on screen, but print CSS must reveal every record.
 - Permitted: cards, columns, meters, chips, small trees, timelines, emphasised numbers.
   Not permitted: gradients, animation, emoji, decorative iconography, dashboard chrome.
 
@@ -368,6 +395,11 @@ allowed **only** when a learner profile was actually read (`SKILL.md` §3.4 — 
 entirely, in which case there is no history to compare against and every recurring mistake is
 `new`). Never put personal information unrelated to case training into the report.
 
+The transcript is a user-visible evidence record, not an internal trace. Include only natural
+language shown between formal session start and the terminal review, plus visibly distinct event
+markers for state transitions. Exclude system/developer prompts, SKILL instructions, hidden case
+data, answer keys, reasoning, internal scoring drafts, tools, memory operations and unrelated chat.
+
 ---
 
 ## 8. Delivering it in chat
@@ -385,8 +417,13 @@ or `tutorial-mode.md` §8, and say the HTML step failed.
 
 ---
 
-## 9. Quoting the user
+## 9. Original evidence and privacy
 
-Both reports may quote a few of the user's actual words (`quote` on a key moment) to anchor a
-diagnosis — then analyse why that phrasing worked or didn't. Short quotes only; never a
-transcript.
+Both reports may quote short excerpts in analysis, then link to full messages through `turn_refs`.
+The complete transcript appears once at the end as the evidence layer; never duplicate it inside
+the diagnosis.
+
+The report contains the user's complete natural-language contributions within this training
+session. The local renderer does not upload them or make network requests. Tell users to review the
+HTML before sharing it publicly, because their own answers may contain information they do not
+want to disclose.
