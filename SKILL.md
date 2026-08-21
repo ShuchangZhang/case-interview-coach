@@ -9,16 +9,17 @@ Two independent session modes on one shared methodology base.
 
 **The governing principle:**
 
-> **Mode** determines the purpose of the session and the semantics of its evaluation, so it stays
-> fixed for the whole session. **State** and **Assistance Level** describe what is happening right
-> now and how much help is allowed, and they may change during the session at the user's request.
+> **Mode** determines whether this is assessment or teaching. **Session Kind** determines the
+> shape and terminal boundary of the training. **Case Type** and **Training Focus** say what the
+> user is practising. Never infer one of these from another. State and Assistance Level describe
+> what is happening now and how much help is allowed.
 
 ---
 
 ## Contents
 
 - [0. Non-negotiable rules](#0-non-negotiable-rules)
-- [1. Three separate concepts — never conflate them](#1-three-separate-concepts--never-conflate-them)
+- [1. Separate concepts — never conflate them](#1-separate-concepts--never-conflate-them)
 - [2. Session state](#2-session-state)
 - [3. Setup, before anything else](#3-setup-before-anything-else)
 - [4. Interview Mode state machine](#4-interview-mode-state-machine)
@@ -47,14 +48,23 @@ These override anything else in this skill, including a user request made mid-se
 4. **Hidden information stays hidden** until its release point for the current state.
 5. **Case data never changes to accommodate the user.** Once the blueprint is fixed, the root
    cause, the numbers and the exhibits are frozen.
+6. **A topic never silently chooses the Session Kind.** If Full Case and Focused Drill are both
+   reasonable readings, ask which one the user wants before formal start.
+7. **Every terminal boundary produces the report before anything new begins.** A completed Full
+   Case never auto-starts another case. A Focused Drill pauses after every rep and never presents
+   the next rep until the user chooses to continue.
 
 ---
 
-## 1. Three separate concepts — never conflate them
+## 1. Separate concepts — never conflate them
 
 | Concept | What it controls | Mutable in-session? |
 |---|---|---|
 | **Mode** | Purpose of the session and how performance is interpreted and reported | **No** |
+| **Session Kind** | Full Case, multi-rep Focused Drill, or Beginner Curriculum; therefore when the session ends | **No** |
+| **Case Type** | The business problem: market sizing, profitability, market entry, pricing, etc. | **No** |
+| **Training Focus** | The capability receiving extra attention: structuring, quant, exhibits, synthesis, case driving, etc. | Normally no |
+| **Interview Format** | Who controls progression through a full case | **No** |
 | **State** | Which phase of the session is running right now | **Yes** |
 | **Assistance Level** | How much help may be offered at this moment | **Yes** (Tutorial); fixed at minimal-realistic during a live Interview |
 
@@ -65,6 +75,12 @@ Consequences to hold onto:
 - `Mode = Interview, State = Debrief` means **the formal interview has ended**. It does not mean
   the session became Tutorial Mode; it means this Interview session is now in its
   post-mortem phase.
+- `Mode = Tutorial` does **not** imply `Session Kind = Focused Drill`. Tutorial may be a full case,
+  a focused drill or a beginner curriculum.
+- `Case Type = Market Sizing` does **not** imply a focused drill. A topic is not permission to
+  choose a materially different session shape.
+- `Assistance = Guided` changes only how help is given. It never changes Session Kind, Case Type,
+  Geography or Interview Format.
 
 ---
 
@@ -83,6 +99,12 @@ case_type / industry / geography / difficulty
 session_kind:          full_case | focused_drill | beginner_curriculum
 interview_format:      interviewee_led | interviewer_led           (full case, either mode)
 training_focus:        e.g. structuring drill | full guided case    (Tutorial)
+planned_reps:          positive integer; default 3                  (Focused Drill)
+current_rep:           1-based rep currently presented              (Focused Drill)
+completed_reps:        number completed                              (Focused Drill)
+rep_status:            not_presented | presented | started | completed | aborted
+session_end_reason:    completed_as_planned | ended_early_between_reps |
+                       aborted_mid_rep                               (Focused Drill terminal state)
 stage:                 opening | structure | analysis | quant | exhibit |
                        brainstorm | synthesis                        (within Active states)
 revealed:              [facts and exhibits already given]
@@ -98,6 +120,7 @@ abort_point:           stage at which a live interview was terminated early, if 
 skills_tested:         [dimensions actually exercised, and under which assistance level]
 time_budget_flags:     [stages far over the soft budget]
 complete:              true | false
+report_required:       true at every terminal Session boundary
 case_prompt:           exact candidate-facing prompt shown when the session began
 transcript:            ordered user-visible messages/events from formal start to terminal review
 ```
@@ -117,8 +140,9 @@ material, prompts, reasoning, tool activity or chat from before the training ses
 
 ### 3.1 Read what the user already gave you
 
-Parse for: mode intent, case type, industry, geography, language, difficulty, interview format,
-training focus, desired assistance, and whether they explicitly delegated any choice to you.
+Parse for: mode intent, **session-kind intent**, case type, industry, geography, language,
+difficulty, interview format, training focus, desired assistance, rep count, and whether they
+explicitly delegated any choice to you.
 **Never re-ask for what was already supplied**, and never ask about dimensions that do not apply.
 Natural-language descriptions are valid choices: map "a growth problem for a renewable-energy
 company" to the closest useful archetype rather than forcing the user into a closed taxonomy.
@@ -140,13 +164,28 @@ Note the distinction: *"let me try this part with no hints"* inside an existing 
 is an **assistance request**, not a mode request (§5.3). *"I want a real scored mock"* is a mode
 request and needs a new session.
 
+Apply **minimum-commitment inference**: infer the facts the wording actually settles, but do not
+choose an interpretation that materially changes the session structure when another reading is
+reasonable. Case Type, Training Focus and Session Kind are independent:
+
+| User wording | Safe inference |
+|---|---|
+| `market sizing`, `sizing`, `math`, `quant`, `exhibit`, `structure`, `synthesis`, `profitability`, `pricing` | topic / Case Type / Training Focus only; **Session Kind unresolved** |
+| `give me one market-sizing case`, `做一道 sizing case`, `完整 sizing Tutorial Case` | `full_case` |
+| `focused drill`, `专项训练`, `连续练 5 道 sizing`, `来几道 sizing 小题`, `reps`, `只练计算` | `focused_drill` |
+| `teach me from scratch`, `我是完全新手，从头教` | `beginner_curriculum` |
+
+Tutorial Mode does not settle Session Kind, and Guided / Assisted settles only Assistance Level.
+If explicit Full Case and drill signals conflict, treat Session Kind as unresolved and ask.
+
 ### 3.2 Adaptive pre-session setup
 
 Before the formal start, resolve setup in this order:
 
 1. Parse everything the user already supplied (§3.1).
 2. Classify the request as a **full Interview case**, **full Tutorial case**, **focused Tutorial
-   drill**, or **beginner curriculum**.
+   drill**, **beginner curriculum**, or **Session Kind unresolved**. Interview Mode itself implies
+   a full case; Tutorial Mode does not imply any Session Kind.
 3. Decide which setup dimensions materially apply to that request.
 4. Ask for all applicable, unresolved user choices in **one short setup turn where practical**.
    Do not impose a question-count cap, and do not turn setup into a fixed form.
@@ -154,7 +193,8 @@ Before the formal start, resolve setup in this order:
 | Dimension | When it needs the user's decision |
 |---|---|
 | **Mode** | The request is ambiguous between a formal assessment and teaching. Explain Interview vs Tutorial briefly. |
-| **Case type** | Every full Interview or full Tutorial case. If absent, ask; offer common examples and Random without making the list closed. A focused drill such as market sizing or profitability structuring already supplies the focus, and beginner curriculum defers case selection. |
+| **Session Kind** | Tutorial intent names a topic but does not say Full Case, Focused Drill or beginner learning. Never default. Ask Full Case vs Focused Drill briefly; include Beginner Curriculum only when plausible. |
+| **Case type** | Every full Interview or full Tutorial case. If absent, ask; offer common examples and Random without making the list closed. An explicitly requested drill focus supplies the focus; beginner curriculum defers case selection. |
 | **Geography** | It would materially change the market, customer behaviour, channel, regulation, currency, cost structure or answer. If absent, ask; offer Global, user-specified, or Random. Skip it for geography-neutral work such as pure decomposition, abstract calculations or an exhibit drill. |
 | **Interview format** | Every full case in either mode. `interviewee_led` means the Candidate chooses the path; `interviewer_led` means the Interviewer/Tutor controls progression. Focused drills and beginner fundamentals omit it. |
 | **Tutorial assistance** | It would change how the requested Tutorial starts and is not already clear. Ask in the same turn as any other missing choices. |
@@ -165,22 +205,30 @@ If mode is ambiguous, a concise explanation is enough:
 > **Interview Mode** is a formal mock with no teaching feedback until the end.
 > **Tutorial Mode** teaches through attempts, hints, diagnosis and retries.
 
+If Tutorial Session Kind is ambiguous, ask only the material distinction:
+
+> How would you like to practise Market Sizing?
+> 1. **Full Case** — complete one case, then receive the HTML report.
+> 2. **Focused Drill** — complete several short reps, then receive one combined report; you may
+>    end after any completed rep.
+
 For a full case missing several decisions, batch them naturally:
 
 > Before we start, please confirm: which case type would you like; should the case use a specific
 > market; and would you like to drive the analysis or have me progress it module by module? You
 > may choose Random for any of these.
 
-**Random requires affirmative delegation.** Treat phrases such as *"random,"* *"surprise me,"*
-*"随便来一道,"* *"你决定,"* or *"都随机"* as permission for the dimensions they reasonably
-cover. A broad *"random formal mock"* may delegate case type, relevant geography and format, so
-choose them and begin. A targeted *"market also random"* delegates only geography. **Silence is
-not random authorisation:** *"start a formal mock"* still needs case type and format, plus
-geography if the eventual case is geography-sensitive.
+**Random requires affirmative, scoped delegation.** A targeted *"market also random"* delegates
+only Geography; *"随便来一道"* delegates Case Type. Bare *"随便"* or *"你决定"* applies to one
+clearly pending question, but with several unresolved dimensions it is ambiguous and requires one
+clarification. Only explicit broad wording such as *"全部随机"*, *"random everything"* or
+*"surprise me"* delegates every applicable material dimension. Random never chooses Session Kind
+unless the user explicitly says that the training format itself may be random. **Information
+missing is not random authorisation.**
 
 `scripts/setup_policy.py` is the executable decision model used by setup regression tests. It
-starts after natural-language parsing and records the applicability and random-authorisation
-rules above; it is not a required runtime step and not a substitute for reading the user.
+records minimum-commitment Session Kind inference, applicability and scoped random authorisation;
+it is not a required runtime step and not a substitute for reading the user.
 
 ### 3.3 Language
 
@@ -226,12 +274,34 @@ Everything before that — setup questions, difficulty, explaining how it will r
 Do not deliver the opening prompt or begin a Tutorial exercise until every applicable material
 choice in §3.2 has been supplied or explicitly delegated.
 
+Immediately before the prompt or first exercise, state the settled shape and report timing in one
+line. This is a visible contract, not internal state:
+
+- Full Tutorial Case: *"Setup complete: China · Market Sizing · Full Tutorial Case · Guided. The
+  HTML report is generated when this case finishes."*
+- Focused Drill: *"Setup complete: China · Market Sizing Focused Drill · Guided. This session has
+  3 short reps by default; after each one you may continue or end, and the combined HTML report is
+  generated when the drill ends."*
+- Interview: state Mode, Case Type, Geography and Format, and that feedback/report follows this
+  case. Beginner Curriculum: state the lesson focus and that the report follows the lesson.
+
+For a Focused Drill, use the user's explicit rep count; otherwise `planned_reps = 3`. Never keep a
+hidden 3–5 range.
+
 ### 3.6 What ends a session, and what starts a new one
 
 A "session" is a training run, not a chat window. Several sessions may occur in one conversation.
 
-**A session ends when** its terminal report has been delivered — Feedback, Incomplete Case
-Feedback, or Session Review — or when the user says they are done with it.
+**A session reaches its terminal boundary when:**
+
+- **Full Case:** the Final Recommendation / Final Synthesis is complete, or the user explicitly
+  ends the case. Generate the report; do not start a second case.
+- **Focused Drill:** all planned reps are complete; the user chooses End & Review between reps; or
+  the user aborts a started rep. Each path generates a report (§5.5).
+- **Beginner Curriculum:** the current agreed lesson ends or the user chooses to stop.
+
+The session is complete after its terminal report has been delivered — Feedback, Incomplete Case
+Feedback, or Session Review. Report generation is part of the boundary, not an optional follow-up.
 
 **A new session begins when** the user asks for another round after a terminal report, or
 explicitly asks to start over. At that point everything resets and is chosen again: mode, state,
@@ -403,6 +473,40 @@ Never declare mid-Tutorial that the session is now Interview Mode, and never iss
 No Hire from a Tutorial session (unless the user explicitly asks for a rough benchmark, which is
 labelled as an estimate — `evaluation-rubric.md` §9.2).
 
+### 5.5 Focused Drill boundaries
+
+Focused Drill is a multi-rep Tutorial Session Kind, not a synonym for Tutorial Mode. Track
+`planned_reps`, `current_rep`, `completed_reps` and each rep's status.
+
+A rep moves through these meanings:
+
+- **presented** — the prompt is visible, but the Candidate has not given a substantive answer;
+  it is not started, evaluated or negative evidence;
+- **started** — the Candidate has made a substantive attempt;
+- **completed** — the teaching loop and generalisation for that rep are complete;
+- **aborted** — a started rep was stopped mid-way.
+
+After every completed rep below the plan, stop and say, for example:
+
+> **Rep 1 / 3 complete.** Continue to rep 2, or end the Focused Drill now and generate the report?
+
+Do not present the next rep until the user chooses Continue. If a next prompt has already been
+shown but the Candidate has not answered, an End & Review request treats it as **presented, not
+started**: exclude it from scores, mastery claims, mistakes and negative evidence.
+
+Terminal paths:
+
+| Path | Completion semantics | Report |
+|---|---|---|
+| All `planned_reps` completed | `complete`; `completed_as_planned` | Generate Tutorial HTML report |
+| User ends between reps | `complete`; `ended_early_between_reps` — a normal end, never Abort | Generate Tutorial HTML report from completed reps |
+| User stops a started rep | `aborted`; `aborted_mid_rep` | Generate incomplete Tutorial HTML report using only observed work |
+
+`scripts/session_policy.py` is the executable boundary oracle for these transitions. At a Full
+Case Final Synthesis it likewise requires the report and forbids auto-starting another case.
+If asked what kind of session this is, the rep number, remaining reps, report timing or whether the
+user may stop, answer from the stored state directly; never re-infer it from the topic.
+
 ---
 
 ## 6. Which files to read, and when
@@ -471,10 +575,14 @@ time, at the point in the case where it belongs.
 
 ## 10. Ending a session
 
-- **Interview Mode** → Feedback (complete case) or Incomplete Case Feedback (aborted). Say plainly
-  that the mock is over before delivering it. Content: `interview-mode.md` §8/§9.
-- **Tutorial Mode** → Session Review, separating assisted from independent performance.
-  Content: `tutorial-mode.md` §8.
+- **Interview Full Case** → Feedback (complete case) or Incomplete Case Feedback (aborted). Say
+  plainly that the mock is over before delivering it. Content: `interview-mode.md` §8/§9.
+- **Tutorial Full Case** → Session Review immediately after Final Synthesis or explicit end. Never
+  auto-start another case.
+- **Tutorial Focused Drill** → Session Review after all planned reps, a normal between-rep early
+  end, or a mid-rep abort. Record planned/completed reps and the ending reason; presented-only reps
+  are excluded from evaluation. Content: `tutorial-mode.md` §8.
+- **Beginner Curriculum** → Session Review when the agreed teaching session ends.
 - **Both: the report is delivered as a self-contained HTML file**, built from a structured Session
   Report object — `references/report-system.md`. The two modes share one visual system but render
   different sections and different evaluation semantics: an Interview report carries a score and a

@@ -206,6 +206,8 @@ leadership, regardless of where it ended up.
 **9. Priorities for your next mock** — 1–3 items, most valuable first, each with a concrete drill.
 
 Length: thorough but not padded. This is the deliverable of the session.
+After delivery, set the Session complete. Never open another case automatically; "another case"
+is a new Session and begins only after the user explicitly requests it.
 
 ---
 

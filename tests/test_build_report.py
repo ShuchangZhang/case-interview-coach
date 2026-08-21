@@ -376,7 +376,8 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
         self.assertIn("interview_format", shared)
         self.assertIn("session_kind", shared)
         for key in ("training_focus", "assistance_start", "assistance_end",
-                    "independence_marker"):
+                    "independence_marker", "planned_reps", "completed_reps",
+                    "session_end_reason"):
             self.assertIn(key, tutorial)
 
     def test_every_session_key_in_the_examples_is_classified(self):
@@ -404,6 +405,8 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
                 doc = self._doc("tutorial")
                 doc["session"]["session_kind"] = "full_case"
                 doc["session"]["interview_format"] = value
+                for key in ("planned_reps", "completed_reps", "session_end_reason"):
+                    doc["session"].pop(key, None)
                 build_report.validate(doc)
 
     def test_full_case_requires_format_in_both_modes(self):
@@ -447,6 +450,8 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
         doc["language"] = "zh"
         doc["session"]["session_kind"] = "full_case"
         doc["session"]["interview_format"] = "interviewer_led"
+        for key in ("planned_reps", "completed_reps", "session_end_reason"):
+            doc["session"].pop(key, None)
         build_report.validate(doc)
         page = build_report.build(doc)
         self.assertIn("推进方式", page)
@@ -471,6 +476,76 @@ class ModeSpecificSessionFieldTests(unittest.TestCase):
     def test_valid_examples_keep_their_own_mode_fields(self):
         build_report.validate(self._doc("interview"))   # has interview_format
         build_report.validate(self._doc("tutorial"))    # has training_focus etc.
+
+
+class FocusedDrillMetadataTests(unittest.TestCase):
+    """Rep progress and normal early endings render without leaking enums."""
+
+    @staticmethod
+    def _doc(language="en"):
+        name = "tutorial-report.zh-CN.json" if language == "zh" else "tutorial-report.json"
+        with open(os.path.join(EXAMPLES, name), encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_focused_drill_progress_renders_in_natural_english(self):
+        doc = self._doc()
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        for text in ("Training format", "Focused drill", "Drill progress",
+                     "4 of 4 reps completed", "Completed as planned"):
+            self.assertIn(text, page)
+        self.assertNotIn("completed_as_planned", page)
+
+    def test_focused_drill_progress_renders_in_natural_chinese(self):
+        doc = self._doc("zh")
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        for text in ("训练方式", "专项练习", "练习进度",
+                     "计划 4 题 · 完成 4 题", "按计划完成"):
+            self.assertIn(text, page)
+        self.assertNotIn("focused_drill", page)
+
+    def test_between_rep_early_end_is_complete_not_aborted(self):
+        doc = self._doc()
+        doc["session"].update({
+            "completion": "complete",
+            "completed_reps": 1,
+            "session_end_reason": "ended_early_between_reps",
+        })
+        build_report.validate(doc)
+        page = build_report.build(doc)
+        self.assertIn("1 of 4 reps completed", page)
+        self.assertIn("Ended normally between reps", page)
+        self.assertNotIn("Not completed — ended early", page)
+
+    def test_mid_rep_abort_requires_aborted_completion(self):
+        doc = self._doc()
+        doc["session"].update({
+            "completion": "aborted",
+            "completed_reps": 1,
+            "session_end_reason": "aborted_mid_rep",
+        })
+        build_report.validate(doc)
+        doc["session"]["completion"] = "complete"
+        with self.assertRaises(build_report.ValidationError):
+            build_report.validate(doc)
+
+    def test_progress_fields_are_all_or_nothing(self):
+        for missing in ("planned_reps", "completed_reps", "session_end_reason"):
+            with self.subTest(missing=missing):
+                doc = self._doc()
+                doc["session"].pop(missing)
+                with self.assertRaises(build_report.ValidationError) as cm:
+                    build_report.validate(doc)
+                self.assertIn("drill metadata", str(cm.exception))
+
+    def test_full_case_rejects_drill_progress(self):
+        doc = self._doc()
+        doc["session"]["session_kind"] = "full_case"
+        doc["session"]["interview_format"] = "interviewer_led"
+        with self.assertRaises(build_report.ValidationError) as cm:
+            build_report.validate(doc)
+        self.assertIn("drill metadata", str(cm.exception))
 
 
 class PromptTranscriptTests(unittest.TestCase):
@@ -653,7 +728,7 @@ class ReportLanguageTests(unittest.TestCase):
 
     def test_chinese_analysis_prose_is_chinese(self):
         """Outside the verbatim transcript, only agreed loanwords may remain."""
-        allowed = {"Case Interview", "Hire"}   # report title; verdict, glossed in place
+        allowed = {"Case Interview", "Case", "Hire"}  # product terms; verdict glossed in place
         for name in ("tutorial-report.zh-CN.html", "interview-report.zh-CN.html"):
             path = os.path.join(EXAMPLES, "generated", name)
             text = self.visible(path, drop_transcript=True)

@@ -125,6 +125,9 @@
     "difficulty": "入门",
     "training_focus": "搭结构 + 基础计算",
     "completion": "complete",
+    "planned_reps": 4,
+    "completed_reps": 4,
+    "session_end_reason": "completed_as_planned",
     "assistance_start": "guided",
     "assistance_end": "independent",
     "independence_marker": {

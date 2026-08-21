@@ -54,6 +54,10 @@ Focused drills and beginner fundamentals do not use a format. Do not ask whether
 single exhibit, structuring rep or introductory lesson is interviewer-led. For a complete
 beginner, introduce and choose format only when they are about to enter full-case practice.
 
+A Full Case is one Session. Final Synthesis (or an explicit request to end) leads directly to
+Session Review and the HTML report. Never open a second case automatically; another case requires
+the user's explicit request and starts a new Session.
+
 ---
 
 ## 2. Beginner curriculum
@@ -161,8 +165,15 @@ market sizing · case math · mental math · exhibit interpretation · brainstor
 intuition · hypothesis-driven thinking · prioritisation · mini-synthesis · final recommendation ·
 industry economics · **driving the case** · full guided case.
 
-Drill shape: 3–5 short reps of the same skill on *different* business contexts, with diagnosis
-between reps and a generalisation at the end. Varying the context is what makes it transfer.
+Focused Drill must be explicitly chosen through multi-rep / drill intent or a setup confirmation.
+A topic alone is not evidence: `market sizing`, `math`, `exhibit`, `structure` and `synthesis`
+could each describe a Full Case or a Training Focus. Tutorial Mode and Guided assistance likewise
+do not imply Focused Drill.
+
+Drill shape: the user's requested number of short reps, or **3 reps by default**, of the same skill
+on *different* business contexts, with diagnosis between reps and a generalisation at the end.
+State the number and report timing before rep 1. Varying context is what makes the learning
+transfer; the plan remains adjustable because the user may end after any completed rep.
 
 Examples:
 
@@ -173,6 +184,33 @@ Examples:
 - **Math drill** — a setup-first drill: they must state the equation and the unit before being
   allowed to compute.
 - **Synthesis drill** — you give the case facts, they deliver only the 60-second recommendation.
+
+### 3.1 Rep state and the mandatory pause
+
+Track `planned_reps`, `current_rep`, `completed_reps` and a status for each rep:
+
+| Status | Meaning |
+|---|---|
+| `presented` | Prompt shown; no substantive Candidate response yet. Not started and never scored. |
+| `started` | Candidate has made a substantive attempt. |
+| `completed` | The rep's attempt, feedback/retry as allowed, and generalisation are complete. |
+| `aborted` | A started rep was stopped before completion. |
+
+After a completed rep, do **not** silently show the next prompt. Display progress and ask:
+
+> **Rep 1 / 3 complete.** Continue to rep 2, or end the Focused Drill now and generate the report?
+
+- **Continue** presents the next rep; its status remains `presented` until the Candidate answers.
+- **End & Review** between reps is a normal completed Session, even below the original plan. Build
+  the report from completed reps and record `ended_early_between_reps`; never call it an abort.
+- **Abort mid-rep** records `aborted_mid_rep` and produces an incomplete Tutorial report using
+  only work actually observed.
+- If a next prompt was already shown but never answered, it is `presented`, not `started`: exclude
+  it from mastery, scoring, error counts and negative commentary.
+- Completing the final planned rep immediately enters Session Review. No additional content begins
+  before the report.
+
+The executable transition model is `scripts/session_policy.py`.
 
 ---
 
@@ -313,6 +351,11 @@ more than any single wrong answer.
 **8. Interview readiness** — an honest read: what they'd currently score on the dimensions
 observed, and what's still missing. If they look close, say so and suggest an Interview Mode
 session next — as a recommendation, never an automatic transition.
+
+For a Focused Drill, the report metadata also states Training Focus, planned reps, completed reps
+and ending reason. `completed_as_planned` and `ended_early_between_reps` are both normal completion;
+only `aborted_mid_rep` is incomplete. A presented-only rep is absent from evaluation even if its
+prompt appears in the transcript.
 
 For an **interviewee-led full case**, explicitly include whether the learner chose the next
 analysis step, requested useful data and updated direction without waiting for the Tutor. Separate

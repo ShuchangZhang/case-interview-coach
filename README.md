@@ -66,9 +66,9 @@ Learn more about [case generation](references/case-generation.md), the shared
 [evaluation rubric](references/evaluation-rubric.md), and the
 [report system](references/report-system.md).
 
-## Interview vs Tutorial
+## Modes and training formats
 
-These are two ways to use the same case-interview system:
+**Mode** answers *assessment or teaching?*
 
 | | Interview Mode | Tutorial Mode |
 |---|---|---|
@@ -76,8 +76,26 @@ These are two ways to use the same case-interview system:
 | During the case | No teaching feedback; minimal realistic interviewer help | Explanations, hints, diagnosis and retries as needed |
 | Review | Independent performance and interview-readiness diagnosis | Mastery, independence, hint dependence and next training plan |
 
-Full cases in either mode can be candidate-led or interviewer/tutor-led. Focused Tutorial drills
-skip this choice when progression format has no practical meaning.
+**Training format** answers *what shape does this session take?*
+
+| Training format | What one session contains | When the HTML report is generated |
+|---|---|---|
+| **Full Case** | One case from prompt through final synthesis | When that case finishes; another case is a new session |
+| **Focused Drill** | Several short reps of one skill; 3 by default | When all reps finish, or when you choose to end after any completed rep |
+| **Beginner Lesson** | A teaching module for a foundational concept | When the agreed lesson ends |
+
+Tutorial Mode is not the same as a Focused Drill: Tutorial can run a Full Case or a drill.
+Likewise, “Market Sizing” names a topic or Case Type, not the session format. If you only say you
+want to practise a topic, the skill asks which format you want. During a drill it shows progress
+after every rep and asks whether to continue; a next prompt that was shown but never answered is
+not evaluated.
+
+For example, “Run a guided China market-sizing Tutorial as one Full Case” produces its report
+after that case. “Give me 3 market-sizing drills” runs rep 1 → choice to continue or end → rep 2 →
+choice → rep 3 → one combined report.
+
+Full cases in either mode can be candidate-led or interviewer/tutor-led. Focused drills and
+beginner lessons skip this choice when progression format has no practical meaning.
 
 The mode remains fixed for a session so assisted and unassisted performance are not presented as
 equivalent. Detailed boundaries and session behaviour live in
@@ -101,18 +119,18 @@ start, so an existing session may not see a newly cloned skill.
 Ask in plain language, in English or Chinese:
 
 ```text
-Run an advanced profitability case as an interviewee-led formal mock.
+Run an advanced China market-entry case as an interviewee-led formal mock.
 
-Give me a consulting case interview in Interview Mode.
+Run a guided China market-sizing Tutorial as one Full Case.
 
 I'm new to case interviews—teach me from scratch.
 
-Tutorial Mode: five market-sizing drills.
+Give me 3 exhibit-interpretation drills in Tutorial Mode.
 
 Here's a casebook PDF—run case 3 as an interview.
 ```
 
-If your request does not make the training mode clear, the skill asks before the case starts.
+If Mode or training format is materially ambiguous, the skill asks before the case starts.
 
 ## Requirements and verification
 
@@ -149,9 +167,10 @@ than duplicating it here.
 python3 -m unittest discover -s tests -v
 ```
 
-The standard-library test suite runs in CI on Python 3.8 and 3.12. It covers both report modes,
-schema and guard-rail validation, HTML escaping, transcript evidence links, self-contained output,
-invalid-input failures and working-directory independence.
+The standard-library test suite runs in CI on Python 3.8 and 3.12. It covers Session-intent and
+report-trigger transitions, both report modes, schema and guard-rail validation, HTML escaping,
+transcript evidence links, self-contained output, invalid-input failures and working-directory
+independence.
 
 ## Privacy and data
 
@@ -237,9 +256,9 @@ HTML 源码；下载后在本地浏览器打开即可查看完整报告。
 [Evaluation rubric](references/evaluation-rubric.md) 和
 [Report system](references/report-system.md)。
 
-## Interview 与 Tutorial
+## Mode 与训练方式
 
-它们是使用同一套 Case Interview 系统的两种方式：
+**Mode** 回答的是：这次是正式测评，还是教学？
 
 | | Interview Mode | Tutorial Mode |
 |---|---|---|
@@ -247,8 +266,25 @@ HTML 源码；下载后在本地浏览器打开即可查看完整报告。
 | Case 过程中 | 不给教学反馈，只提供最低限度的真实 interviewer 帮助 | 按需要提供讲解、提示、诊断和重试 |
 | 复盘重点 | 独立表现和面试准备度诊断 | 掌握程度、独立程度、提示依赖和下一阶段计划 |
 
-两种 Mode 的完整 Case 都可以由 Candidate 主导或由 Interviewer／Tutor 主导；如果推进方式对 Tutorial
-专项训练没有实际意义，则跳过这项设置。
+**训练方式**回答的是：这次具体怎么练？
+
+| 训练方式 | 一次 Session 包含什么 | 什么时候生成 HTML 报告 |
+|---|---|---|
+| **完整 Case** | 从题目到 Final Synthesis 的一整套 Case | 当前 Case 完成时；下一套 Case 属于新 Session |
+| **专项练习（Focused Drill）** | 围绕一项能力连续做短题，默认 3 题 | 全部完成，或在任一题完成后主动结束时 |
+| **基础教学** | 面向新手的一个基础概念或教学模块 | 本次约定的教学结束时 |
+
+Tutorial Mode 不等于专项练习：Tutorial 既可以跑完整 Case，也可以做专项练习。`Market Sizing` 只说明
+题目或训练主题，不说明训练方式；如果只说“我想练 Market Sizing”，Skill 会先确认完整 Case 还是专项
+练习。专项练习每题结束后都会显示进度并询问继续还是结束；下一题即使已经显示，只要还没有回答，就
+不会被计入评价。
+
+例如，“给我一套中国市场的 Guided Market Sizing Tutorial Case”会在这套 Case 完成后生成报告；
+“给我做 3 道 Market Sizing 专项练习”则是第 1 题 → 选择继续或结束 → 第 2 题 → 选择 → 第 3 题 →
+一份综合报告。
+
+两种 Mode 的完整 Case 都可以由 Candidate 主导或由 Interviewer／Tutor 主导；专项练习和基础教学在
+推进方式没有实际意义时跳过这项设置。
 
 Mode 在一次 Session 中保持固定，避免把有辅助和无辅助的表现解释成同一件事。详细边界和 Session
 行为请查看 [`SKILL.md`](SKILL.md)、[Interview Mode](references/interview-mode.md) 和
@@ -271,18 +307,18 @@ git clone https://github.com/ShuchangZhang/case-interview-coach.git \
 直接用中文或英文描述你的训练目标：
 
 ```text
-给我做一次正式 Mock，interviewee-led，advanced profitability case。
+开始一场中国市场的 Market Entry 正式 Mock，由 Candidate 主导。
 
-来一场 Consulting Case Interview，使用 Interview Mode。
+给我一套中国市场的 Market Sizing Tutorial Case，Guided。
 
 我完全没接触过 Case Interview，请从头教我。
 
-Tutorial Mode，只练 Market Sizing，五道。
+给我做 3 道 Exhibit Interpretation 专项练习。
 
 我上传一份 Casebook PDF，请把第 3 题当作正式面试来跑。
 ```
 
-如果你的请求没有明确训练方式，Skill 会在 Case 开始前询问。
+如果 Mode 或训练方式仍有实质歧义，Skill 会在 Case 开始前询问。
 
 ## 环境要求与安装验证
 
@@ -316,9 +352,9 @@ python3 scripts/build_report.py examples/tutorial-report.json  -o tutorial-repor
 python3 -m unittest discover -s tests -v
 ```
 
-测试套件只使用 Python 标准库，CI 覆盖 Python 3.8 和 3.12。测试范围包括两种报告、schema 与
-guard-rail validation、HTML escaping、Transcript evidence link、自包含输出、非法输入失败，以及
-不依赖当前工作目录运行。
+测试套件只使用 Python 标准库，CI 覆盖 Python 3.8 和 3.12。测试范围包括 Session intent 与 Report
+trigger、两种报告、schema 与 guard-rail validation、HTML escaping、Transcript evidence link、
+自包含输出、非法输入失败，以及不依赖当前工作目录运行。
 
 ## 隐私与数据
 

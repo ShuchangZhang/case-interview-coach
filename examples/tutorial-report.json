@@ -122,6 +122,9 @@
     "difficulty": "Beginner",
     "training_focus": "Structuring + basic case math",
     "completion": "complete",
+    "planned_reps": 4,
+    "completed_reps": 4,
+    "session_end_reason": "completed_as_planned",
     "assistance_start": "guided",
     "assistance_end": "independent",
     "independence_marker": {

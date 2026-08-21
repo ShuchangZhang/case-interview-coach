@@ -65,6 +65,9 @@ L = {
         "case_type": "Case type", "industry": "Industry", "geography": "Geography",
         "difficulty": "Difficulty", "format": "Interview format",
         "tutorial_format": "Case progression", "focus": "Training focus",
+        "session_kind": "Training format", "drill_progress": "Drill progress",
+        "drill_progress_value": "{completed} of {planned} reps completed",
+        "ending_reason": "Session ending",
         "case_prompt": "Case Prompt", "session_summary": "Session Summary",
         "transcript": "Turn-by-turn review", "transcript_open": "Open full evidence record",
         "transcript_privacy": "This transcript contains the complete user-visible conversation from this training session. Review it before sharing the HTML publicly.",
@@ -137,6 +140,9 @@ L = {
         "case_type": "题目类型", "industry": "行业", "geography": "地区",
         "difficulty": "难度", "format": "面试形式",
         "tutorial_format": "推进方式", "focus": "训练重点",
+        "session_kind": "训练方式", "drill_progress": "练习进度",
+        "drill_progress_value": "计划 {planned} 题 · 完成 {completed} 题",
+        "ending_reason": "结束方式",
         "case_prompt": "本次题目", "session_summary": "本次总结",
         "transcript": "逐轮复盘", "transcript_open": "展开完整原始记录",
         "transcript_privacy": "以下是本次训练中全部你可见的对话原文。公开分享这份报告前，请先确认其中没有你不希望外传的内容。",
@@ -195,6 +201,8 @@ L = {
 MODES = ("interview", "tutorial")
 COMPLETIONS = ("complete", "aborted", "partial")
 SESSION_KINDS = ("full_case", "focused_drill", "beginner_curriculum")
+DRILL_END_REASONS = ("completed_as_planned", "ended_early_between_reps",
+                     "aborted_mid_rep")
 INTERVIEW_FORMATS = ("interviewee_led", "interviewer_led")
 INDEPENDENCE = ("guided", "assisted", "light", "independent")
 ASSIST_LEVELS = ("none", "light", "moderate", "substantial")
@@ -223,6 +231,22 @@ ASSIST_WORDS = {
            "light": "occasional nudge", "independent": "unaided"},
     "zh": {"guided": "先教后练", "assisted": "先自己做，卡住时给提示",
            "light": "偶尔点一下方向", "independent": "完全独立完成"},
+}
+
+SESSION_KIND_WORDS = {
+    "en": {"full_case": "Full case", "focused_drill": "Focused drill",
+           "beginner_curriculum": "Beginner lesson"},
+    "zh": {"full_case": "完整 Case", "focused_drill": "专项练习",
+           "beginner_curriculum": "基础教学"},
+}
+
+DRILL_END_WORDS = {
+    "en": {"completed_as_planned": "Completed as planned",
+           "ended_early_between_reps": "Ended normally between reps",
+           "aborted_mid_rep": "Stopped during a rep"},
+    "zh": {"completed_as_planned": "按计划完成",
+           "ended_early_between_reps": "题间正常结束",
+           "aborted_mid_rep": "题目进行中停止"},
 }
 
 # How much help a single answer needed. Ordered from most to least support.
@@ -336,7 +360,9 @@ def humanise(kind, value, lang):
     table = {"assist": ASSIST_WORDS, "hint": HINT_WORDS,
              "annotation": ANNOTATION_WORDS, "role": ROLE_WORDS,
              "tag": TAG_WORDS, "dimension": DIMENSION_WORDS,
-             "difficulty": DIFFICULTY_WORDS, "verdict": VERDICT_WORDS}[kind].get(lang, {})
+             "difficulty": DIFFICULTY_WORDS, "verdict": VERDICT_WORDS,
+             "session_kind": SESSION_KIND_WORDS,
+             "drill_end": DRILL_END_WORDS}[kind].get(lang, {})
     if kind == "hint":
         key = HINT_ALIASES.get(key, key)
     return table.get(key, str(value))
@@ -353,7 +379,8 @@ MODE_FIELDS = {
         "top": ("hints", "phases", "recurring_mistakes", "mastery",
                 "transferable_lessons"),
         "session": ("training_focus", "assistance_start", "assistance_end",
-                    "independence_marker"),
+                    "independence_marker", "planned_reps", "completed_reps",
+                    "session_end_reason"),
         "headline": ("benchmark_requested",),
     },
 }
@@ -525,6 +552,43 @@ def validate(d):
     if session_kind == "full_case" and not interview_format:
         _err("session.interview_format", interview_format,
              "interviewee_led or interviewer_led for a full case")
+
+    # Focused-drill progress is optional for older report objects, but once any
+    # boundary metadata is supplied it must be complete and internally honest.
+    drill_keys = ("planned_reps", "completed_reps", "session_end_reason")
+    drill_meta_present = any(key in session for key in drill_keys)
+    if drill_meta_present and session_kind != "focused_drill":
+        _err("session drill metadata", [key for key in drill_keys if key in session],
+             "absent unless session.session_kind is focused_drill")
+    if drill_meta_present:
+        missing_drill = [key for key in drill_keys if key not in session]
+        if missing_drill:
+            _err("session drill metadata", missing_drill,
+                 "planned_reps, completed_reps and session_end_reason together")
+        planned = session.get("planned_reps")
+        completed = session.get("completed_reps")
+        if isinstance(planned, bool) or not isinstance(planned, int) or planned < 1:
+            _err("session.planned_reps", planned, "a positive integer")
+        if (isinstance(completed, bool) or not isinstance(completed, int) or
+                completed < 0 or completed > planned):
+            _err("session.completed_reps", completed,
+                 "an integer from 0 through session.planned_reps")
+        end_reason = session.get("session_end_reason")
+        _check_enum(end_reason, DRILL_END_REASONS, "session.session_end_reason",
+                    optional=False)
+        end_reason = end_reason.strip().lower()
+        if end_reason == "completed_as_planned" and (
+                completion != "complete" or completed != planned):
+            _err("session.session_end_reason", end_reason,
+                 "completed_as_planned only when every planned rep is complete")
+        if end_reason == "ended_early_between_reps" and (
+                completion != "complete" or completed < 1 or completed >= planned):
+            _err("session.session_end_reason", end_reason,
+                 "a normal complete session with 1..planned_reps-1 completed reps")
+        if end_reason == "aborted_mid_rep" and (
+                completion != "aborted" or completed >= planned):
+            _err("session.session_end_reason", end_reason,
+                 "an aborted session with fewer completed than planned reps")
 
     for key in ("assistance_start", "assistance_end"):
         _check_enum(session.get(key), INDEPENDENCE, "session." + key)
@@ -1286,7 +1350,8 @@ def build(d):
     if completion == "aborted" and s.get("aborted_at_stage"):
         badge_txt = f'{badge_txt} · {s["aborted_at_stage"]}'
 
-    pairs = [(t["case_type"], s.get("case_type")), (t["industry"], s.get("industry")),
+    pairs = [(t["session_kind"], humanise("session_kind", s.get("session_kind"), lang)),
+             (t["case_type"], s.get("case_type")), (t["industry"], s.get("industry")),
              (t["geography"], s.get("geography")), (t["difficulty"], humanise("difficulty", s.get("difficulty"), lang))]
     fmt = s.get("interview_format")
     if fmt:
@@ -1297,6 +1362,11 @@ def build(d):
         pairs += [(t["focus"], s.get("training_focus")),
                   (t["assist_start"], humanise("assist", s.get("assistance_start"), lang)),
                   (t["assist_end"], humanise("assist", s.get("assistance_end"), lang))]
+        if s.get("session_kind") == "focused_drill" and "planned_reps" in s:
+            pairs += [(t["drill_progress"], t["drill_progress_value"].format(
+                          planned=s.get("planned_reps"), completed=s.get("completed_reps"))),
+                      (t["ending_reason"], humanise(
+                          "drill_end", s.get("session_end_reason"), lang))]
     else:
         pairs += [(t["assistance"], t["assist_lv"].get(
                       str((d.get("assistance") or {}).get("level")).lower(),
